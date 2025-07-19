@@ -119,10 +119,14 @@ const TestimonialsSection = () => {
     return testimonials.slice(startIndex, startIndex + itemsPerPage);
   };
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   useEffect(() => {
-    const timer = setInterval(nextPage, 3000);
+    if (isModalOpen) return; // Don't auto-advance when modal is open
+    
+    const timer = setInterval(nextPage, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isModalOpen]);
 
   useEffect(() => {
     setTestimonialLanguage(language.startsWith('en') ? 'en' : 'pt');
@@ -152,7 +156,11 @@ const TestimonialsSection = () => {
             {getCurrentTestimonials().map((testimonial) => (
               <div 
                 key={testimonial.id}
-                className="bg-card border border-border rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-card border border-border rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+                onClick={() => {
+                  setSelectedTestimonial(testimonial);
+                  setIsModalOpen(true);
+                }}
               >
                 <div className="flex items-center mb-4">
                   <img 
@@ -170,99 +178,91 @@ const TestimonialsSection = () => {
                   {renderStars(testimonial.rating)}
                 </div>
 
-                <p className="text-muted-foreground mb-4 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed">
                   {testimonial.shortFeedback[testimonialLanguage]}
                 </p>
-
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setSelectedTestimonial(testimonial)}
-                      className="w-full"
-                    >
-                      {t('testimonials.viewMore')}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl">
-                    <DialogHeader>
-                      <DialogTitle className="flex items-center gap-4">
-                        <img 
-                          src={testimonial.avatar}
-                          alt={testimonial.name}
-                          className="w-16 h-16 rounded-full object-cover"
-                        />
-                        <div>
-                          <h3 className="text-xl font-bold">{testimonial.name}</h3>
-                          <div className="flex items-center gap-2">
-                            {renderStars(testimonial.rating)}
-                            <span className="text-sm text-muted-foreground">• {testimonial.timeAgo}</span>
-                          </div>
-                        </div>
-                      </DialogTitle>
-                    </DialogHeader>
-                    
-                    <div className="space-y-4">
-                      <div className="flex gap-2">
-                        <Button 
-                          variant={testimonialLanguage === 'pt' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setTestimonialLanguage('pt')}
-                        >
-                          {t('testimonials.portuguese')}
-                        </Button>
-                        <Button 
-                          variant={testimonialLanguage === 'en' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setTestimonialLanguage('en')}
-                        >
-                          {t('testimonials.english')}
-                        </Button>
-                      </div>
-                      
-                      <p className="text-foreground leading-relaxed text-lg">
-                        {testimonial.fullFeedback[testimonialLanguage]}
-                      </p>
-                    </div>
-                  </DialogContent>
-                </Dialog>
               </div>
             ))}
           </div>
 
-          {/* Navigation */}
-          <div className="flex items-center justify-center gap-4">
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={prevPage}
-              className="rounded-full p-2"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
+          {selectedTestimonial && (
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-4">
+                    <img 
+                      src={selectedTestimonial.avatar}
+                      alt={selectedTestimonial.name}
+                      className="w-16 h-16 rounded-full object-cover"
+                    />
+                    <div>
+                      <h3 className="text-xl font-bold">{selectedTestimonial.name}</h3>
+                      <div className="flex items-center gap-2">
+                        {renderStars(selectedTestimonial.rating)}
+                        <span className="text-sm text-muted-foreground">• {selectedTestimonial.timeAgo}</span>
+                      </div>
+                    </div>
+                  </DialogTitle>
+                </DialogHeader>
+                
+                <div className="space-y-4">
+                  <div className="flex gap-2">
+                    <Button 
+                      variant={testimonialLanguage === 'pt' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setTestimonialLanguage('pt')}
+                    >
+                      {t('testimonials.portuguese')}
+                    </Button>
+                    <Button 
+                      variant={testimonialLanguage === 'en' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setTestimonialLanguage('en')}
+                    >
+                      {t('testimonials.english')}
+                    </Button>
+                  </div>
+                  
+                  <p className="text-foreground leading-relaxed text-lg">
+                    {selectedTestimonial.fullFeedback[testimonialLanguage]}
+                  </p>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
 
-            <div className="flex gap-2">
-              {Array.from({ length: totalPages }, (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentPage(i)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    i === currentPage ? 'bg-primary' : 'bg-muted'
-                  }`}
-                />
-              ))}
-            </div>
+        {/* Navigation */}
+        <div className="flex items-center justify-center gap-4 mt-8">
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={prevPage}
+            className="rounded-full p-2"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
 
-            <Button 
-              variant="outline"
-              size="sm"
-              onClick={nextPage}
-              className="rounded-full p-2"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </Button>
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrentPage(i)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  i === currentPage ? 'bg-primary' : 'bg-muted'
+                }`}
+              />
+            ))}
           </div>
+
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={nextPage}
+            className="rounded-full p-2"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
         </div>
       </div>
     </section>

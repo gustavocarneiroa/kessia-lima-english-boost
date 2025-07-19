@@ -2,6 +2,7 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import Header from '@/components/Header';
 import HeroCarousel from '@/components/HeroCarousel';
 import CTASection from '@/components/CTASection';
+import AboutSection from '@/components/AboutSection';
 import ServicesSection from '@/components/ServicesSection';
 import FAQSection from '@/components/FAQSection';
 import TestimonialsSection from '@/components/TestimonialsSection';
@@ -18,7 +19,12 @@ const Index = () => {
             <HeroCarousel />
           </section>
           <CTASection />
-          <ServicesSection />
+          <section id="about">
+            <AboutSection />
+          </section>
+          <section id="services">
+            <ServicesSection />
+          </section>
           <FAQSection />
           <TestimonialsSection />
         </main>

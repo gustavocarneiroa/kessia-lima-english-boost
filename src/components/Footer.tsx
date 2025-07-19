@@ -6,12 +6,12 @@ import logo from '@/assets/logo.png';
 const Footer = () => {
   const { t } = useLanguage();
 
-  const whatsappNumber = "5585997362806";
+  const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLScJP5G5kG3TrRc8YU_1hrSLvFf4TVUtI0ezkwjPzZhaqmLL_g/viewform";
   const instagramHandle = "teacherkessialima";
-  const linkedinHandle = "teacherkessialima"; // You can update this with the actual LinkedIn handle
+  const linkedinHandle = "kessialima";
 
-  const handleWhatsAppClick = () => {
-    window.open(`https://wa.me/${whatsappNumber}`, '_blank');
+  const handleFormClick = () => {
+    window.open(formUrl, '_blank');
   };
 
   const handleInstagramClick = () => {
@@ -19,7 +19,7 @@ const Footer = () => {
   };
 
   const handleLinkedInClick = () => {
-    window.open(`https://linkedin.com/in/${linkedinHandle}`, '_blank');
+    window.open(`https://br.linkedin.com/in/${linkedinHandle}`, '_blank');
   };
 
   return (
@@ -61,7 +61,7 @@ const Footer = () => {
 
             {/* Contact Button */}
             <Button
-              onClick={handleWhatsAppClick}
+              onClick={handleFormClick}
               className="bg-white text-primary hover:bg-white/90 px-6 py-3 rounded-full font-semibold"
             >
               {t('footer.contact')}
@@ -72,7 +72,7 @@ const Footer = () => {
         {/* Copyright */}
         <div className="border-t border-white/20 mt-8 pt-8 text-center">
           <p className="text-sm opacity-75">
-            © 2024 Teacher Késsia Lima. Todos os direitos reservados.
+            © {new Date().getFullYear()} Teacher Késsia Lima. Todos os direitos reservados.
           </p>
         </div>
       </div>

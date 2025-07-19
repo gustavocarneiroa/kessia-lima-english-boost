@@ -26,8 +26,10 @@ const translations = {
     'hero.button2': 'Iniciar teste',
     
     // CTA Section
-    'cta.title': 'Leve seu inglês para outro nível! Eu posso te ajudar!',
-    'cta.button': 'Quero aprender inglês',
+      'cta.title': 'Leve seu inglês para outro nível! Eu posso te ajudar!',
+      'cta.button': 'Quero aprender inglês',
+      'about.title': 'Quem sou',
+      'about.description': 'Késsia Lima é uma English Teacher desde 2013 onde começou a ensinar em uma escola de cursos profissionalizantes. Desde então ela ensina alunos de todas as idades de forma remota. Apaixonada por Inglês desde a sua infância, Késsia sempre teve contato com o idioma através de músicas, séries e filmes. Em 2018 criou um perfil no instagram para compartilhar apenas dicas de Inglês, mas atualmente usa o perfil para mostrar sua rotina de preparação de aulas personalizadas e seus posts sobre como aprender Inglês de verdade.',
     
     // Services
     'services.title': 'O que ofereço?',
@@ -61,7 +63,7 @@ const translations = {
     'testimonials.english': 'English',
     
     // Footer
-    'footer.followUs': 'Siga-nos',
+    'footer.followUs': 'Me siga',
     'footer.contact': 'Fale comigo'
   },
   
@@ -80,8 +82,10 @@ const translations = {
     'hero.button2': 'Start test',
     
     // CTA Section
-    'cta.title': 'Take your English to the next level! I can help you!',
-    'cta.button': 'I want to learn English',
+      'cta.title': 'Take your English to the next level! I can help you!',
+      'cta.button': 'I want to learn English',
+      'about.title': 'Who I am',
+      'about.description': 'Késsia Lima has been an English Teacher since 2013 when she started teaching at a vocational school. Since then she has been teaching students of all ages remotely. Passionate about English since childhood, Késsia has always had contact with the language through music, series and movies. In 2018 she created an Instagram profile to share only English tips, but currently uses the profile to show her routine of preparing personalized classes and her posts about how to really learn English.',
     
     // Services
     'services.title': 'What do I offer?',
@@ -115,7 +119,7 @@ const translations = {
     'testimonials.english': 'English',
     
     // Footer
-    'footer.followUs': 'Follow us',
+    'footer.followUs': 'Follow me',
     'footer.contact': 'Talk to me'
   },
   
@@ -136,6 +140,8 @@ const translations = {
     // CTA Section
     'cta.title': 'Elevate your English proficiency to the next level! I\'m here to guide you through this journey!',
     'cta.button': 'I want to learn English',
+    'about.title': 'Who I am',
+    'about.description': 'Késsia Lima has been an English Teacher since 2013 when she started teaching at a vocational school. Since then she has been teaching students of all ages remotely. Passionate about English since childhood, Késsia has always had contact with the language through music, series and movies. In 2018 she created an Instagram profile to share only English tips, but currently uses the profile to show her routine of preparing personalized classes and her posts about how to really learn English.',
     
     // Services
     'services.title': 'What do I offer?',
@@ -169,7 +175,7 @@ const translations = {
     'testimonials.english': 'English',
     
     // Footer
-    'footer.followUs': 'Follow us',
+    'footer.followUs': 'Follow me',
     'footer.contact': 'Contact me'
   }
 };

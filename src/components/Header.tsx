@@ -120,12 +120,12 @@ const Header = () => {
                   </SelectContent>
                 </Select>
                 
-                <div className="flex space-x-2">
-                  <Button variant="ghost" size="sm" onClick={handleInstagramClick} className="flex-1">
+                <div className="flex flex-col space-y-2">
+                  <Button variant="ghost" size="sm" onClick={handleInstagramClick} className="w-full">
                     <Instagram className="h-5 w-5 mr-2" />
                     Instagram
                   </Button>
-                  <Button onClick={handleWhatsAppClick} className="flex-1">
+                  <Button onClick={handleWhatsAppClick} className="w-full">
                     {t('header.talkToMe')}
                   </Button>
                 </div>

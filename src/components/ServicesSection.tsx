@@ -46,17 +46,17 @@ const ServicesSection = () => {
               className="group bg-card border border-border rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
             >
               {/* Image with fade overlay */}
-              <div className="relative h-48 overflow-hidden">
+              <div className="relative h-56 overflow-hidden">
                 <img 
                   src={service.image}
                   alt={service.title}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
                 {/* Fade overlay */}
-                <div className="absolute inset-0 fade-overlay"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
                 
                 {/* Title over image */}
-                <div className="absolute bottom-4 left-4 right-4">
+                <div className="absolute bottom-6 left-6 right-6">
                   <h3 className="text-xl font-bold text-white leading-tight">
                     {service.title}
                   </h3>
@@ -64,8 +64,8 @@ const ServicesSection = () => {
               </div>
 
               {/* Description */}
-              <div className="p-6">
-                <p className="text-muted-foreground leading-relaxed">
+              <div className="p-6 bg-foreground">
+                <p className="text-background leading-relaxed">
                   {service.description}
                 </p>
               </div>

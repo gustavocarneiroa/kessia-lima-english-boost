@@ -9,10 +9,10 @@ const HeroCarousel = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const { t } = useLanguage();
 
-  const whatsappNumber = "5585997362806";
+  const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLScJP5G5kG3TrRc8YU_1hrSLvFf4TVUtI0ezkwjPzZhaqmLL_g/viewform";
 
-  const handleWhatsAppClick = () => {
-    window.open(`https://wa.me/${whatsappNumber}`, '_blank');
+  const handleFormClick = () => {
+    window.open(formUrl, '_blank');
   };
 
   const slides = [
@@ -20,13 +20,13 @@ const HeroCarousel = () => {
       title: t('hero.title1'),
       buttonText: t('hero.button1'),
       image: teacherHero1,
-      action: handleWhatsAppClick
+      action: handleFormClick
     },
     {
       title: t('hero.title2'),
       buttonText: t('hero.button2'),
       image: teacherHero2,
-      action: handleWhatsAppClick
+      action: handleFormClick
     }
   ];
 
@@ -65,7 +65,7 @@ const HeroCarousel = () => {
                   <Button 
                     size="lg" 
                     onClick={slide.action}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                   >
                     {slide.buttonText}
                   </Button>

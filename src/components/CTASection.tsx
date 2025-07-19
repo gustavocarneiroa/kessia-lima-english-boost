@@ -3,10 +3,10 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 const CTASection = () => {
   const { t } = useLanguage();
-  const whatsappNumber = "5585997362806";
+  const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLScJP5G5kG3TrRc8YU_1hrSLvFf4TVUtI0ezkwjPzZhaqmLL_g/viewform";
 
-  const handleWhatsAppClick = () => {
-    window.open(`https://wa.me/${whatsappNumber}`, '_blank');
+  const handleFormClick = () => {
+    window.open(formUrl, '_blank');
   };
 
   return (
@@ -21,14 +21,14 @@ const CTASection = () => {
       
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="glow-border bg-background/10 backdrop-blur-sm rounded-3xl p-12 pulse-subtle">
+          <div className="bg-background/10 backdrop-blur-sm rounded-3xl p-12 pulse-subtle border-2 border-white/20">
             <h2 className="text-3xl lg:text-5xl font-bold text-white mb-8 leading-tight">
               {t('cta.title')}
             </h2>
             
             <Button 
               size="lg"
-              onClick={handleWhatsAppClick}
+              onClick={handleFormClick}
               className="bg-white text-primary hover:bg-white/90 px-12 py-4 text-xl rounded-full shadow-2xl hover:shadow-white/20 hover:scale-105 transition-all duration-300 font-semibold"
             >
               {t('cta.button')}
