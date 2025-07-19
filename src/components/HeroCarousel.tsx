@@ -59,7 +59,7 @@ const HeroCarousel = () => {
               <div className="flex flex-col lg:flex-row items-center gap-12">
                 {/* Text Content */}
                 <div className="flex-1 text-center lg:text-left">
-                  <h1 className="text-4xl lg:text-6xl font-bold text-primary mb-8 leading-tight">
+                  <h1 className="text-4xl lg:text-6xl font-bold text-foreground mb-8 leading-tight">
                     {slide.title}
                   </h1>
                   <Button 

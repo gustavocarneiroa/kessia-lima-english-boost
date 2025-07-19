@@ -43,17 +43,17 @@ const ServicesSection = () => {
           {services.map((service, index) => (
             <div 
               key={index}
-              className="group bg-card border border-border rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2"
+              className="group border border-border rounded-2xl overflow-hidden shadow-lg transition-all duration-300 bg-black"
             >
               {/* Image with fade overlay */}
-              <div className="relative h-56 overflow-hidden">
+              <div className="relative h-56 overflow-hidden bg-black">
                 <img 
                   src={service.image}
                   alt={service.title}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 bg-black"
                 />
                 {/* Fade overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/100 via-black/30 to-transparent"></div>
                 
                 {/* Title over image */}
                 <div className="absolute bottom-6 left-6 right-6">
@@ -64,7 +64,7 @@ const ServicesSection = () => {
               </div>
 
               {/* Description */}
-              <div className="p-6 bg-foreground">
+              <div className="p-6 bg-black">
                 <p className="text-background leading-relaxed">
                   {service.description}
                 </p>

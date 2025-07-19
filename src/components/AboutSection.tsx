@@ -21,7 +21,7 @@ const AboutSection = () => {
                   alt="Teacher Késsia Lima" 
                   className="w-80 h-80 object-cover rounded-full shadow-2xl"
                 />
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20"></div>
+                <div className="absolute inset-0 rounded-full"></div>
               </div>
             </div>
             
