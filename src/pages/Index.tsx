@@ -1,6 +1,6 @@
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import Header from '@/components/Header';
-import HeroCarousel from '@/components/HeroCarousel';
+import HeroBanner from '@/components/HeroBanner';
 import CTASection from '@/components/CTASection';
 import AboutSection from '@/components/AboutSection';
 import ServicesSection from '@/components/ServicesSection';
@@ -16,7 +16,7 @@ const Index = () => {
         <Header />
         <main>
           <section id="home">
-            <HeroCarousel />
+            <HeroBanner />
           </section>
           <CTASection />
           <section id="about">
