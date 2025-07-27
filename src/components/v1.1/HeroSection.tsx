@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
-import teacherKessia from '@/assets/teacher-kessia.png';
+import teacherKessia from '@/assets/teacker-kessia-2.png';
 
 const HeroSection = () => {
   const { t } = useLanguage();
@@ -19,7 +19,7 @@ const HeroSection = () => {
         <div className="flex-1 flex items-center justify-center px-8 lg:px-16">
           <div className="max-w-xl">
             <h1 className="text-5xl lg:text-6xl font-bold text-foreground mb-6">
-              Teacher Késsia Lima
+              Teacher Késsia
             </h1>
             <h2 className="text-2xl lg:text-3xl font-semibold text-primary mb-6">
               Para você aprender inglês de uma vez por todas!
@@ -47,7 +47,7 @@ const HeroSection = () => {
         <div className="flex-1 flex items-center justify-center">
           <img 
             src={teacherKessia} 
-            alt="Teacher Késsia Lima" 
+            alt="Teacher Késsia" 
             className="max-h-full w-auto object-contain"
           />
         </div>
@@ -57,14 +57,14 @@ const HeroSection = () => {
       <div className="md:hidden px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-6">
-            Teacher Késsia Lima
+            Teacher Késsia
           </h1>
         </div>
 
         <div className="flex justify-center mb-8">
           <img 
             src={teacherKessia} 
-            alt="Teacher Késsia Lima" 
+            alt="Teacher Késsia" 
             className="max-w-full h-auto object-contain"
           />
         </div>
