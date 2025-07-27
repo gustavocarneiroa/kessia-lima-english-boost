@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Clock } from 'lucide-react';
 import teacherKessia from '@/assets/teacker-kessia-2.png';
 
 const HeroSection = () => {
@@ -14,37 +15,38 @@ const HeroSection = () => {
   return (
     <section className="min-h-screen bg-background">
       {/* Desktop Layout */}
-      <div className="hidden md:flex h-screen">
+      <div className="hidden md:flex h-screen items-center px-4">
         {/* Left Content */}
-        <div className="flex-1 flex items-center justify-center px-8 lg:px-16">
-          <div className="max-w-xl">
-            <h1 className="text-5xl lg:text-6xl font-bold text-foreground mb-6">
+        <div className="flex-1 flex items-center justify-end pr-8">
+          <div className="max-w-2xl">
+            <h1 className="text-6xl lg:text-7xl font-bold text-foreground mb-8 leading-tight">
               Teacher Késsia
             </h1>
-            <h2 className="text-2xl lg:text-3xl font-semibold text-primary mb-6">
+            <h2 className="text-3xl lg:text-4xl font-semibold text-primary mb-8 leading-tight">
               Para você aprender inglês de uma vez por todas!
             </h2>
-            <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+            <p className="text-xl lg:text-2xl text-muted-foreground mb-10 leading-relaxed">
               Com o nosso método único você estuda e aprende em um ambiente prático e dinâmico. 
               Estude inglês através de aulas online ao vivo e material de apoio físico.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 items-start">
+            <div className="flex flex-col gap-6 items-start">
               <Button 
                 size="lg" 
                 onClick={handleFormClick}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg rounded-full"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-5 text-xl rounded-full"
               >
                 Quero aprender inglês
               </Button>
-              <div className="bg-destructive text-destructive-foreground px-4 py-2 rounded-full text-sm font-semibold">
-                VAGAS LIMITADAS
+              <div className="flex items-center gap-2 text-orange-600">
+                <Clock className="h-5 w-5" />
+                <span className="text-lg font-medium">Vagas limitadas</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Right Image */}
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-start pl-8">
           <img 
             src={teacherKessia} 
             alt="Teacher Késsia" 
@@ -56,7 +58,7 @@ const HeroSection = () => {
       {/* Mobile Layout */}
       <div className="md:hidden px-4 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-6">
+          <h1 className="text-5xl font-bold text-foreground mb-6 leading-tight">
             Teacher Késsia
           </h1>
         </div>
@@ -70,14 +72,14 @@ const HeroSection = () => {
         </div>
 
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-primary mb-4">
+          <h2 className="text-2xl font-semibold text-primary mb-6 leading-tight">
             Para você aprender inglês de uma vez por todas!
           </h2>
-          <p className="text-base text-muted-foreground mb-6 leading-relaxed">
+          <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
             Com o nosso método único você estuda e aprende em um ambiente prático e dinâmico. 
             Estude inglês através de aulas online ao vivo e material de apoio físico.
           </p>
-          <div className="flex flex-col gap-4 items-center">
+          <div className="flex flex-col gap-6 items-center">
             <Button 
               size="lg" 
               onClick={handleFormClick}
@@ -85,8 +87,9 @@ const HeroSection = () => {
             >
               Quero aprender inglês
             </Button>
-            <div className="bg-destructive text-destructive-foreground px-4 py-2 rounded-full text-sm font-semibold">
-              VAGAS LIMITADAS
+            <div className="flex items-center gap-2 text-orange-600 justify-center">
+              <Clock className="h-4 w-4" />
+              <span className="text-base font-medium">Vagas limitadas</span>
             </div>
           </div>
         </div>
