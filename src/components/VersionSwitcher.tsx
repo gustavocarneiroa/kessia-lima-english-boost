@@ -5,7 +5,7 @@ const VersionSwitcher = () => {
   const { version, setVersion } = useVersion();
 
   return (
-    <div className="fixed top-4 left-4 z-50 bg-background border border-border rounded-lg p-2 shadow-lg">
+    <div className="fixed top-4 left-4 z-50 bg-background border border-border rounded-lg p-2 shadow-lg" style={{zIndex: 99999 }}>
       <div className="flex gap-2">
         <Button
           variant={version === '1.0' ? 'default' : 'outline'}
