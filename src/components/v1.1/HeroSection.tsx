@@ -23,7 +23,7 @@ const HeroSection = () => {
               Teacher Késsia Lima
             </h1>
             <h2 className="text-3xl lg:text-4xl font-semibold text-primary mb-8 leading-tight">
-              Para você aprender inglês de uma vez por todas!
+              Para você sair do inglês basicão!
             </h2>
             <p className="text-xl lg:text-2xl text-muted-foreground mb-10 leading-relaxed">
               Com o nosso método único você estuda e aprende em um ambiente prático e dinâmico. 
@@ -73,7 +73,7 @@ const HeroSection = () => {
 
         <div className="text-center">
           <h2 className="text-2xl font-semibold text-primary mb-6 leading-tight">
-            Para você aprender inglês de uma vez por todas!
+            Para você sair do inglês basicão!
           </h2>
           <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
             Com o nosso método único você estuda e aprende em um ambiente prático e dinâmico. 

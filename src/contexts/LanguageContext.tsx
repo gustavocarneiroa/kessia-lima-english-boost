@@ -29,7 +29,11 @@ const translations = {
       'cta.title': 'Leve seu inglês para outro nível! Eu posso te ajudar!',
       'cta.button': 'Quero aprender inglês',
       'about.title': 'Quem sou',
-      'about.description': 'Késsia Lima é uma English Teacher desde 2013 onde começou a ensinar em uma escola de cursos profissionalizantes. Desde então ela ensina alunos de todas as idades de forma remota. Apaixonada por Inglês desde a sua infância, Késsia sempre teve contato com o idioma através de músicas, séries e filmes. Em 2018 criou um perfil no instagram para compartilhar apenas dicas de Inglês, mas atualmente usa o perfil para mostrar sua rotina de preparação de aulas personalizadas e seus posts sobre como aprender Inglês de verdade.',
+      'about.description': `Hello! ✨ Eu sou a Teacher Késsia.
+Comecei a ensinar Inglês em 2013, em uma escola de cursos profissionalizantes. Desde então, já lecionei para turmas a partir dos 4 anos de idade, mas hoje meu foco é em adolescentes e adultos, especialmente aqueles que atuam ou desejam atuar na área de programação.
+Aprendi Inglês sozinha aos 12 anos, com a ajuda de músicas, filmes e séries. Aos 18, comecei um curso em uma escola de idiomas, onde estudei por 3 anos e aprofundei meus conhecimentos.
+Depois de 9 anos trabalhando em escolas tradicionais, senti que era hora de criar algo com a minha cara. Assim nasceu o Teacher Késsia Lima, um projeto feito para ajudar adultos a saírem do famoso “Inglês Basicão” e finalmente conseguirem se comunicar com confiança em entrevistas, viagens e no dia a dia.
+Minhas aulas são focadas em conversação, vocabulário útil para a vida real e situações práticas, com atividades personalizadas para cada objetivo, seja falar com naturalidade no trabalho, entender nativos com mais facilidade ou destravar de vez a fala. Tudo isso com uma abordagem leve, acessível e eficiente, mesmo para quem já tentou aprender antes e não conseguiu.`,
     
     // Services
     'services.title': 'O que ofereço?',

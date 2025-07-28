@@ -28,7 +28,7 @@ const AboutSection = () => {
             {/* Content */}
             <div className="flex-1 text-center lg:text-left">
               <div className="prose prose-lg max-w-none text-foreground">
-                <p className="text-lg leading-relaxed mb-6">
+                <p className="text-lg leading-relaxed whitespace-break-spaces text-justify mb-6" >
                   {t('about.description')}
                 </p>
               </div>
