@@ -13,25 +13,25 @@ import { Button } from '@/components/ui/button';
 const LanguageSwitcher = () => {
   const { language, setLanguage } = useLanguage();
   
-  return (
-    <div className="fixed top-4 right-4 z-50">
-      <div className="flex gap-2">
-        <Button
-          variant={language === 'pt' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setLanguage('pt')}
-        >
-          PT
-        </Button>
-        <Button
-          variant={language === 'en-basic' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setLanguage('en-basic')}
-        >
-          EN
-        </Button>
-      </div>
-    </div>
+  return (''
+    // <div className="fixed top-4 right-4 z-50">
+    //   <div className="flex gap-2">
+    //     <Button
+    //       variant={language === 'pt' ? 'default' : 'outline'}
+    //       size="sm"
+    //       onClick={() => setLanguage('pt')}
+    //     >
+    //       PT
+    //     </Button>
+    //     <Button
+    //       variant={language === 'en-basic' ? 'default' : 'outline'}
+    //       size="sm"
+    //       onClick={() => setLanguage('en-basic')}
+    //     >
+    //       EN
+    //     </Button>
+    //   </div>
+    // </div>
   );
 };
 
@@ -56,7 +56,7 @@ const IndexContent = () => {
         <section id="services">
           <ServicesSection />
         </section>
-        {showHidden && <FAQSection />}
+        <FAQSection />
         <TestimonialsSection />
       </main>
       <Footer />

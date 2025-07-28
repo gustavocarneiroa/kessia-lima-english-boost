@@ -20,7 +20,7 @@ const translations = {
     'header.talkToMe': 'Fale comigo',
     
     // Hero Section
-    'hero.title1': 'O que você alcançaria se saísse do INGLÊS BASICÃO?',
+    'hero.title1': 'O que você alcançaria se saísse do Inglês Basicão?',
     'hero.button1': 'Quero aprender inglês',
     'hero.title2': 'Faça nosso teste de nível online. É rápido e grátis, vamos começar?',
     'hero.button2': 'Iniciar teste',

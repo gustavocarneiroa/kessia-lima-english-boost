@@ -78,8 +78,6 @@ const TestimonialsSection = () => {
     }
   ]
 
-
-
   const itemsPerPage = 3;
   const totalPages = Math.ceil(testimonials.length / itemsPerPage);
 
@@ -184,7 +182,7 @@ const TestimonialsSection = () => {
                       !expandedCards.has(testimonial.id) ? 'line-clamp-3' : ''
                     }`}
                   >
-                    {testimonial.fullFeedback[testimonialLanguage]}
+                    {testimonial.fullFeedback[testimonialLanguage] ?? testimonial.fullFeedback['pt']}
                   </p>
                   {checkTextTruncation(testimonial.id) && (
                     <button
@@ -245,7 +243,7 @@ const TestimonialsSection = () => {
                   </div>
 
                   <p className="text-foreground leading-relaxed text-lg">
-                    {selectedTestimonial.fullFeedback[testimonialLanguage]}
+                    {selectedTestimonial.fullFeedback[testimonialLanguage] ?? selectedTestimonial.fullFeedback['pt']}
                   </p>
                 </div>
               </DialogContent>

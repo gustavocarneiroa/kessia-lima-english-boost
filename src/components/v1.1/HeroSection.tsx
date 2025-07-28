@@ -23,11 +23,11 @@ const HeroSection = () => {
               Teacher Késsia Lima
             </h1>
             <h2 className="text-3xl lg:text-4xl font-semibold text-primary mb-8 leading-tight">
-              Para você sair do inglês basicão!
+              Para você sair do Inglês Basicão!
             </h2>
             <p className="text-xl lg:text-2xl text-muted-foreground mb-10 leading-relaxed">
-              Com o nosso método único você estuda e aprende em um ambiente prático e dinâmico. 
-              Estude inglês através de aulas online ao vivo e material de apoio físico.
+              Aprender Inglês não precisa ser complicado. Com o acompanhamento certo e aulas que fazem sentido para sua rotina e seus objetivos, você finalmente vai conseguir sair do básico e se comunicar com confiança em situações reais.
+              Aqui, você estuda no seu ritmo, com apoio constante e conteúdos que vão direto ao ponto, seja para entrevistas, viagens ou o dia a dia.
             </p>
             <div className="flex flex-col gap-6 items-start">
               <Button 
@@ -73,11 +73,11 @@ const HeroSection = () => {
 
         <div className="text-center">
           <h2 className="text-2xl font-semibold text-primary mb-6 leading-tight">
-            Para você sair do inglês basicão!
+            Para você sair do Inglês Basicão!
           </h2>
           <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-            Com o nosso método único você estuda e aprende em um ambiente prático e dinâmico. 
-            Estude inglês através de aulas online ao vivo e material de apoio físico.
+            Aprender Inglês não precisa ser complicado. Com o acompanhamento certo e aulas que fazem sentido para sua rotina e seus objetivos, você finalmente vai conseguir sair do básico e se comunicar com confiança em situações reais.
+            Aqui, você estuda no seu ritmo, com apoio constante e conteúdos que vão direto ao ponto, seja para entrevistas, viagens ou o dia a dia.
           </p>
           <div className="flex flex-col gap-6 items-center">
             <Button 
