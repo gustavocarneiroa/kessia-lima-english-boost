@@ -57,7 +57,7 @@ const translations = {
     'faq.contact': 'Caso sua dúvida não esteja aqui, entre em contato conosco, teremos o maior prazer em respondê-la!',
     
     // Testimonials
-    'testimonials.title': 'O que dizem nossos alunos',
+    'testimonials.title': 'O que meus alunos dizem',
     'testimonials.viewMore': 'Ver feedback completo',
     'testimonials.portuguese': 'Português',
     'testimonials.english': 'English',
@@ -113,7 +113,7 @@ const translations = {
     'faq.contact': 'If your question is not here, contact us. We will be happy to answer it!',
     
     // Testimonials
-    'testimonials.title': 'What our students say',
+    'testimonials.title': 'What my students say',
     'testimonials.viewMore': 'View complete feedback',
     'testimonials.portuguese': 'Português',
     'testimonials.english': 'English',

@@ -1,5 +1,5 @@
 import { useLanguage } from '@/contexts/LanguageContext';
-import teacherKessia from '@/assets/teacher-kessia.png';
+import teacherKessia from '@/assets/teacher-kessia-3.jpeg';
 
 const AboutSection = () => {
   const { t } = useLanguage();

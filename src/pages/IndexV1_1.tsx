@@ -20,13 +20,11 @@ const IndexV1_1 = () => {
           <section id="about">
             <AboutSection />
           </section>
-          {showHidden && (
-            <section id="services">
-              <ServicesSection />
-            </section>
-          )}
+          <section id="services">
+            <ServicesSection />
+          </section>
           {showHidden && <FAQSection />}
-          {showHidden && <TestimonialsSection />}
+          <TestimonialsSection />
         </main>
         <Footer />
         <WhatsAppFloat />

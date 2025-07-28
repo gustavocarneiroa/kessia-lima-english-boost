@@ -20,7 +20,7 @@ const HeroSection = () => {
         <div className="flex-1 flex items-center justify-end pr-8">
           <div className="max-w-2xl">
             <h1 className="text-6xl lg:text-7xl font-bold text-foreground mb-8 leading-tight">
-              Teacher Késsia
+              Teacher Késsia Lima
             </h1>
             <h2 className="text-3xl lg:text-4xl font-semibold text-primary mb-8 leading-tight">
               Para você aprender inglês de uma vez por todas!
@@ -49,7 +49,7 @@ const HeroSection = () => {
         <div className="flex-1 flex items-center justify-start pl-8">
           <img 
             src={teacherKessia} 
-            alt="Teacher Késsia" 
+            alt="Teacher Késsia Lima" 
             className="max-h-full w-auto object-contain"
           />
         </div>
@@ -59,14 +59,14 @@ const HeroSection = () => {
       <div className="md:hidden px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold text-foreground mb-6 leading-tight">
-            Teacher Késsia
+            Teacher Késsia Lima
           </h1>
         </div>
 
         <div className="flex justify-center mb-8">
           <img 
             src={teacherKessia} 
-            alt="Teacher Késsia" 
+            alt="Teacher Késsia Lima" 
             className="max-w-full h-auto object-contain"
           />
         </div>
