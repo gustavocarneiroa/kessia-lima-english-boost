@@ -26,6 +26,14 @@ const FAQSection = () => {
     {
       question: t('faq.question5'),
       answer: t('faq.answer5')
+    },
+    {
+      question: t('faq.question6'),
+      answer: t('faq.answer6')
+    },
+    {
+      question: t('faq.question7'),
+      answer: t('faq.answer7')
     }
   ];
 

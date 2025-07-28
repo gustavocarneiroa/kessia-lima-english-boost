@@ -1,7 +1,5 @@
-import { LanguageProvider } from '@/contexts/LanguageContext';
-import { VersionProvider, useVersion } from '@/contexts/VersionContext';
-import Header from '@/components/Header';
-import HeroBanner from '@/components/HeroBanner';
+import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext';
+import HeroSection from '@/components/v1.1/HeroSection';
 import CTASection from '@/components/CTASection';
 import AboutSection from '@/components/AboutSection';
 import ServicesSection from '@/components/ServicesSection';
@@ -9,47 +7,69 @@ import FAQSection from '@/components/FAQSection';
 import TestimonialsSection from '@/components/TestimonialsSection';
 import Footer from '@/components/Footer';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
-import IndexV1_1 from '@/pages/IndexV1_1';
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+
+const LanguageSwitcher = () => {
+  const { language, setLanguage } = useLanguage();
+  
+  return (
+    <div className="fixed top-4 right-4 z-50">
+      <div className="flex gap-2">
+        <Button
+          variant={language === 'pt' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setLanguage('pt')}
+        >
+          PT
+        </Button>
+        <Button
+          variant={language === 'en-basic' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setLanguage('en-basic')}
+        >
+          EN
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 const IndexContent = () => {
-  const { version, showHidden } = useVersion();
+  const [showHidden, setShowHidden] = useState(false);
 
-  if (version === '1.1') {
-    return <IndexV1_1 />;
-  }
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const showHiddenParam = urlParams.get('showHidden');
+    setShowHidden(showHiddenParam === '1');
+  }, []);
 
   return (
-    <LanguageProvider>
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main>
-          <section id="home">
-            <HeroBanner />
-          </section>
-          <CTASection />
-          <section id="about">
-            <AboutSection />
-          </section>
-          {showHidden && (
-            <section id="services">
-              <ServicesSection />
-            </section>
-          )}
-          {showHidden && <FAQSection />}
-          {showHidden && <TestimonialsSection />}
-        </main>
-        <Footer />
-        <WhatsAppFloat />
-      </div>
-    </LanguageProvider>
+    <div className="min-h-screen bg-background">
+      <LanguageSwitcher />
+      <main>
+        <HeroSection />
+        <CTASection />
+        <section id="about">
+          <AboutSection />
+        </section>
+        <section id="services">
+          <ServicesSection />
+        </section>
+        {showHidden && <FAQSection />}
+        <TestimonialsSection />
+      </main>
+      <Footer />
+      <WhatsAppFloat />
+    </div>
   );
 };
 
 const Index = () => {
   return (
-    <VersionProvider>
+    <LanguageProvider>
       <IndexContent />
-    </VersionProvider>
+    </LanguageProvider>
   );
 };
 
