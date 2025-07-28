@@ -9,11 +9,10 @@ import FAQSection from '@/components/FAQSection';
 import TestimonialsSection from '@/components/TestimonialsSection';
 import Footer from '@/components/Footer';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
-import VersionSwitcher from '@/components/VersionSwitcher';
 import IndexV1_1 from '@/pages/IndexV1_1';
 
 const IndexContent = () => {
-  const { version } = useVersion();
+  const { version, showHidden } = useVersion();
 
   if (version === '1.1') {
     return <IndexV1_1 />;
@@ -31,11 +30,13 @@ const IndexContent = () => {
           <section id="about">
             <AboutSection />
           </section>
-          <section id="services">
-            <ServicesSection />
-          </section>
-          <FAQSection />
-          <TestimonialsSection />
+          {showHidden && (
+            <section id="services">
+              <ServicesSection />
+            </section>
+          )}
+          {showHidden && <FAQSection />}
+          {showHidden && <TestimonialsSection />}
         </main>
         <Footer />
         <WhatsAppFloat />
@@ -47,7 +48,6 @@ const IndexContent = () => {
 const Index = () => {
   return (
     <VersionProvider>
-      <VersionSwitcher />
       <IndexContent />
     </VersionProvider>
   );

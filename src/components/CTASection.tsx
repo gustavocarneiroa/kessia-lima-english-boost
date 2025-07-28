@@ -29,7 +29,7 @@ const CTASection = () => {
             <Button 
               size="lg"
               onClick={handleFormClick}
-              className="bg-white text-primary hover:bg-white/90 px-12 py-4 text-xl rounded-full shadow-2xl hover:shadow-white/20 hover:scale-105 transition-all duration-300 font-semibold"
+              className="bg-white text-primary hover:bg-white/90 px-6 sm:px-12 py-3 sm:py-4 text-lg sm:text-xl rounded-full shadow-2xl hover:shadow-white/20 hover:scale-105 transition-all duration-300 font-semibold w-auto"
             >
               {t('cta.button')}
             </Button>
