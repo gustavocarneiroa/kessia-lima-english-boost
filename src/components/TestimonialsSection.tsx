@@ -22,7 +22,7 @@ const TestimonialsSection = () => {
       timeAgo: "há mais de 1 ano",
       rating: 5,
       shortFeedback: {
-        pt: "Já fui aluno da teacher Késsia há alguns anos e posso afirma, vale...",
+        pt: "",
       },
       fullFeedback: {
         pt: "Já fui aluno da teacher Késsia há alguns anos e posso afirma, vale muito a pena. A Késsia além de deixar as aulas muito divertidas, ensinava super bem. Devo meu bilinguísmo a teacher Késsia :)",
@@ -34,7 +34,7 @@ const TestimonialsSection = () => {
       timeAgo: "há mais de 1 ano",
       rating: 5,
       shortFeedback: {
-        pt: "Sou aluna e posso afirmar, já aprendi muitoo em poucos meses ❤️ Valeu teacher!",
+        pt: "",
       },
       fullFeedback: {
         pt: "Sou aluna e posso afirmar, já aprendi muitoo em poucos meses ❤️ Valeu teacher!",
@@ -46,7 +46,7 @@ const TestimonialsSection = () => {
       timeAgo: "há mais de 1 ano",
       rating: 5,
       shortFeedback: {
-        pt: "Professora, agora nas minhas férias vi o quanto evolui nesses últimos...",
+        pt: "",
       },
       fullFeedback: {
         pt: "Professora, agora nas minhas férias vi o quanto evolui nesses últimos meses com as suas aulas e didática. Fiquei muito feliz, pois não tinha a noção exata da minha evolução no Inglês. Ajudou muito e consegui resolver situações antes impossíveis! Parabéns e muito obrigado!!",
@@ -58,7 +58,7 @@ const TestimonialsSection = () => {
       timeAgo: "há mais de 1 ano",
       rating: 5,
       shortFeedback: {
-        pt: "As aulas são excelentes de verdade! Nunca tinha feito algo tão legal.",
+        pt: "",
       },
       fullFeedback: {
         pt: "As aulas são excelentes de verdade! Nunca tinha feito algo tão legal.",
@@ -70,7 +70,7 @@ const TestimonialsSection = () => {
       timeAgo: "há mais de 1 ano",
       rating: 5,
       shortFeedback: {
-        pt: "Aulas maravilhosas 😍 Apaixonado desde sempre na sua página e agora...",
+        pt: "",
       },
       fullFeedback: {
         pt: "Aulas maravilhosas 😍 Apaixonado desde sempre na sua página e agora tive a oportunidade de ver como suas aulas são. Professora de altíssimo patamar, aulas interessanter e conteúdo perfeito",
@@ -184,7 +184,7 @@ const TestimonialsSection = () => {
                       !expandedCards.has(testimonial.id) ? 'line-clamp-3' : ''
                     }`}
                   >
-                    {testimonial.shortFeedback[testimonialLanguage]}
+                    {testimonial.fullFeedback[testimonialLanguage]}
                   </p>
                   {checkTextTruncation(testimonial.id) && (
                     <button
