@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
-import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Star, ChevronLeft, ChevronRight, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 type TestimonialType = { id: number; name: string; timeAgo: string; avatar?: string; rating: number; shortFeedback: { pt: string; en?: string }; fullFeedback: { pt: string; en?: string } };
@@ -11,7 +12,8 @@ const TestimonialsSection = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedTestimonial, setSelectedTestimonial] = useState<any>(null);
   const [testimonialLanguage, setTestimonialLanguage] = useState<'pt' | 'en'>('pt');
-  const defaultAvatar = ""
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const textRefs = useRef<{ [key: number]: HTMLParagraphElement | null }>({});
 
   const testimonials : TestimonialType[] = [
     {
@@ -107,6 +109,27 @@ const TestimonialsSection = () => {
     setTestimonialLanguage(language.startsWith('en') ? 'en' : 'pt');
   }, [language]);
 
+  const checkTextTruncation = (testimonialId: number) => {
+    const element = textRefs.current[testimonialId];
+    if (!element) return false;
+    
+    const lineHeight = parseInt(getComputedStyle(element).lineHeight);
+    const maxHeight = lineHeight * 3; // 3 lines
+    return element.scrollHeight > maxHeight;
+  };
+
+  const toggleExpanded = (testimonialId: number) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(testimonialId)) {
+        newSet.delete(testimonialId);
+      } else {
+        newSet.add(testimonialId);
+      }
+      return newSet;
+    });
+  };
+
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
@@ -138,11 +161,12 @@ const TestimonialsSection = () => {
                 }}
               >
                 <div className="flex items-center mb-4">
-                  <img
-                    src={testimonial.avatar ?? defaultAvatar }
-                    alt={testimonial.name}
-                    className="w-12 h-12 rounded-full object-cover mr-4"
-                  />
+                  <Avatar className="w-12 h-12 mr-4">
+                    <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
+                    <AvatarFallback className="bg-muted">
+                      <User className="h-6 w-6 text-muted-foreground" />
+                    </AvatarFallback>
+                  </Avatar>
                   <div className="flex-1">
                     <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
                     <p className="text-sm text-muted-foreground">{testimonial.timeAgo}</p>
@@ -153,9 +177,27 @@ const TestimonialsSection = () => {
                   {renderStars(testimonial.rating)}
                 </div>
 
-                <p className="text-muted-foreground leading-relaxed">
-                  {testimonial.shortFeedback[testimonialLanguage]}
-                </p>
+                <div className="relative">
+                  <p 
+                    ref={(el) => textRefs.current[testimonial.id] = el}
+                    className={`text-muted-foreground leading-relaxed ${
+                      !expandedCards.has(testimonial.id) ? 'line-clamp-3' : ''
+                    }`}
+                  >
+                    {testimonial.shortFeedback[testimonialLanguage]}
+                  </p>
+                  {checkTextTruncation(testimonial.id) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleExpanded(testimonial.id);
+                      }}
+                      className="text-primary text-sm mt-2 hover:underline"
+                    >
+                      {expandedCards.has(testimonial.id) ? 'Ver menos' : 'Ver mais'}
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -165,11 +207,12 @@ const TestimonialsSection = () => {
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-4">
-                    <img
-                      src={selectedTestimonial.avatar}
-                      alt={selectedTestimonial.name}
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
+                    <Avatar className="w-16 h-16">
+                      <AvatarImage src={selectedTestimonial.avatar} alt={selectedTestimonial.name} />
+                      <AvatarFallback className="bg-muted">
+                        <User className="h-8 w-8 text-muted-foreground" />
+                      </AvatarFallback>
+                    </Avatar>
                     <div>
                       <h3 className="text-xl font-bold">{selectedTestimonial.name}</h3>
                       <div className="flex items-center gap-2">
