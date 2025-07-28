@@ -99,7 +99,7 @@ const TestimonialsSection = () => {
   useEffect(() => {
     if (isModalOpen) return; // Don't auto-advance when modal is open
 
-    const timer = setInterval(nextPage, 5000);
+    const timer = setInterval(nextPage, 8000);
     return () => clearInterval(timer);
   }, [isModalOpen]);
 
