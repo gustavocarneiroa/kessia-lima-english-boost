@@ -6,6 +6,12 @@ import logo from '@/assets/logo.png';
 const Footer = () => {
   const { t, language, setLanguage } = useLanguage();
 
+  const handleLanguageChange = (newLanguage: any) => {
+    setLanguage(newLanguage);
+    // Smooth scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLScJP5G5kG3TrRc8YU_1hrSLvFf4TVUtI0ezkwjPzZhaqmLL_g/viewform";
   const instagramHandle = "teacherkessialima";
   const linkedinHandle = "kessialima";
@@ -38,12 +44,12 @@ const Footer = () => {
           {/* Language Selector */}
           <div className="flex items-center gap-6">
             <div className="text-center md:text-left">
-              <p className="text-sm opacity-90 mb-2">Idioma / Language</p>
+              <p className="text-sm opacity-90 mb-2">{t('footer.language')}</p>
               <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setLanguage('pt')}
+                  onClick={() => handleLanguageChange('pt')}
                   className={`text-primary-foreground hover:bg-white/20 px-3 py-2 rounded-md ${
                     language === 'pt' ? 'bg-white/20' : ''
                   }`}
@@ -53,7 +59,7 @@ const Footer = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setLanguage('en-basic')}
+                  onClick={() => handleLanguageChange('en-basic')}
                   className={`text-primary-foreground hover:bg-white/20 px-3 py-2 rounded-md ${
                     language === 'en-basic' ? 'bg-white/20' : ''
                   }`}
@@ -63,7 +69,7 @@ const Footer = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setLanguage('en-intermediate')}
+                  onClick={() => handleLanguageChange('en-intermediate')}
                   className={`text-primary-foreground hover:bg-white/20 px-3 py-2 rounded-md ${
                     language === 'en-intermediate' ? 'bg-white/20' : ''
                   }`}

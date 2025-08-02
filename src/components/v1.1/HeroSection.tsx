@@ -20,14 +20,13 @@ const HeroSection = () => {
         <div className="flex-1 flex items-center justify-end pr-8">
           <div className="max-w-2xl">
             <h1 className="text-6xl lg:text-7xl font-bold text-foreground mb-8 leading-tight">
-              Teacher Késsia Lima
+              {t('hero.title')}
             </h1>
             <h2 className="text-3xl lg:text-4xl font-semibold text-primary mb-8 leading-tight">
-              Para você sair do Inglês Basicão!
+              {t('hero.subtitle')}
             </h2>
             <p className="text-xl lg:text-2xl text-muted-foreground mb-10 leading-relaxed">
-              Aprender Inglês não precisa ser complicado. Com o acompanhamento certo e aulas que fazem sentido para sua rotina e seus objetivos, você finalmente vai conseguir sair do básico e se comunicar com confiança em situações reais.
-              Aqui, você estuda no seu ritmo, com apoio constante e conteúdos que vão direto ao ponto, seja para entrevistas, viagens ou o dia a dia.
+              {t('hero.description')}
             </p>
             <div className="flex flex-col gap-6 items-start">
               <Button 
@@ -35,11 +34,11 @@ const HeroSection = () => {
                 onClick={handleFormClick}
                 className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-5 text-xl rounded-full"
               >
-                Quero aprender inglês
+                {t('hero.button')}
               </Button>
               <div className="flex items-center gap-2 text-orange-600">
                 <Clock className="h-5 w-5" />
-                <span className="text-lg font-medium">Vagas limitadas</span>
+                <span className="text-lg font-medium">{t('hero.limitedSpots')}</span>
               </div>
             </div>
           </div>
@@ -59,7 +58,7 @@ const HeroSection = () => {
       <div className="md:hidden px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold text-foreground mb-6 leading-tight">
-            Teacher Késsia Lima
+            {t('hero.title')}
           </h1>
         </div>
 
@@ -73,11 +72,10 @@ const HeroSection = () => {
 
         <div className="text-center">
           <h2 className="text-2xl font-semibold text-primary mb-6 leading-tight">
-            Para você sair do Inglês Basicão!
+            {t('hero.subtitle')}
           </h2>
           <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-            Aprender Inglês não precisa ser complicado. Com o acompanhamento certo e aulas que fazem sentido para sua rotina e seus objetivos, você finalmente vai conseguir sair do básico e se comunicar com confiança em situações reais.
-            Aqui, você estuda no seu ritmo, com apoio constante e conteúdos que vão direto ao ponto, seja para entrevistas, viagens ou o dia a dia.
+            {t('hero.description')}
           </p>
           <div className="flex flex-col gap-6 items-center">
             <Button 
@@ -85,11 +83,11 @@ const HeroSection = () => {
               onClick={handleFormClick}
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg rounded-full w-full max-w-xs"
             >
-              Quero aprender inglês
+              {t('hero.button')}
             </Button>
             <div className="flex items-center gap-2 text-orange-600 justify-center">
               <Clock className="h-4 w-4" />
-              <span className="text-base font-medium">Vagas limitadas</span>
+              <span className="text-base font-medium">{t('hero.limitedSpots')}</span>
             </div>
           </div>
         </div>

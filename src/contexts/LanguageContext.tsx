@@ -20,6 +20,11 @@ const translations = {
     'header.talkToMe': 'Fale comigo',
     
     // Hero Section
+    'hero.title': 'Teacher Késsia Lima',
+    'hero.subtitle': 'Para você sair do Inglês Basicão!',
+    'hero.description': 'Aprender Inglês não precisa ser complicado. Com o acompanhamento certo e aulas que fazem sentido para sua rotina e seus objetivos, você finalmente vai conseguir sair do básico e se comunicar com confiança em situações reais. Aqui, você estuda no seu ritmo, com apoio constante e conteúdos que vão direto ao ponto, seja para entrevistas, viagens ou o dia a dia.',
+    'hero.button': 'Quero aprender inglês',
+    'hero.limitedSpots': 'Vagas limitadas',
     'hero.title1': 'O que você alcançaria se saísse do Inglês Basicão?',
     'hero.button1': 'Quero aprender inglês',
     'hero.title2': 'Faça nosso teste de nível online. É rápido e grátis, vamos começar?',
@@ -71,6 +76,7 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     'testimonials.english': 'English',
     
     // Footer
+    'footer.language': 'Idioma / Language',
     'footer.followUs': 'Me siga',
     'footer.contact': 'Fale comigo'
   },
@@ -84,6 +90,11 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     'header.talkToMe': 'Talk to me',
     
     // Hero Section
+    'hero.title': 'Teacher Késsia Lima',
+    'hero.subtitle': 'Get out of Basic English!',
+    'hero.description': 'Learning English does not need to be hard. With the right help and classes that make sense for your routine and goals, you will finally be able to leave the basics and talk with confidence in real situations. Here, you study at your pace, with constant support and content that goes straight to the point, whether for interviews, trips or daily life.',
+    'hero.button': 'I want to learn English',
+    'hero.limitedSpots': 'Limited spots',
     'hero.title1': 'What could you do if you left BASIC ENGLISH?',
     'hero.button1': 'I want to learn English',
     'hero.title2': 'Take our online level test. It is quick and free. Let\'s start?',
@@ -131,6 +142,7 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     'testimonials.english': 'English',
     
     // Footer
+    'footer.language': 'Language',
     'footer.followUs': 'Follow me',
     'footer.contact': 'Talk to me'
   },
@@ -144,6 +156,11 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     'header.talkToMe': 'Talk to me',
     
     // Hero Section
+    'hero.title': 'Teacher Késsia Lima',
+    'hero.subtitle': 'Break through your English limitations!',
+    'hero.description': 'Mastering English doesn\'t have to be an insurmountable challenge. With personalized guidance and strategically designed lessons that align with your lifestyle and professional aspirations, you\'ll finally transcend basic proficiency and communicate with genuine confidence in authentic, real-world scenarios. Here, you\'ll progress at your optimal pace, receiving continuous mentorship and accessing precisely targeted content that addresses your specific needs—whether preparing for high-stakes interviews, international travel, or professional advancement.',
+    'hero.button': 'I want to learn English',
+    'hero.limitedSpots': 'Limited enrollment',
     'hero.title1': 'What achievements would you unlock by breaking through your English limitations?',
     'hero.button1': 'I want to learn English',
     'hero.title2': 'Take our comprehensive online level assessment. It\'s quick, free, and we\'re ready to begin whenever you are!',
@@ -191,6 +208,7 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     'testimonials.english': 'English',
     
     // Footer
+    'footer.language': 'Language',
     'footer.followUs': 'Follow me',
     'footer.contact': 'Contact me'
   }

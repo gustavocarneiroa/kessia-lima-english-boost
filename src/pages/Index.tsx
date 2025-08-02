@@ -10,40 +10,6 @@ import WhatsAppFloat from '@/components/WhatsAppFloat';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 
-const LanguageSwitcher = () => {
-  const { language, setLanguage } = useLanguage();
-  
-  return (
-    <div className="fixed top-4 right-4 z-50">
-      <div className="flex gap-2 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg">
-        <Button
-          variant={language === 'pt' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setLanguage('pt')}
-          className="min-w-[50px]"
-        >
-          PT
-        </Button>
-        <Button
-          variant={language === 'en-basic' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setLanguage('en-basic')}
-          className="min-w-[50px]"
-        >
-          EN
-        </Button>
-        <Button
-          variant={language === 'en-intermediate' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setLanguage('en-intermediate')}
-          className="min-w-[50px]"
-        >
-          EN+
-        </Button>
-      </div>
-    </div>
-  );
-};
 
 const IndexContent = () => {
   const [showHidden, setShowHidden] = useState(false);
@@ -56,7 +22,6 @@ const IndexContent = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <LanguageSwitcher />
       <main>
         <HeroSection />
         <CTASection />
