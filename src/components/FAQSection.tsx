@@ -1,10 +1,17 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 const FAQSection = () => {
   const { t } = useLanguage();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLScJP5G5kG3TrRc8YU_1hrSLvFf4TVUtI0ezkwjPzZhaqmLL_g/viewform";
+
+  const handleFormClick = () => {
+    window.open(formUrl, '_blank');
+  };
 
   const faqs = [
     {
@@ -87,14 +94,18 @@ const FAQSection = () => {
           </div>
 
           <div className="text-center mt-12 p-8 bg-primary/5 rounded-2xl border border-primary/20">
-            <p className="text-lg text-foreground">
-              Caso sua dúvida não esteja aqui, <button 
-                onClick={() => window.open('https://docs.google.com/forms/d/e/1FAIpQLScJP5G5kG3TrRc8YU_1hrSLvFf4TVUtI0ezkwjPzZhaqmLL_g/viewform', '_blank')}
-                className="text-primary hover:text-primary/80 underline font-medium transition-colors"
-              >
-                entre em contato conosco
-              </button>, teremos o maior prazer em respondê-la!
+            <p className="text-lg text-foreground mb-6">
+              {t('faq.contact')}
             </p>
+            
+            {/* CTA Button */}
+            <Button 
+              size="lg" 
+              onClick={handleFormClick}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg rounded-full"
+            >
+              {t('cta.button')}
+            </Button>
           </div>
         </div>
       </div>

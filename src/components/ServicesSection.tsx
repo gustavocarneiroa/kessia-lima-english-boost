@@ -1,4 +1,5 @@
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Button } from '@/components/ui/button';
 import serviceGeneral from '@/assets/service-general.png';
 import serviceBusiness from '@/assets/service-business.png';
 import serviceConversation from '@/assets/service-conversation.png';
@@ -6,6 +7,12 @@ import serviceExam from '@/assets/service-exam.png';
 
 const ServicesSection = () => {
   const { t } = useLanguage();
+
+  const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLScJP5G5kG3TrRc8YU_1hrSLvFf4TVUtI0ezkwjPzZhaqmLL_g/viewform";
+
+  const handleFormClick = () => {
+    window.open(formUrl, '_blank');
+  };
 
   const services = [
     {
@@ -66,6 +73,17 @@ const ServicesSection = () => {
               </div>
             </div>
           ))}
+        </div>
+        
+        {/* CTA Button */}
+        <div className="text-center mt-16">
+          <Button 
+            size="lg" 
+            onClick={handleFormClick}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg rounded-full"
+          >
+            {t('cta.button')}
+          </Button>
         </div>
       </div>
     </section>

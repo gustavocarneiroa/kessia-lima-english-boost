@@ -9,6 +9,12 @@ type TestimonialType = { id: number; name: string; timeAgo: string; avatar?: str
 
 const TestimonialsSection = () => {
   const { t, language } = useLanguage();
+
+  const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLScJP5G5kG3TrRc8YU_1hrSLvFf4TVUtI0ezkwjPzZhaqmLL_g/viewform";
+
+  const handleFormClick = () => {
+    window.open(formUrl, '_blank');
+  };
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedTestimonial, setSelectedTestimonial] = useState<any>(null);
   const [testimonialLanguage, setTestimonialLanguage] = useState<'pt' | 'en'>('pt');
@@ -280,6 +286,17 @@ const TestimonialsSection = () => {
             className="rounded-full p-2"
           >
             <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+        
+        {/* CTA Button */}
+        <div className="text-center mt-16">
+          <Button 
+            size="lg" 
+            onClick={handleFormClick}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg rounded-full"
+          >
+            {t('cta.button')}
           </Button>
         </div>
       </div>

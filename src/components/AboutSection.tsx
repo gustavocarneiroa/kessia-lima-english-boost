@@ -1,8 +1,15 @@
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Button } from '@/components/ui/button';
 import teacherKessia from '@/assets/teacher-kessia-3.jpeg';
 
 const AboutSection = () => {
   const { t } = useLanguage();
+
+  const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLScJP5G5kG3TrRc8YU_1hrSLvFf4TVUtI0ezkwjPzZhaqmLL_g/viewform";
+
+  const handleFormClick = () => {
+    window.open(formUrl, '_blank');
+  };
 
   return (
     <section className="py-16 bg-background">
@@ -33,6 +40,17 @@ const AboutSection = () => {
                 </p>
               </div>
             </div>
+          </div>
+          
+          {/* CTA Button */}
+          <div className="text-center mt-12">
+            <Button 
+              size="lg" 
+              onClick={handleFormClick}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg rounded-full"
+            >
+              {t('cta.button')}
+            </Button>
           </div>
         </div>
       </div>

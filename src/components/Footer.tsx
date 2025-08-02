@@ -4,7 +4,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import logo from '@/assets/logo.png';
 
 const Footer = () => {
-  const { t } = useLanguage();
+  const { t, language, setLanguage } = useLanguage();
 
   const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLScJP5G5kG3TrRc8YU_1hrSLvFf4TVUtI0ezkwjPzZhaqmLL_g/viewform";
   const instagramHandle = "teacherkessialima";
@@ -35,8 +35,45 @@ const Footer = () => {
             />
           </div>
 
-          {/* Social Media Links */}
+          {/* Language Selector */}
           <div className="flex items-center gap-6">
+            <div className="text-center md:text-left">
+              <p className="text-sm opacity-90 mb-2">Idioma / Language</p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLanguage('pt')}
+                  className={`text-primary-foreground hover:bg-white/20 px-3 py-2 rounded-md ${
+                    language === 'pt' ? 'bg-white/20' : ''
+                  }`}
+                >
+                  PT
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLanguage('en-basic')}
+                  className={`text-primary-foreground hover:bg-white/20 px-3 py-2 rounded-md ${
+                    language === 'en-basic' ? 'bg-white/20' : ''
+                  }`}
+                >
+                  EN
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLanguage('en-intermediate')}
+                  className={`text-primary-foreground hover:bg-white/20 px-3 py-2 rounded-md ${
+                    language === 'en-intermediate' ? 'bg-white/20' : ''
+                  }`}
+                >
+                  EN+
+                </Button>
+              </div>
+            </div>
+
+            {/* Social Media Links */}
             <div className="text-center md:text-left">
               <p className="text-sm opacity-90 mb-2">{t('footer.followUs')}</p>
               <div className="flex items-center gap-4">

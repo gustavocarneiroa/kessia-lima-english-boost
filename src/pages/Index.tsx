@@ -13,25 +13,35 @@ import { Button } from '@/components/ui/button';
 const LanguageSwitcher = () => {
   const { language, setLanguage } = useLanguage();
   
-  return (''
-    // <div className="fixed top-4 right-4 z-50">
-    //   <div className="flex gap-2">
-    //     <Button
-    //       variant={language === 'pt' ? 'default' : 'outline'}
-    //       size="sm"
-    //       onClick={() => setLanguage('pt')}
-    //     >
-    //       PT
-    //     </Button>
-    //     <Button
-    //       variant={language === 'en-basic' ? 'default' : 'outline'}
-    //       size="sm"
-    //       onClick={() => setLanguage('en-basic')}
-    //     >
-    //       EN
-    //     </Button>
-    //   </div>
-    // </div>
+  return (
+    <div className="fixed top-4 right-4 z-50">
+      <div className="flex gap-2 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg">
+        <Button
+          variant={language === 'pt' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setLanguage('pt')}
+          className="min-w-[50px]"
+        >
+          PT
+        </Button>
+        <Button
+          variant={language === 'en-basic' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setLanguage('en-basic')}
+          className="min-w-[50px]"
+        >
+          EN
+        </Button>
+        <Button
+          variant={language === 'en-intermediate' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setLanguage('en-intermediate')}
+          className="min-w-[50px]"
+        >
+          EN+
+        </Button>
+      </div>
+    </div>
   );
 };
 
