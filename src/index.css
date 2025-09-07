@@ -42,6 +42,13 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
+    /* Aceternity UI gradient colors */
+    --yellow-500: 45 93% 58%;
+    --red-500: 0 84% 60%;
+    --blue-500: 221 83% 53%;
+    --cyan-500: 197 71% 52%;
+    --violet-500: 258 90% 66%;
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
