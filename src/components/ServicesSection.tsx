@@ -13,6 +13,12 @@ const ServicesSection = () => {
   const handleFormClick = () => {
     window.open(formUrl, '_blank');
   };
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById('pricing');
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const services = [
     {
@@ -79,7 +85,7 @@ const ServicesSection = () => {
         <div className="text-center mt-16">
           <Button 
             size="lg" 
-            onClick={handleFormClick}
+            onClick={scrollToPricing}
             className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg rounded-full"
           >
             {t('cta.button')}

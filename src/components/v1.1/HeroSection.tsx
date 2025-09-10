@@ -44,14 +44,14 @@ const HeroSection = () => {
                 >
                   {t('hero.button')}
                 </Button>
-                <Button 
+                {/* <Button 
                   size="lg" 
                   variant="outline"
                   onClick={handleFormClick}
                   className="px-8 py-5 text-xl rounded-full"
                 >
                   {t('hero.contactButton')}
-                </Button>
+                </Button> */}
               </div>
               <div className="flex items-center gap-2 text-orange-600">
                 <Clock className="h-5 w-5" />
@@ -102,14 +102,14 @@ const HeroSection = () => {
             >
               {t('hero.button')}
             </Button>
-            <Button 
+            {/* <Button 
               size="lg" 
               variant="outline"
               onClick={handleFormClick}
               className="px-8 py-4 text-lg rounded-full w-full max-w-xs"
             >
               {t('hero.contactButton')}
-            </Button>
+            </Button> */}
             <div className="flex items-center gap-2 text-orange-600 justify-center">
               <Clock className="h-4 w-4" />
               <span className="text-base font-medium">{t('hero.limitedSpots')}</span>

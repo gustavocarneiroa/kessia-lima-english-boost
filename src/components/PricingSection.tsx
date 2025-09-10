@@ -1,20 +1,24 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
+import { DayNightSwitch } from '@/components/ui/switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useState } from 'react';
 import { Check, Star, Sun, Moon } from 'lucide-react';
 
 const PricingSection = () => {
   const { t } = useLanguage();
+  
+  const handleFormClick = (_package: string, months: number, shift: string) => {
+    const formUrl = `https://wa.me/5585997362806?text=Quero%20aprender%20ingl%C3%AAs%2C%20teacher!%0APlano escolhido: ${_package} - ${months} meses%20%0ATurno: ${shift}%20`;
+    return () => window.open(formUrl, '_blank');
+  };
   const [isNightTime, setIsNightTime] = useState(false);
   const [daysPerWeek, setDaysPerWeek] = useState(1);
 
   const morningPlans = [
     {
-      package: '3 meses',
-      duration: '1x por semana',
+      package: 'Start',
       classes: 12,
       months: 3,
       originalPrice: 840,
@@ -23,8 +27,7 @@ const PricingSection = () => {
       isRecommended: false
     },
     {
-      package: '6 meses',
-      duration: '1x por semana',
+      package: 'Progress',
       classes: 24,
       months: 6,
       originalPrice: 1680,
@@ -33,8 +36,7 @@ const PricingSection = () => {
       isRecommended: true
     },
     {
-      package: '9 meses',
-      duration: '1x por semana',
+      package: 'Advance',
       classes: 36,
       months: 9,
       originalPrice: 2520,
@@ -43,8 +45,7 @@ const PricingSection = () => {
       isRecommended: false
     },
     {
-      package: '12 meses',
-      duration: '1x por semana',
+      package: 'Master',
       classes: 48,
       months: 12,
       originalPrice: 3360,
@@ -56,8 +57,7 @@ const PricingSection = () => {
 
   const nightPlans = [
     {
-      package: '3 meses',
-      duration: '1x por semana',
+      package: 'Start',
       classes: 12,
       months: 3,
       originalPrice: 1080,
@@ -66,8 +66,7 @@ const PricingSection = () => {
       isRecommended: false
     },
     {
-      package: '6 meses',
-      duration: '1x por semana',
+      package: 'Progress',
       classes: 24,
       months: 6,
       originalPrice: 2160,
@@ -76,8 +75,7 @@ const PricingSection = () => {
       isRecommended: true
     },
     {
-      package: '9 meses',
-      duration: '1x por semana',
+      package: 'Advance',
       classes: 36,
       months: 9,
       originalPrice: 3240,
@@ -86,8 +84,7 @@ const PricingSection = () => {
       isRecommended: false
     },
     {
-      package: '12 meses',
-      duration: '1x por semana',
+      package: 'Master',
       classes: 48,
       months: 12,
       originalPrice: 4320,
@@ -122,8 +119,8 @@ const PricingSection = () => {
         <CardHeader className="text-center pb-4">
           <CardTitle className="text-2xl font-bold">{plan.package}</CardTitle>
           <div className="space-y-2">
-            <div className="text-4xl font-bold text-primary">
-              {plan.months}x de {formatPrice(monthlyPrice)}
+            <div className="text-3xl font-bold text-primary">
+              {plan.months}x <span className='font-light'>de</span> {formatPrice(monthlyPrice)}
             </div>
             <div className="text-xl text-muted-foreground">
               Total: {formatPrice(finalPrice)}
@@ -131,14 +128,14 @@ const PricingSection = () => {
             {plan.discountPrice && (
               <div className="text-sm text-muted-foreground/70 line-through">
                 De: {formatPrice((plan.originalPrice * daysPerWeek))}
+                {plan.discount && (
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 mx-auto">
+                    {plan.discount} OFF
+                  </Badge>
+                )}
               </div>
             )}
           </div>
-          {plan.discount && (
-            <Badge variant="secondary" className="bg-green-100 text-green-800 mx-auto">
-              {plan.discount} OFF
-            </Badge>
-          )}
         </CardHeader>
         
         <CardContent className="space-y-4">
@@ -161,7 +158,7 @@ const PricingSection = () => {
             </div>
           </div>
           
-          <Button className="w-full" size="lg">
+          <Button onClick={handleFormClick(plan.package ,plan.months, isNightTime ? "Noite": "Manhã")} className="w-full" size="lg">
             {t('pricing.selectPlan')}
           </Button>
         </CardContent>
@@ -181,7 +178,7 @@ const PricingSection = () => {
           </p>
           
           {/* Days per Week Selector */}
-          <div className="flex items-center justify-center gap-4 mb-6">
+          {/* <div className="flex items-center justify-center gap-4 mb-6">
             <span className="font-medium text-muted-foreground">{t('pricing.daysPerWeek')}:</span>
             <div className="flex gap-2">
               {[1, 2, 3].map((days) => (
@@ -196,27 +193,15 @@ const PricingSection = () => {
                 </Button>
               ))}
             </div>
-          </div>
+          </div> */}
 
           {/* Time Toggle */}
           <div className="flex items-center justify-center gap-4 mb-8">
-            <div className="flex items-center gap-2">
-              <Sun className="w-5 h-5 text-orange-400" />
-              <span className={`font-medium ${!isNightTime ? 'text-primary' : 'text-muted-foreground'}`}>
-                {t('pricing.morningAfternoon')}
-              </span>
-            </div>
-            <Switch
+            <DayNightSwitch
               checked={isNightTime}
               onCheckedChange={setIsNightTime}
               className="data-[state=checked]:bg-primary"
             />
-            <div className="flex items-center gap-2">
-              <span className={`font-medium ${isNightTime ? 'text-primary' : 'text-muted-foreground'}`}>
-                {t('pricing.night')}
-              </span>
-              <Moon className="w-5 h-5 text-blue-400" />
-            </div>
           </div>
         </div>
 

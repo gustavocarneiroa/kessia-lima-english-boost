@@ -13,6 +13,12 @@ const FAQSection = () => {
     window.open(formUrl, '_blank');
   };
 
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById('pricing');
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
   const faqs = [
     {
       question: t('faq.question1'),
@@ -101,7 +107,7 @@ const FAQSection = () => {
             {/* CTA Button */}
             <Button 
               size="lg" 
-              onClick={handleFormClick}
+              onClick={scrollToPricing}
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg rounded-full"
             >
               {t('cta.button')}

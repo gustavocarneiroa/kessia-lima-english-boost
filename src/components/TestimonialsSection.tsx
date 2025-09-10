@@ -15,6 +15,12 @@ const TestimonialsSection = () => {
   const handleFormClick = () => {
     window.open(formUrl, '_blank');
   };
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById('pricing');
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedTestimonial, setSelectedTestimonial] = useState<any>(null);
   const [testimonialLanguage, setTestimonialLanguage] = useState<'pt' | 'en'>('pt');
@@ -293,7 +299,7 @@ const TestimonialsSection = () => {
         <div className="text-center mt-16">
           <Button 
             size="lg" 
-            onClick={handleFormClick}
+            onClick={scrollToPricing}
             className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg rounded-full"
           >
             {t('cta.button')}
