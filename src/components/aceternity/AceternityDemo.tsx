@@ -1,6 +1,5 @@
 import React from "react";
 import { AceternityButton } from "./AceternityButton";
-import { TextHoverEffect } from "./TextHoverEffect";
 
 export const AceternityDemo = () => {
   return (
@@ -42,10 +41,6 @@ export const AceternityDemo = () => {
 
         {/* Text Hover Effect */}
         <section className="space-y-6">
-          <h2 className="text-2xl font-semibold">Efeito de Texto com Hover</h2>
-          <div className="h-32 w-full">
-            <TextHoverEffect text="ACETERNITY" duration={0.5} />
-          </div>
         </section>
 
         {/* Instruções */}
