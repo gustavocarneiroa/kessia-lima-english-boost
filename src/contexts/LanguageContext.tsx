@@ -24,6 +24,7 @@ const translations = {
     'hero.subtitle': 'Para você sair do Inglês Basicão!',
     'hero.description': 'Aprender Inglês não precisa ser complicado. Com o acompanhamento certo e aulas que fazem sentido para sua rotina e seus objetivos, você finalmente vai conseguir sair do básico e se comunicar com confiança em situações reais. Aqui, você estuda no seu ritmo, com apoio constante e conteúdos que vão direto ao ponto, seja para entrevistas, viagens ou o dia a dia.',
     'hero.button': 'Quero aprender inglês',
+    'hero.contactButton': 'Entrar em contato',
     'hero.limitedSpots': 'Vagas limitadas',
     'hero.title1': 'O que você alcançaria se saísse do Inglês Basicão?',
     'hero.button1': 'Quero aprender inglês',
@@ -46,6 +47,8 @@ const translations = {
     'pricing.individualClasses': 'Aulas individuais de 1h',
     'pricing.personalizedMaterial': 'Material personalizado',
     'pricing.selectPlan': 'Escolher Plano',
+    'pricing.daysPerWeek': 'Dias por semana',
+    'pricing.perWeek': 'por semana',
 
     'about.title': 'Quem sou',
       'about.description': `Hello! ✨ Eu sou a Teacher Késsia.
@@ -108,6 +111,7 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     'hero.subtitle': 'Stop being Basic in English!',
     'hero.description': 'Learning English does not need to be hard. With the right help and classes that fit your life and goals, you will finally leave basic level and speak with confidence in real situations. Here, you study at your speed, with help all the time and content that goes to the point, for interviews, trips or daily life.',
     'hero.button': 'I want to learn English',
+    'hero.contactButton': 'Get in touch',
     'hero.limitedSpots': 'Limited spots',
     'hero.title1': 'What could you do if you stopped being basic in English?',
     'hero.button1': 'I want to learn English',
@@ -130,6 +134,8 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     'pricing.individualClasses': '1-hour individual classes',
     'pricing.personalizedMaterial': 'Personal study material',
     'pricing.selectPlan': 'Choose Plan',
+    'pricing.daysPerWeek': 'Days per week',
+    'pricing.perWeek': 'per week',
 
     'about.title': 'Who I am',
       'about.description': 'Késsia Lima has been an English Teacher since 2013 when she started teaching at a school. Since then she has been teaching students of all ages online. She loves English since she was a child. Késsia has always had contact with the language through music, TV shows and movies. In 2018 she created an Instagram profile to share English tips, but now she uses the profile to show her routine of preparing personal classes and her posts about how to really learn English.',
@@ -188,6 +194,7 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     'hero.subtitle': 'Break through your English barriers!',
     'hero.description': 'Mastering English doesn\'t have to be a huge challenge. With personalized guidance and well-designed lessons that fit your lifestyle and professional goals, you\'ll finally move beyond basic proficiency and communicate with real confidence in authentic situations. Here, you\'ll progress at your own pace, receiving continuous support and accessing targeted content that addresses your specific needs—whether you\'re preparing for important interviews, international travel, or career advancement.',
     'hero.button': 'I want to learn English',
+    'hero.contactButton': 'Get in touch',
     'hero.limitedSpots': 'Limited spots',
     'hero.title1': 'What could you achieve by breaking through your English barriers?',
     'hero.button1': 'I want to learn English',
@@ -210,6 +217,8 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     'pricing.individualClasses': '1-hour individual classes',
     'pricing.personalizedMaterial': 'Personalized materials',
     'pricing.selectPlan': 'Select Plan',
+    'pricing.daysPerWeek': 'Days per week',
+    'pricing.perWeek': 'per week',
 
     'about.title': 'Who I am',
     'about.description': 'Késsia Lima has been an English Teacher since 2013 when she started teaching at a vocational school. Since then she\'s been teaching students of all ages remotely. Passionate about English since childhood, Késsia has always had contact with the language through music, series and movies. In 2018 she created an Instagram profile to share English tips, but currently uses the profile to show her routine of preparing personalized classes and her posts about how to really learn English.',

@@ -12,6 +12,13 @@ const HeroSection = () => {
     window.open(formUrl, '_blank');
   };
 
+  const scrollToPricing = () => {
+    const pricingSection = document.getElementById('pricing');
+    if (pricingSection) {
+      pricingSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <section className="min-h-screen bg-background">
       {/* Desktop Layout */}
@@ -29,13 +36,23 @@ const HeroSection = () => {
               {t('hero.description')}
             </p>
             <div className="flex flex-col gap-6 items-start">
-              <Button 
-                size="lg" 
-                onClick={handleFormClick}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-5 text-xl rounded-full"
-              >
-                {t('hero.button')}
-              </Button>
+              <div className="flex gap-4">
+                <Button 
+                  size="lg" 
+                  onClick={scrollToPricing}
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground px-10 py-5 text-xl rounded-full"
+                >
+                  {t('hero.button')}
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  onClick={handleFormClick}
+                  className="px-8 py-5 text-xl rounded-full"
+                >
+                  {t('hero.contactButton')}
+                </Button>
+              </div>
               <div className="flex items-center gap-2 text-orange-600">
                 <Clock className="h-5 w-5" />
                 <span className="text-lg font-medium">{t('hero.limitedSpots')}</span>
@@ -80,10 +97,18 @@ const HeroSection = () => {
           <div className="flex flex-col gap-6 items-center">
             <Button 
               size="lg" 
-              onClick={handleFormClick}
+              onClick={scrollToPricing}
               className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg rounded-full w-full max-w-xs"
             >
               {t('hero.button')}
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              onClick={handleFormClick}
+              className="px-8 py-4 text-lg rounded-full w-full max-w-xs"
+            >
+              {t('hero.contactButton')}
             </Button>
             <div className="flex items-center gap-2 text-orange-600 justify-center">
               <Clock className="h-4 w-4" />

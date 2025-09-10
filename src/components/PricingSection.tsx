@@ -4,11 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useState } from 'react';
-import { Check, Star } from 'lucide-react';
+import { Check, Star, Sun, Moon } from 'lucide-react';
 
 const PricingSection = () => {
   const { t } = useLanguage();
   const [isNightTime, setIsNightTime] = useState(false);
+  const [daysPerWeek, setDaysPerWeek] = useState(1);
 
   const morningPlans = [
     {
@@ -103,8 +104,9 @@ const PricingSection = () => {
   const currentPlans = isNightTime ? nightPlans : morningPlans;
 
   const PricingCard = ({ plan }: { plan: typeof morningPlans[0] }) => {
-    const finalPrice = plan.discountPrice || plan.originalPrice;
+    const finalPrice = (plan.discountPrice || plan.originalPrice) * daysPerWeek;
     const monthlyPrice = Math.round(finalPrice / plan.months);
+    const totalClasses = plan.classes * daysPerWeek;
     
     return (
       <Card className={`relative h-full ${plan.isRecommended ? 'ring-2 ring-primary shadow-lg scale-105' : ''}`}>
@@ -120,17 +122,17 @@ const PricingSection = () => {
         <CardHeader className="text-center pb-4">
           <CardTitle className="text-2xl font-bold">{plan.package}</CardTitle>
           <div className="space-y-2">
-            <div className="text-3xl font-bold text-primary">
-              {formatPrice(finalPrice)}
+            <div className="text-4xl font-bold text-primary">
+              {plan.months}x de {formatPrice(monthlyPrice)}
+            </div>
+            <div className="text-xl text-muted-foreground">
+              Total: {formatPrice(finalPrice)}
             </div>
             {plan.discountPrice && (
-              <div className="text-lg text-muted-foreground line-through">
-                {formatPrice(plan.originalPrice)}
+              <div className="text-sm text-muted-foreground/70 line-through">
+                De: {formatPrice((plan.originalPrice * daysPerWeek))}
               </div>
             )}
-            <div className="text-sm text-muted-foreground">
-              {plan.months}x {t('pricing.installmentsOf')} {formatPrice(monthlyPrice)}
-            </div>
           </div>
           {plan.discount && (
             <Badge variant="secondary" className="bg-green-100 text-green-800 mx-auto">
@@ -143,11 +145,11 @@ const PricingSection = () => {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-green-600" />
-              <span>{plan.classes} {t('pricing.classesUnit')}</span>
+              <span>{totalClasses} {t('pricing.classesUnit')}</span>
             </div>
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-green-600" />
-              <span>{plan.duration}</span>
+              <span>{daysPerWeek}x {t('pricing.perWeek')}</span>
             </div>
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 text-green-600" />
@@ -178,19 +180,43 @@ const PricingSection = () => {
             {t('pricing.subtitle')}
           </p>
           
+          {/* Days per Week Selector */}
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <span className="font-medium text-muted-foreground">{t('pricing.daysPerWeek')}:</span>
+            <div className="flex gap-2">
+              {[1, 2, 3].map((days) => (
+                <Button
+                  key={days}
+                  variant={daysPerWeek === days ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setDaysPerWeek(days)}
+                  className="min-w-[40px]"
+                >
+                  {days}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {/* Time Toggle */}
           <div className="flex items-center justify-center gap-4 mb-8">
-            <span className={`font-medium ${!isNightTime ? 'text-primary' : 'text-muted-foreground'}`}>
-              {t('pricing.morningAfternoon')}
-            </span>
+            <div className="flex items-center gap-2">
+              <Sun className="w-5 h-5 text-orange-400" />
+              <span className={`font-medium ${!isNightTime ? 'text-primary' : 'text-muted-foreground'}`}>
+                {t('pricing.morningAfternoon')}
+              </span>
+            </div>
             <Switch
               checked={isNightTime}
               onCheckedChange={setIsNightTime}
               className="data-[state=checked]:bg-primary"
             />
-            <span className={`font-medium ${isNightTime ? 'text-primary' : 'text-muted-foreground'}`}>
-              {t('pricing.night')}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className={`font-medium ${isNightTime ? 'text-primary' : 'text-muted-foreground'}`}>
+                {t('pricing.night')}
+              </span>
+              <Moon className="w-5 h-5 text-blue-400" />
+            </div>
           </div>
         </div>
 
