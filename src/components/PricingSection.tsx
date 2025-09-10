@@ -120,14 +120,14 @@ const PricingSection = () => {
           <CardTitle className="text-2xl font-bold">{plan.package}</CardTitle>
           <div className="space-y-2">
             <div className="text-3xl font-bold text-primary">
-              {plan.months}x <span className='font-light'>de</span> {formatPrice(monthlyPrice)}
+              {plan.months}<span className='font-light'>x</span> {formatPrice(monthlyPrice)}
             </div>
             <div className="text-xl text-muted-foreground">
               Total: {formatPrice(finalPrice)}
             </div>
             {plan.discountPrice && (
               <div className="text-sm text-muted-foreground/70 line-through">
-                De: {formatPrice((plan.originalPrice * daysPerWeek))}
+                {formatPrice((plan.originalPrice * daysPerWeek))}
                 {plan.discount && (
                   <Badge variant="secondary" className="bg-green-100 text-green-800 mx-auto">
                     {plan.discount} OFF
@@ -196,6 +196,9 @@ const PricingSection = () => {
           </div> */}
 
           {/* Time Toggle */}
+          {
+            isNightTime ? t("pricing.night") : t("pricing.morningAfternoon")
+          }
           <div className="flex items-center justify-center gap-4 mb-8">
             <DayNightSwitch
               checked={isNightTime}
