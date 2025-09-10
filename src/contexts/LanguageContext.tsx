@@ -31,9 +31,23 @@ const translations = {
     'hero.button2': 'Iniciar teste',
     
     // CTA Section
-      'cta.title': 'Leve seu inglês para outro nível! Eu posso te ajudar!',
-      'cta.button': 'Quero aprender inglês',
-      'about.title': 'Quem sou',
+    'cta.title': 'Leve seu inglês para outro nível! Eu posso te ajudar!',
+    'cta.button': 'Quero aprender inglês',
+
+    // Pricing Section
+    'pricing.title': 'Pacotes de Aulas',
+    'pricing.subtitle': 'Escolha o pacote ideal para seu aprendizado',
+    'pricing.morningAfternoon': 'Manhã/Tarde',
+    'pricing.night': 'Noite',
+    'pricing.package': 'Pacote',
+    'pricing.duration': 'Duração',
+    'pricing.classes': 'Nº de aulas',
+    'pricing.classesUnit': 'aulas',
+    'pricing.originalPrice': 'Valor sem desconto',
+    'pricing.discountPrice': 'Valor com desconto',
+    'pricing.note': '* Aulas individuais de 1 hora cada',
+
+    'about.title': 'Quem sou',
       'about.description': `Hello! ✨ Eu sou a Teacher Késsia.
 Comecei a ensinar Inglês em 2013, em uma escola de cursos profissionalizantes. Desde então, já lecionei para turmas a partir dos 4 anos de idade, mas hoje meu foco é em adolescentes e adultos, especialmente aqueles que atuam ou desejam atuar na área de programação.
 Aprendi Inglês sozinha aos 12 anos, com a ajuda de músicas, filmes e séries. Aos 18, comecei um curso em uma escola de idiomas, onde estudei por 3 anos e aprofundei meus conhecimentos.
@@ -101,9 +115,23 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     'hero.button2': 'Start test',
     
     // CTA Section
-      'cta.title': 'Take your English to the next level! I can help you!',
-      'cta.button': 'I want to learn English',
-      'about.title': 'Who I am',
+    'cta.title': 'Take your English to the next level! I can help you!',
+    'cta.button': 'I want to learn English',
+
+    // Pricing Section
+    'pricing.title': 'Class Packages',
+    'pricing.subtitle': 'Choose the perfect package for your learning',
+    'pricing.morningAfternoon': 'Morning/Afternoon',
+    'pricing.night': 'Night',
+    'pricing.package': 'Package',
+    'pricing.duration': 'Duration',
+    'pricing.classes': 'Number of classes',
+    'pricing.classesUnit': 'classes',
+    'pricing.originalPrice': 'Price without discount',
+    'pricing.discountPrice': 'Price with discount',
+    'pricing.note': '* Individual classes of 1 hour each',
+
+    'about.title': 'Who I am',
       'about.description': 'Késsia Lima has been an English Teacher since 2013 when she started teaching at a school. Since then she has been teaching students of all ages online. She loves English since she was a child. Késsia has always had contact with the language through music, TV shows and movies. In 2018 she created an Instagram profile to share English tips, but now she uses the profile to show her routine of preparing personal classes and her posts about how to really learn English.',
     
     // Services
@@ -169,6 +197,20 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     // CTA Section
     'cta.title': 'Take your English to the next level! I\'m here to guide you through this journey!',
     'cta.button': 'I want to learn English',
+
+    // Pricing Section
+    'pricing.title': 'Class Packages',
+    'pricing.subtitle': 'Choose the ideal package for your learning journey',
+    'pricing.morningAfternoon': 'Morning/Afternoon',
+    'pricing.night': 'Night',
+    'pricing.package': 'Package',
+    'pricing.duration': 'Duration',
+    'pricing.classes': 'Number of classes',
+    'pricing.classesUnit': 'classes',
+    'pricing.originalPrice': 'Price without discount',
+    'pricing.discountPrice': 'Price with discount',
+    'pricing.note': '* Individual classes of 1 hour each',
+
     'about.title': 'Who I am',
     'about.description': 'Késsia Lima has been an English Teacher since 2013 when she started teaching at a vocational school. Since then she\'s been teaching students of all ages remotely. Passionate about English since childhood, Késsia has always had contact with the language through music, series and movies. In 2018 she created an Instagram profile to share English tips, but currently uses the profile to show her routine of preparing personalized classes and her posts about how to really learn English.',
     

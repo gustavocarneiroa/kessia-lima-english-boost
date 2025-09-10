@@ -3,6 +3,7 @@ import HeroSection from '@/components/v1.1/HeroSection';
 import CTASection from '@/components/CTASection';
 import AboutSection from '@/components/AboutSection';
 import ServicesSection from '@/components/ServicesSection';
+import PricingSection from '@/components/PricingSection';
 import FAQSection from '@/components/FAQSection';
 import TestimonialsSection from '@/components/TestimonialsSection';
 import Footer from '@/components/Footer';
@@ -30,6 +31,9 @@ const IndexContent = () => {
         </section>
         <section id="services">
           <ServicesSection />
+        </section>
+        <section id="pricing">
+          <PricingSection />
         </section>
         <FAQSection />
         <TestimonialsSection />
