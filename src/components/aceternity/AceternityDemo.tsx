@@ -1,59 +1,25 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { AceternityButton } from "./AceternityButton";
+import { GridBackgroundDemo } from "../ui/background-ripple-effect";
+import HeroSection2 from "../v1.1/HeroSection";
+import CTASection from "../CTASection";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 export const AceternityDemo = () => {
+    const [showHidden, setShowHidden] = useState(false);
+  
+    useEffect(() => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const showHiddenParam = urlParams.get('showHidden');
+      setShowHidden(showHiddenParam === '1');
+    }, []);
   return (
-    <div className="min-h-screen bg-background p-8 space-y-12">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-8">
-          Componentes Aceternity UI
-        </h1>
-        
-        {/* Botões */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-semibold">Botões Estilizados</h2>
-          <div className="flex flex-wrap gap-4">
-            <AceternityButton variant="sketch">
-              Sketch Button
-            </AceternityButton>
-            
-            <AceternityButton variant="simple">
-              Simple Button
-            </AceternityButton>
-            
-            <AceternityButton variant="gradient">
-              Gradient Button
-            </AceternityButton>
-            
-            <AceternityButton variant="shimmer">
-              Shimmer Button
-            </AceternityButton>
-            
-            <AceternityButton variant="outline">
-              Outline Button
-            </AceternityButton>
-            
-            <AceternityButton variant="brutal">
-              Brutal Button
-            </AceternityButton>
-          </div>
-        </section>
-
-        {/* Text Hover Effect */}
-        <section className="space-y-6">
-        </section>
-
-        {/* Instruções */}
-        <section className="space-y-4 bg-muted p-6 rounded-lg">
-          <h2 className="text-2xl font-semibold">Como usar</h2>
-          <div className="text-sm space-y-2">
-            <p>1. Os componentes Aceternity UI estão configurados e prontos para usar</p>
-            <p>2. Copie componentes de <a href="https://ui.aceternity.com/components" className="text-primary underline" target="_blank" rel="noopener noreferrer">ui.aceternity.com</a></p>
-            <p>3. As dependências necessárias já estão instaladas: motion, clsx, tailwind-merge</p>
-            <p>4. Use a função `cn` de `@/lib/utils` para combinar classes</p>
-          </div>
-        </section>
+    <LanguageProvider>
+      <div className="min-h-screen bg-background">
+        <main>
+          <HeroSection2 />
+          </main>
       </div>
-    </div>
+    </LanguageProvider>
   );
 };
