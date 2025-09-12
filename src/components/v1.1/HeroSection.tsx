@@ -34,13 +34,7 @@ const HeroSection = () => {
               {t('hero.subtitle')}
             </h2>
             <p className="text-xl lg:text-2xl text-muted-foreground mb-10 leading-relaxed">
-              Aprender Inglês não precisa ser complicado. 
-              Com o acompanhamento certo e aulas que fazem sentido para sua rotina e seus objetivos,
-               {" "}<Highlighter action="circle" color="#992468ff">
-                  você finalmente vai conseguir sair do básico
-                </Highlighter>{" "}
-
-               e se comunicar com confiança em situações reais.
+              {t('hero.description')}
             </p>
             <div className="flex flex-col gap-6 items-start">
               <div className="flex gap-4">
