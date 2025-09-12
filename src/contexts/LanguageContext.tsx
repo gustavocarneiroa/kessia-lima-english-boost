@@ -53,8 +53,11 @@ const translations = {
     'about.title': 'Quem sou',
       'about.description': `Hello! ✨ Eu sou a Teacher Késsia.
 Comecei a ensinar Inglês em 2013, em uma escola de cursos profissionalizantes. Desde então, já lecionei para turmas a partir dos 4 anos de idade, mas hoje meu foco é em adolescentes e adultos, especialmente aqueles que atuam ou desejam atuar na área de programação.
+
 Aprendi Inglês sozinha aos 12 anos, com a ajuda de músicas, filmes e séries. Aos 18, comecei um curso em uma escola de idiomas, onde estudei por 3 anos e aprofundei meus conhecimentos.
+
 Depois de 9 anos trabalhando em escolas tradicionais, senti que era hora de criar algo com a minha cara. Assim nasceu o Teacher Késsia Lima, um projeto feito para ajudar adultos a saírem do famoso “Inglês Basicão” e finalmente conseguirem se comunicar com confiança em entrevistas, viagens e no dia a dia.
+
 Minhas aulas são focadas em conversação, vocabulário útil para a vida real e situações práticas, com atividades personalizadas para cada objetivo, seja falar com naturalidade no trabalho, entender nativos com mais facilidade ou destravar de vez a fala. Tudo isso com uma abordagem leve, acessível e eficiente, mesmo para quem já tentou aprender antes e não conseguiu.`,
     
     // Services

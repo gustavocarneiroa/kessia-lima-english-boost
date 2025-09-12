@@ -9,7 +9,7 @@ import TestimonialsSection from '@/components/TestimonialsSection';
 import Footer from '@/components/Footer';
 import WhatsAppFloat from '@/components/WhatsAppFloat';
 import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { ScrollProgress } from '@/components/ui/animated-scroll-spy';
 
 
 const IndexContent = () => {
@@ -23,6 +23,7 @@ const IndexContent = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ScrollProgress />
       <main>
         <HeroSection />
         <CTASection />

@@ -5,6 +5,7 @@ import { DayNightSwitch } from '@/components/ui/switch';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useState } from 'react';
 import { Check, Star, Sun, Moon } from 'lucide-react';
+import { NumberTicker } from './ui/number-ticket';
 
 const PricingSection = () => {
   const { t } = useLanguage();
@@ -100,11 +101,34 @@ const PricingSection = () => {
 
   const currentPlans = isNightTime ? nightPlans : morningPlans;
 
-  const PricingCard = ({ plan }: { plan: typeof morningPlans[0] }) => {
+  const PricingCard = ({ plan, isNight }: { plan: typeof morningPlans[0], isNight: boolean }) => {
+    const otherPlan = (isNight ? morningPlans : nightPlans).find( pl => pl.package == plan.package);
+
     const finalPrice = (plan.discountPrice || plan.originalPrice) * daysPerWeek;
-    const monthlyPrice = Math.round(finalPrice / plan.months);
-    const totalClasses = plan.classes * daysPerWeek;
+    const otherFinalPrice = (otherPlan.discountPrice || otherPlan.originalPrice) * daysPerWeek;
     
+    const monthlyPrice = Math.round(finalPrice / plan.months);
+    const otherMonthlyPrice = Math.round(otherFinalPrice / plan.months)
+    
+    const totalClasses = plan.classes * daysPerWeek;
+    const direction = isNight ? "up" : "down";
+
+    let finalTickerStartValue = finalPrice; 
+    let finalTickerValue =  otherFinalPrice;
+
+    let monthlyTickerStartValue = monthlyPrice;
+    let monthlyTickerValue = otherMonthlyPrice;
+    
+
+    if (isNight) {
+      finalTickerStartValue = otherFinalPrice;
+      finalTickerValue = finalPrice;
+
+      monthlyTickerStartValue = otherMonthlyPrice;
+      monthlyTickerValue = monthlyPrice;
+    }
+    
+
     return (
       <Card className={`relative h-full ${plan.isRecommended ? 'ring-2 ring-primary shadow-lg scale-105' : ''}`}>
         {plan.isRecommended && (
@@ -120,10 +144,10 @@ const PricingSection = () => {
           <CardTitle className="text-2xl font-bold">{plan.package}</CardTitle>
           <div className="space-y-2">
             <div className="text-3xl font-bold text-primary">
-              {plan.months}<span className='font-light'>x</span> {formatPrice(monthlyPrice)}
+              {plan.months}<span className='font-light'>x</span> R$<NumberTicker startValue={monthlyTickerStartValue} direction={direction} value={monthlyTickerValue}/>
             </div>
             <div className="text-xl text-muted-foreground">
-              Total: {formatPrice(finalPrice)}
+              Total: R$ <NumberTicker startValue={finalTickerStartValue} direction={direction} value={finalTickerValue}/>
             </div>
             {plan.discountPrice && (
               <div className="text-sm text-muted-foreground/70 line-through">
@@ -167,7 +191,7 @@ const PricingSection = () => {
   };
 
   return (
-    <section className="py-16 bg-muted/30">
+    <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl lg:text-4xl font-bold text-foreground mb-4">
@@ -210,7 +234,7 @@ const PricingSection = () => {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {currentPlans.map((plan, index) => (
-            <PricingCard key={index} plan={plan} />
+            <PricingCard key={index} plan={plan} isNight={isNightTime} />
           ))}
         </div>
 

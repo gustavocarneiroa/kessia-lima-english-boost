@@ -1,20 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
 import { Star, ChevronLeft, ChevronRight, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useLanguage } from '@/contexts/LanguageContext';
-
-type TestimonialType = { id: number; name: string; timeAgo: string; avatar?: string; rating: number; shortFeedback: { pt: string; en?: string }; fullFeedback: { pt: string; en?: string } };
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalTrigger } from './ui/animated-modal';
+import { motion } from 'motion/react';
+import teacherKessia from '@/assets/teacher-kessia-3.jpeg';
+import alunoPhoto from '@/assets/teacher-hero-1.png'
+type TestimonialType = { 
+  id: number; 
+  name: string; 
+  timeAgo: string; 
+  avatar?: string; 
+  rating: number; 
+  shortFeedback: { pt: string; en?: string }; 
+  fullFeedback: { pt: string; en?: string }
+  photos?: string[]
+};
 
 const TestimonialsSection = () => {
   const { t, language } = useLanguage();
 
   const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLScJP5G5kG3TrRc8YU_1hrSLvFf4TVUtI0ezkwjPzZhaqmLL_g/viewform";
 
-  const handleFormClick = () => {
-    window.open(formUrl, '_blank');
-  };
   const scrollToPricing = () => {
     const pricingSection = document.getElementById('pricing');
     if (pricingSection) {
@@ -22,12 +30,14 @@ const TestimonialsSection = () => {
     }
   };
   const [currentPage, setCurrentPage] = useState(0);
-  const [selectedTestimonial, setSelectedTestimonial] = useState<any>(null);
   const [testimonialLanguage, setTestimonialLanguage] = useState<'pt' | 'en'>('pt');
-  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
+  const [expandedCards] = useState<Set<number>>(new Set());
   const textRefs = useRef<{ [key: number]: HTMLParagraphElement | null }>({});
-
-  const testimonials : TestimonialType[] = [
+  const images = [
+    teacherKessia,
+    "/share200.jpeg",
+  ];
+  const testimonials: TestimonialType[] = [
     {
       id: 1,
       name: "Pedro Lucas",
@@ -106,15 +116,6 @@ const TestimonialsSection = () => {
     return testimonials.slice(startIndex, startIndex + itemsPerPage);
   };
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (isModalOpen) return; // Don't auto-advance when modal is open
-
-    const timer = setInterval(nextPage, 8000);
-    return () => clearInterval(timer);
-  }, [isModalOpen]);
-
   useEffect(() => {
     setTestimonialLanguage(language.startsWith('en') ? 'en' : 'pt');
   }, [language]);
@@ -122,28 +123,17 @@ const TestimonialsSection = () => {
   const checkTextTruncation = (testimonialId: number) => {
     const element = textRefs.current[testimonialId];
     if (!element) return false;
-    
+
     const lineHeight = parseInt(getComputedStyle(element).lineHeight);
     const maxHeight = lineHeight * 3; // 3 lines
     return element.scrollHeight > maxHeight;
   };
 
-  const toggleExpanded = (testimonialId: number) => {
-    setExpandedCards(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(testimonialId)) {
-        newSet.delete(testimonialId);
-      } else {
-        newSet.add(testimonialId);
-      }
-      return newSet;
-    });
-  };
 
-  const renderStars = (rating: number) => {
+  const renderStars = (star_id: string, rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
-        key={i}
+        key={star_id + i}
         className={`h-4 w-4 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
       />
     ));
@@ -162,79 +152,95 @@ const TestimonialsSection = () => {
           {/* Testimonials Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
             {getCurrentTestimonials().map((testimonial) => (
-              <div
-                key={testimonial.id}
-                className="bg-card border border-border rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
-                onClick={() => {
-                  setSelectedTestimonial(testimonial);
-                  setIsModalOpen(true);
-                }}
-              >
-                <div className="flex items-center mb-4">
-                  <Avatar className="w-12 h-12 mr-4">
-                    <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
-                    <AvatarFallback className="bg-muted">
-                      <User className="h-6 w-6 text-muted-foreground" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
-                    <p className="text-sm text-muted-foreground">{testimonial.timeAgo}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center mb-4">
-                  {renderStars(testimonial.rating)}
-                </div>
-
-                <div className="relative">
-                  <p 
-                    ref={(el) => textRefs.current[testimonial.id] = el}
-                    className={`text-muted-foreground leading-relaxed ${
-                      !expandedCards.has(testimonial.id) ? 'line-clamp-3' : ''
-                    }`}
+              <Modal>
+                <ModalTrigger>
+                  <div
+                    key={"testimonial" + testimonial.id}
+                    className="bg-card border border-border rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
                   >
-                    {testimonial.fullFeedback[testimonialLanguage] ?? testimonial.fullFeedback['pt']}
-                  </p>
-                  {checkTextTruncation(testimonial.id) && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleExpanded(testimonial.id);
-                      }}
-                      className="text-primary text-sm mt-2 hover:underline"
-                    >
-                      {expandedCards.has(testimonial.id) ? 'Ver menos' : 'Ver mais'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {selectedTestimonial && (
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-4">
-                    <Avatar className="w-16 h-16">
-                      <AvatarImage src={selectedTestimonial.avatar} alt={selectedTestimonial.name} />
-                      <AvatarFallback className="bg-muted">
-                        <User className="h-8 w-8 text-muted-foreground" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <h3 className="text-xl font-bold">{selectedTestimonial.name}</h3>
-                      <div className="flex items-center gap-2">
-                        {renderStars(selectedTestimonial.rating)}
-                        <span className="text-sm text-muted-foreground">• {selectedTestimonial.timeAgo}</span>
+                    <div className="flex items-center mb-4">
+                      <Avatar className="w-12 h-12 mr-4">
+                        <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
+                        <AvatarFallback className="bg-muted">
+                          <User className="h-6 w-6 text-muted-foreground" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
+                        <p className="text-sm text-muted-foreground">{testimonial.timeAgo}</p>
                       </div>
                     </div>
-                  </DialogTitle>
-                </DialogHeader>
 
-                <div className="space-y-4">
-                  <div className="flex gap-2">
+                    <div className="flex items-center mb-4">
+                      {renderStars("star" + testimonial.id, testimonial.rating)}
+                    </div>
+
+                    <div className="relative">
+                      <p
+                        ref={(el) => textRefs.current[testimonial.id] = el}
+                        className={`text-muted-foreground leading-relaxed ${!expandedCards.has(testimonial.id) ? 'line-clamp-3' : ''
+                          }`}
+                      >
+                        {testimonial.fullFeedback[testimonialLanguage] ?? testimonial.fullFeedback['pt']}
+                      </p>
+                      {checkTextTruncation(testimonial.id) && (
+                        <button
+                          className="text-primary text-sm mt-2 hover:underline"
+                        >
+                          {expandedCards.has(testimonial.id) ? 'Ver menos' : 'Ver mais'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </ModalTrigger>
+                <ModalBody>
+                  <ModalContent>
+                    <div className="py-10 flex flex-wrap gap-x-4 gap-y-6 items-start justify-start max-w-sm mx-auto">
+                      <Avatar className="w-12 h-12 mr-4">
+                        <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
+                        <AvatarFallback className="bg-muted">
+                          <User className="h-6 w-6 text-muted-foreground" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-foreground">{testimonial.name}</h4>
+                        <p className="text-sm text-muted-foreground">{testimonial.timeAgo}</p>
+                      </div>
+                      <div className="flex items-center mb-4">
+                        {renderStars("star" + testimonial.id, testimonial.rating)}
+                      </div>
+                      {testimonial.fullFeedback[testimonialLanguage] ?? testimonial.fullFeedback['pt']}
+                    </div>
+                    <div className="flex justify-center items-center">
+                      {[...images, testimonial.avatar, ...(testimonial.photos ?? [])].filter( p => p).map((image, idx) => (
+                        <motion.div
+                          key={"images" + idx}
+                          style={{
+                            rotate: Math.random() * 20 - 10,
+                          }}
+                          whileHover={{
+                            scale: 1.1,
+                            rotate: 0,
+                            zIndex: 100,
+                          }}
+                          whileTap={{
+                            scale: 1.1,
+                            rotate: 0,
+                            zIndex: 100,
+                          }}
+                          className="rounded-xl -mr-4 mt-4 p-1 bg-white dark:bg-neutral-800 dark:border-neutral-700 border border-neutral-100 shrink-0 overflow-hidden"
+                        >
+                          <img
+                            src={image}
+                            width="500"
+                            height="500"
+                            className="rounded-lg h-20 w-20 md:h-40 md:w-40 object-cover shrink-0"
+                          />
+                        </motion.div>
+                      ))}
+                    </div>
+                  </ModalContent>
+                  <ModalFooter className="gap-4">
                     <Button
                       variant={testimonialLanguage === 'pt' ? 'default' : 'outline'}
                       size="sm"
@@ -243,7 +249,7 @@ const TestimonialsSection = () => {
                       {t('testimonials.portuguese')}
                     </Button>
                     {
-                      selectedTestimonial.fullFeedback.en && 
+                      testimonial.fullFeedback.en &&
                       <Button
                         variant={testimonialLanguage === 'en' ? 'default' : 'outline'}
                         size="sm"
@@ -252,15 +258,11 @@ const TestimonialsSection = () => {
                         {t('testimonials.english')}
                       </Button>
                     }
-                  </div>
-
-                  <p className="text-foreground leading-relaxed text-lg">
-                    {selectedTestimonial.fullFeedback[testimonialLanguage] ?? selectedTestimonial.fullFeedback['pt']}
-                  </p>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
+                  </ModalFooter>
+                </ModalBody>
+              </Modal>
+            ))}
+          </div>
         </div>
 
         {/* Navigation */}
@@ -277,7 +279,7 @@ const TestimonialsSection = () => {
           <div className="flex gap-2">
             {Array.from({ length: totalPages }, (_, i) => (
               <button
-                key={i}
+                key={"page" + i}
                 onClick={() => setCurrentPage(i)}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${i === currentPage ? 'bg-primary' : 'bg-muted'
                   }`}
@@ -294,11 +296,11 @@ const TestimonialsSection = () => {
             <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
-        
+
         {/* CTA Button */}
         <div className="text-center mt-16">
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             onClick={scrollToPricing}
             className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg rounded-full"
           >
