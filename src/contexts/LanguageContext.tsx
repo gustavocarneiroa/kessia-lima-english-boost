@@ -22,7 +22,11 @@ const translations = {
     // Hero Section
     'hero.title': 'Teacher Késsia Lima',
     'hero.subtitle': 'Para você sair do Inglês Basicão!',
-    'hero.description': 'Aprender Inglês não precisa ser complicado. Com o acompanhamento certo e aulas que fazem sentido para sua rotina e seus objetivos, você finalmente vai conseguir sair do básico e se comunicar com confiança em situações reais. Aqui, você estuda no seu ritmo, com apoio constante e conteúdos que vão direto ao ponto, seja para entrevistas, viagens ou o dia a dia.',
+    'hero.description': {
+      text: 'Aprender Inglês não precisa ser complicado. Com o acompanhamento certo e aulas que fazem sentido para sua rotina e seus objetivos, você finalmente vai conseguir sair do básico e se comunicar com confiança em situações reais. Aqui, você estuda no seu ritmo, com apoio constante e conteúdos que vão direto ao ponto, seja para entrevistas, viagens ou o dia a dia.',
+      highlight: 'sair do básico',
+      color: '#ffd700'
+    },
     'hero.button': 'Quero aprender inglês',
     'hero.contactButton': 'Entrar em contato',
     'hero.limitedSpots': 'Vagas limitadas',
@@ -49,6 +53,12 @@ const translations = {
     'pricing.selectPlan': 'Escolher Plano',
     'pricing.daysPerWeek': 'Dias por semana',
     'pricing.perWeek': 'por semana',
+
+    // Waiting List Modal
+    'waitingList.title': 'Ops! Estamos sem vagas no momento 😊',
+    'waitingList.description': 'Ficamos muito felizes com seu interesse! No momento estamos com a agenda lotada, mas você pode entrar na nossa lista de espera e será a primeira pessoa a saber quando abrirmos novas vagas.',
+    'waitingList.button': 'Entrar na lista de espera',
+    'waitingList.close': 'Fechar',
 
     'about.title': 'Quem sou',
       'about.description': `Hello! ✨ Eu sou a Teacher Késsia.
@@ -112,7 +122,11 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     // Hero Section
     'hero.title': 'Teacher Késsia Lima',
     'hero.subtitle': 'Stop being Basic in English!',
-    'hero.description': 'Learning English does not need to be hard. With the right help and classes that fit your life and goals, you will finally leave basic level and speak with confidence in real situations. Here, you study at your speed, with help all the time and content that goes to the point, for interviews, trips or daily life.',
+    'hero.description': {
+      text: 'Learning English does not need to be hard. With the right help and classes that fit your life and goals, you will finally leave basic level and speak with confidence in real situations. Here, you study at your speed, with help all the time and content that goes to the point, for interviews, trips or daily life.',
+      highlight: 'leave basic level',
+      color: '#ffd700'
+    },
     'hero.button': 'I want to learn English',
     'hero.contactButton': 'Get in touch',
     'hero.limitedSpots': 'Limited spots',
@@ -139,6 +153,12 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     'pricing.selectPlan': 'Choose Plan',
     'pricing.daysPerWeek': 'Days per week',
     'pricing.perWeek': 'per week',
+
+    // Waiting List Modal
+    'waitingList.title': 'Oops! We are currently full 😊',
+    'waitingList.description': 'We are so happy about your interest! Right now our schedule is full, but you can join our waiting list and you will be the first person to know when we open new spots.',
+    'waitingList.button': 'Join waiting list',
+    'waitingList.close': 'Close',
 
     'about.title': 'Who I am',
       'about.description': 'Késsia Lima has been an English Teacher since 2013 when she started teaching at a school. Since then she has been teaching students of all ages online. She loves English since she was a child. Késsia has always had contact with the language through music, TV shows and movies. In 2018 she created an Instagram profile to share English tips, but now she uses the profile to show her routine of preparing personal classes and her posts about how to really learn English.',
@@ -195,7 +215,11 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     // Hero Section
     'hero.title': 'Teacher Késsia Lima',
     'hero.subtitle': 'Break through your English barriers!',
-    'hero.description': 'Mastering English doesn\'t have to be a huge challenge. With personalized guidance and well-designed lessons that fit your lifestyle and professional goals, you\'ll finally move beyond basic proficiency and communicate with real confidence in authentic situations. Here, you\'ll progress at your own pace, receiving continuous support and accessing targeted content that addresses your specific needs—whether you\'re preparing for important interviews, international travel, or career advancement.',
+    'hero.description': {
+      text: 'Mastering English doesn\'t have to be a huge challenge. With personalized guidance and well-designed lessons that fit your lifestyle and professional goals, you\'ll finally move beyond basic proficiency and communicate with real confidence in authentic situations. Here, you\'ll progress at your own pace, receiving continuous support and accessing targeted content that addresses your specific needs—whether you\'re preparing for important interviews, international travel, or career advancement.',
+      highlight: 'move beyond basic proficiency',
+      color: '#ffd700'
+    },
     'hero.button': 'I want to learn English',
     'hero.contactButton': 'Get in touch',
     'hero.limitedSpots': 'Limited spots',
@@ -222,6 +246,12 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     'pricing.selectPlan': 'Select Plan',
     'pricing.daysPerWeek': 'Days per week',
     'pricing.perWeek': 'per week',
+
+    // Waiting List Modal
+    'waitingList.title': 'Oops! We are currently at full capacity 😊',
+    'waitingList.description': 'We are absolutely thrilled about your interest! Currently our schedule is completely booked, but you can join our exclusive waiting list and you\'ll be the first to know when new openings become available.',
+    'waitingList.button': 'Join the waiting list',
+    'waitingList.close': 'Close',
 
     'about.title': 'Who I am',
     'about.description': 'Késsia Lima has been an English Teacher since 2013 when she started teaching at a vocational school. Since then she\'s been teaching students of all ages remotely. Passionate about English since childhood, Késsia has always had contact with the language through music, series and movies. In 2018 she created an Instagram profile to share English tips, but currently uses the profile to show her routine of preparing personalized classes and her posts about how to really learn English.',
@@ -271,7 +301,7 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [language, setLanguage] = useState<Language>('pt');
 
-  const t = (key: string): string => {
+  const t = (key: string): string | any => {
     return translations[language][key as keyof typeof translations[typeof language]] || key;
   };
 

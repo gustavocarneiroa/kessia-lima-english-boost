@@ -3,6 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Clock } from 'lucide-react';
 import teacherKessia from '@/assets/teacker-kessia-2.png';
 import { Highlighter } from '../ui/highliter-magic-ui';
+import { renderTranslationWithHighlight } from '@/utils/translationHelpers';
 
 const HeroSection = () => {
   const { t } = useLanguage();
@@ -34,7 +35,7 @@ const HeroSection = () => {
               {t('hero.subtitle')}
             </h2>
             <p className="text-xl lg:text-2xl text-muted-foreground mb-10 leading-relaxed">
-              {t('hero.description')}
+              {renderTranslationWithHighlight(t('hero.description'))}
             </p>
             <div className="flex flex-col gap-6 items-start">
               <div className="flex gap-4">
@@ -93,7 +94,7 @@ const HeroSection = () => {
             {t('hero.subtitle')}
           </h2>
           <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-            {t('hero.description')}
+            {renderTranslationWithHighlight(t('hero.description'))}
           </p>
           <div className="flex flex-col gap-6 items-center">
             <Button 
