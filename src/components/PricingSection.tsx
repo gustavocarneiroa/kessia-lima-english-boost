@@ -3,11 +3,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DayNightSwitch } from '@/components/ui/switch';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useState } from 'react';
-import { Check, Star, Sun, Moon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Check, Star } from 'lucide-react';
 import { NumberTicker } from './ui/number-ticket';
 import { siteConfig } from '@/config/siteConfig';
-import { Modal, ModalBody, ModalContent, ModalFooter } from '@/components/ui/animated-modal';
+import { Modal, ModalBody, ModalContent, ModalFooter, useModal } from '@/components/ui/animated-modal';
 
 const PricingSection = () => {
   const { t } = useLanguage();
@@ -29,6 +29,14 @@ const PricingSection = () => {
   };
   const [isNightTime, setIsNightTime] = useState(false);
   const [daysPerWeek, setDaysPerWeek] = useState(1);
+
+  const ModalOpenSync = ({ open }: { open: boolean }) => {
+    const { setOpen } = useModal();
+    useEffect(() => {
+      setOpen(open);
+    }, [open, setOpen]);
+    return null;
+  };
 
   const morningPlans = [
     {
@@ -214,33 +222,14 @@ const PricingSection = () => {
             {t('pricing.subtitle')}
           </p>
           
-          {/* Days per Week Selector */}
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <span className="font-medium text-muted-foreground">{t('pricing.daysPerWeek')}:</span>
-            <div className="flex gap-2">
-              {[1, 2, 3].map((days) => (
-                <Button
-                  key={days}
-                  variant={daysPerWeek === days ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setDaysPerWeek(days)}
-                  className="min-w-[40px]"
-                >
-                  {days}
-                </Button>
-              ))}
-            </div>
-          </div>
 
           {/* Time Toggle */}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <Sun className={`w-5 h-5 ${!isNightTime ? 'text-yellow-500' : 'text-muted-foreground'}`} />
+          <div className="flex items-center justify-center mb-8">
             <DayNightSwitch
               checked={isNightTime}
               onCheckedChange={setIsNightTime}
               className="data-[state=checked]:bg-primary"
             />
-            <Moon className={`w-5 h-5 ${isNightTime ? 'text-blue-400' : 'text-muted-foreground'}`} />
           </div>
           <div className="text-center mb-6">
             <span className="text-lg font-medium text-foreground">
@@ -264,7 +253,8 @@ const PricingSection = () => {
 
       {/* Waiting List Modal */}
       <Modal onChange={setShowWaitingListModal}>
-        <ModalBody className={showWaitingListModal ? 'block' : 'hidden'}>
+        <ModalOpenSync open={showWaitingListModal} />
+        <ModalBody>
           <ModalContent>
             <div className="text-center">
               <h3 className="text-2xl font-bold text-foreground mb-4">
