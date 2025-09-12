@@ -1,4 +1,4 @@
-import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 import HeroSection from '@/components/v1.1/HeroSection';
 import CTASection from '@/components/CTASection';
 import AboutSection from '@/components/AboutSection';
@@ -7,20 +7,9 @@ import PricingSection from '@/components/PricingSection';
 import FAQSection from '@/components/FAQSection';
 import TestimonialsSection from '@/components/TestimonialsSection';
 import Footer from '@/components/Footer';
-import WhatsAppFloat from '@/components/WhatsAppFloat';
-import { useState, useEffect } from 'react';
 import { ScrollProgress } from '@/components/ui/animated-scroll-spy';
 
-
 const IndexContent = () => {
-  const [showHidden, setShowHidden] = useState(false);
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const showHiddenParam = urlParams.get('showHidden');
-    setShowHidden(showHiddenParam === '1');
-  }, []);
-
   return (
     <div className="min-h-screen bg-background">
       <ScrollProgress />
@@ -36,11 +25,10 @@ const IndexContent = () => {
         <section id="pricing">
           <PricingSection />
         </section>
-        <FAQSection />
         <TestimonialsSection />
+        <FAQSection />
       </main>
       <Footer />
-      <WhatsAppFloat />
     </div>
   );
 };

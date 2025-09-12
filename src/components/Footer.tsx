@@ -103,14 +103,6 @@ const Footer = () => {
                 </Button>
               </div>
             </div>
-
-            {/* Contact Button */}
-            <Button
-              onClick={handleFormClick}
-              className="bg-white text-primary hover:bg-white/90 px-6 py-3 rounded-full font-semibold"
-            >
-              {t('footer.contact')}
-            </Button>
           </div>
         </div>
 
