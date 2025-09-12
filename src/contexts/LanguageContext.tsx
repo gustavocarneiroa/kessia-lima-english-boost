@@ -55,7 +55,7 @@ const translations = {
     'pricing.perWeek': 'por semana',
 
     // Waiting List Modal
-    'waitingList.title': 'Ops! Estamos sem vagas no momento 😊',
+    'waitingList.title': 'Ops! Estamos sem vagas no momento',
     'waitingList.description': 'Ficamos muito felizes com seu interesse! No momento estamos com a agenda lotada, mas você pode entrar na nossa lista de espera e será a primeira pessoa a saber quando abrirmos novas vagas.',
     'waitingList.button': 'Entrar na lista de espera',
     'waitingList.close': 'Fechar',
@@ -155,7 +155,7 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     'pricing.perWeek': 'per week',
 
     // Waiting List Modal
-    'waitingList.title': 'Oops! We are currently full 😊',
+    'waitingList.title': 'Oops! We are currently full',
     'waitingList.description': 'We are so happy about your interest! Right now our schedule is full, but you can join our waiting list and you will be the first person to know when we open new spots.',
     'waitingList.button': 'Join waiting list',
     'waitingList.close': 'Close',
@@ -248,7 +248,7 @@ Minhas aulas são focadas em conversação, vocabulário útil para a vida real 
     'pricing.perWeek': 'per week',
 
     // Waiting List Modal
-    'waitingList.title': 'Oops! We are currently at full capacity 😊',
+    'waitingList.title': 'Oops! We are currently at full capacity',
     'waitingList.description': 'We are absolutely thrilled about your interest! Currently our schedule is completely booked, but you can join our exclusive waiting list and you\'ll be the first to know when new openings become available.',
     'waitingList.button': 'Join the waiting list',
     'waitingList.close': 'Close',

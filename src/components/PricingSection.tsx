@@ -8,9 +8,14 @@ import { Check, Star } from 'lucide-react';
 import { NumberTicker } from './ui/number-ticket';
 import { siteConfig } from '@/config/siteConfig';
 import { Modal, ModalBody, ModalContent, ModalFooter, useModal } from '@/components/ui/animated-modal';
+import { motion } from 'motion/react';
 
 const PricingSection = () => {
   const { t } = useLanguage();
+  const images = [
+    "/share200.jpeg",
+    "/images/kiara.png",
+  ];
   const [showWaitingListModal, setShowWaitingListModal] = useState(false);
 
   const handleWaitingList = () => {
@@ -113,23 +118,23 @@ const PricingSection = () => {
   const currentPlans = isNightTime ? nightPlans : morningPlans;
 
   const PricingCard = ({ plan, isNight }: { plan: typeof morningPlans[0], isNight: boolean }) => {
-    const otherPlan = (isNight ? morningPlans : nightPlans).find( pl => pl.package == plan.package);
+    const otherPlan = (isNight ? morningPlans : nightPlans).find(pl => pl.package == plan.package);
 
     const finalPrice = (plan.discountPrice || plan.originalPrice) * daysPerWeek;
     const otherFinalPrice = (otherPlan.discountPrice || otherPlan.originalPrice) * daysPerWeek;
-    
+
     const monthlyPrice = Math.round(finalPrice / plan.months);
     const otherMonthlyPrice = Math.round(otherFinalPrice / plan.months)
-    
+
     const totalClasses = plan.classes * daysPerWeek;
     const direction = isNight ? "up" : "down";
 
-    let finalTickerStartValue = finalPrice; 
-    let finalTickerValue =  otherFinalPrice;
+    let finalTickerStartValue = finalPrice;
+    let finalTickerValue = otherFinalPrice;
 
     let monthlyTickerStartValue = monthlyPrice;
     let monthlyTickerValue = otherMonthlyPrice;
-    
+
 
     if (isNight) {
       finalTickerStartValue = otherFinalPrice;
@@ -138,7 +143,7 @@ const PricingSection = () => {
       monthlyTickerStartValue = otherMonthlyPrice;
       monthlyTickerValue = monthlyPrice;
     }
-    
+
 
     return (
       <Card className={`relative h-full ${plan.isRecommended ? 'ring-2 ring-primary shadow-lg scale-105' : ''}`}>
@@ -150,15 +155,15 @@ const PricingSection = () => {
             </Badge>
           </div>
         )}
-        
+
         <CardHeader className="text-center pb-4">
           <CardTitle className="text-2xl font-bold">{plan.package}</CardTitle>
           <div className="space-y-2">
             <div className="text-3xl font-bold text-primary">
-              {plan.months}<span className='font-light'>x</span> R$<NumberTicker startValue={monthlyTickerStartValue} direction={direction} value={monthlyTickerValue}/>
+              {plan.months}<span className='font-light'>x</span> R$<NumberTicker startValue={monthlyTickerStartValue} direction={direction} value={monthlyTickerValue} />
             </div>
             <div className="text-xl text-muted-foreground">
-              Total: R$ <NumberTicker startValue={finalTickerStartValue} direction={direction} value={finalTickerValue}/>
+              Total: R$ <NumberTicker startValue={finalTickerStartValue} direction={direction} value={finalTickerValue} />
             </div>
             {plan.discountPrice && (
               <div className="text-sm text-muted-foreground/70 line-through">
@@ -172,7 +177,7 @@ const PricingSection = () => {
             )}
           </div>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -192,12 +197,12 @@ const PricingSection = () => {
               <span>{t('pricing.personalizedMaterial')}</span>
             </div>
           </div>
-          
+
           <Button onClick={() => {
             if (siteConfig.waitingListOnly) {
               setShowWaitingListModal(true);
             } else {
-              const formUrl = `https://wa.me/5585997362806?text=Quero%20aprender%20ingl%C3%AAs%2C%20teacher!%0APlano escolhido: ${plan.package} - ${plan.months} meses%20%0ATurno: ${isNightTime ? "Noite": "Manhã"}%20`;
+              const formUrl = `https://wa.me/5585997362806?text=Quero%20aprender%20ingl%C3%AAs%2C%20teacher!%0APlano escolhido: ${plan.package} - ${plan.months} meses%20%0ATurno: ${isNightTime ? "Noite" : "Manhã"}%20`;
               window.open(formUrl, '_blank');
             }
           }} className="w-full" size="lg">
@@ -218,7 +223,7 @@ const PricingSection = () => {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
             {t('pricing.subtitle')}
           </p>
-          
+
 
           {/* Time Toggle */}
           <div className="flex items-center justify-center mb-8">
@@ -261,10 +266,38 @@ const PricingSection = () => {
                 {t('waitingList.description')}
               </p>
             </div>
+            <div className="flex justify-center items-center">
+              {images.map((image, idx) => (
+                <motion.div
+                  key={"images" + idx}
+                  style={{
+                    rotate: Math.random() * 20 - 10,
+                  }}
+                  whileHover={{
+                    scale: 1.1,
+                    rotate: 0,
+                    zIndex: 100,
+                  }}
+                  whileTap={{
+                    scale: 1.1,
+                    rotate: 0,
+                    zIndex: 100,
+                  }}
+                  className="rounded-xl -mr-4 mt-4 p-1 bg-white dark:bg-neutral-800 dark:border-neutral-700 border border-neutral-100 shrink-0 overflow-hidden"
+                >
+                  <img
+                    src={image}
+                    width="500"
+                    height="500"
+                    className="rounded-lg h-20 w-20 md:h-40 md:w-40 object-cover shrink-0"
+                  />
+                </motion.div>
+              ))}
+            </div>
           </ModalContent>
           <ModalFooter className="flex gap-3 justify-center">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowWaitingListModal(false)}
             >
               {t('waitingList.close')}
