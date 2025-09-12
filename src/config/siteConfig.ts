@@ -4,6 +4,6 @@ export interface SiteConfig {
 }
 
 export const siteConfig: SiteConfig = {
-  waitingListOnly: false, // Change to true when only waiting list is available
+  waitingListOnly: true, // Change to true when only waiting list is available
   waitingListUrl: "https://docs.google.com/forms/d/e/1FAIpQLScaStZfmkPG-xIztH49lc67iOfXRlnXRDos0wcsJZ7jgm9LhQ/viewform"
 };

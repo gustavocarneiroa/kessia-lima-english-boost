@@ -12,16 +12,6 @@ import { Modal, ModalBody, ModalContent, ModalFooter, useModal } from '@/compone
 const PricingSection = () => {
   const { t } = useLanguage();
   const [showWaitingListModal, setShowWaitingListModal] = useState(false);
-  
-  const handleFormClick = (_package: string, months: number, shift: string) => {
-    if (siteConfig.waitingListOnly) {
-      setShowWaitingListModal(true);
-      return () => {};
-    }
-    
-    const formUrl = `https://wa.me/5585997362806?text=Quero%20aprender%20ingl%C3%AAs%2C%20teacher!%0APlano escolhido: ${_package} - ${months} meses%20%0ATurno: ${shift}%20`;
-    return () => window.open(formUrl, '_blank');
-  };
 
   const handleWaitingList = () => {
     window.open(siteConfig.waitingListUrl, '_blank');
@@ -203,7 +193,14 @@ const PricingSection = () => {
             </div>
           </div>
           
-          <Button onClick={handleFormClick(plan.package ,plan.months, isNightTime ? "Noite": "Manhã")} className="w-full" size="lg">
+          <Button onClick={() => {
+            if (siteConfig.waitingListOnly) {
+              setShowWaitingListModal(true);
+            } else {
+              const formUrl = `https://wa.me/5585997362806?text=Quero%20aprender%20ingl%C3%AAs%2C%20teacher!%0APlano escolhido: ${plan.package} - ${plan.months} meses%20%0ATurno: ${isNightTime ? "Noite": "Manhã"}%20`;
+              window.open(formUrl, '_blank');
+            }
+          }} className="w-full" size="lg">
             {t('pricing.selectPlan')}
           </Button>
         </CardContent>
