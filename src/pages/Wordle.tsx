@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Lightbulb, RotateCcw, CheckCircle, XCircle } from 'lucide-react';
+import { Lightbulb, RotateCcw, CheckCircle, XCircle, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWordle } from '@/hooks/useWordle';
+import { Modal, ModalTrigger, ModalBody, ModalContent } from '@/components/ui/animated-modal';
 
 interface GuessResult {
   letter: string;
@@ -201,7 +202,7 @@ const Wordle = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-background py-8">
+      <div className="min-h-screen bg-primary py-8">
         <div className="container mx-auto px-4 max-w-lg">
           <div className="text-center mb-8">
             <Skeleton className="h-10 w-32 mx-auto mb-2" />
@@ -221,7 +222,7 @@ const Wordle = () => {
   // Error state
   if (error || !dailyWord) {
     return (
-      <div className="min-h-screen bg-background py-8">
+      <div className="min-h-screen bg-primary py-8">
         <div className="container mx-auto px-4 max-w-lg">
           <div className="text-center">
             <h1 className="text-4xl font-bold text-primary mb-4">Wordle</h1>
@@ -244,31 +245,31 @@ const Wordle = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8">
+    <div className="min-h-screen bg-primary py-8">
       <div className="container mx-auto px-4 max-w-lg">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-primary mb-2">Wordle</h1>
-          <p className="text-muted-foreground">Guess the {dailyWord.letter_count}-letter word!</p>
+          <h1 className="text-4xl font-bold text-primary-foreground mb-2">Wordle</h1>
+          <p className="text-primary-foreground/80">Guess the {dailyWord.letter_count}-letter word!</p>
           <Badge variant="outline" className="mt-2">
             {dailyWord.date.replace(/_/g, '-')}
           </Badge>
           
           {/* Game Status */}
           {todayGame && (
-            <div className="mt-4 p-4 rounded-lg bg-muted">
+            <div className="mt-4 p-4 rounded-lg bg-background/20 backdrop-blur-sm">
               <div className="flex items-center justify-center gap-2">
                 {todayGame.won ? (
                   <>
-                    <CheckCircle className="w-5 h-5 text-green-500" />
-                    <span className="text-green-600 font-semibold">
+                    <CheckCircle className="w-5 h-5 text-green-400" />
+                    <span className="text-green-200 font-semibold">
                       You solved today's puzzle in {todayGame.guesses_count} tries!
                     </span>
                   </>
                 ) : (
                   <>
-                    <XCircle className="w-5 h-5 text-red-500" />
-                    <span className="text-red-600 font-semibold">
+                    <XCircle className="w-5 h-5 text-red-400" />
+                    <span className="text-red-200 font-semibold">
                       You didn't solve today's puzzle. Come back tomorrow!
                     </span>
                   </>
@@ -278,58 +279,73 @@ const Wordle = () => {
           )}
         </div>
 
-        {/* Stats */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-lg">Your Stats</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-4 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-primary">{userStats?.current_streak || 0}</div>
-                <div className="text-xs text-muted-foreground">Current Streak</div>
+        {/* Stats Modal */}
+        <div className="mb-6">
+          <Modal>
+            <ModalTrigger className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 rounded-lg py-3 px-4">
+              <div className="flex items-center justify-center gap-2">
+                <BarChart3 className="w-4 h-4" />
+                View Stats
               </div>
-              <div>
-                <div className="text-2xl font-bold text-primary">{userStats?.best_streak || 0}</div>
-                <div className="text-xs text-muted-foreground">Best Streak</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-primary">{userStats?.games_played || 0}</div>
-                <div className="text-xs text-muted-foreground">Games Played</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-primary">{userStats?.total_wins || 0}</div>
-                <div className="text-xs text-muted-foreground">Total Wins</div>
-              </div>
-            </div>
-            <div className="mt-4 text-center">
-              <div className="text-sm text-muted-foreground">
-                Win Rate: {userStats?.games_played ? Math.round((userStats.total_wins / userStats.games_played) * 100) : 0}% 
-                • Total Hints Used: {userStats?.hints_used_total || 0}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </ModalTrigger>
+            <ModalBody>
+              <ModalContent>
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl font-bold mb-2">Your Statistics</h2>
+                  <div className="text-muted-foreground">Track your Wordle progress</div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-6 mb-6">
+                  <div className="text-center p-4 rounded-lg bg-muted/50">
+                    <div className="text-3xl font-bold text-primary">{userStats?.current_streak || 0}</div>
+                    <div className="text-sm text-muted-foreground">Current Streak</div>
+                  </div>
+                  <div className="text-center p-4 rounded-lg bg-muted/50">
+                    <div className="text-3xl font-bold text-primary">{userStats?.best_streak || 0}</div>
+                    <div className="text-sm text-muted-foreground">Best Streak</div>
+                  </div>
+                  <div className="text-center p-4 rounded-lg bg-muted/50">
+                    <div className="text-3xl font-bold text-primary">{userStats?.games_played || 0}</div>
+                    <div className="text-sm text-muted-foreground">Games Played</div>
+                  </div>
+                  <div className="text-center p-4 rounded-lg bg-muted/50">
+                    <div className="text-3xl font-bold text-primary">{userStats?.total_wins || 0}</div>
+                    <div className="text-sm text-muted-foreground">Total Wins</div>
+                  </div>
+                </div>
+                
+                <div className="text-center space-y-2 p-4 rounded-lg bg-muted/30">
+                  <div className="text-lg font-semibold">
+                    Win Rate: {userStats?.games_played ? Math.round((userStats.total_wins / userStats.games_played) * 100) : 0}%
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Total Hints Used: {userStats?.hints_used_total || 0}
+                  </div>
+                </div>
+              </ModalContent>
+            </ModalBody>
+          </Modal>
+        </div>
 
         {/* Hint Section */}
         {!todayGame && (
           <div className="mb-6">
-            <Button
-              onClick={handleHintClick}
-              disabled={showHint}
-              variant="outline"
-              className="w-full"
-            >
+              <Button
+                onClick={handleHintClick}
+                disabled={showHint}
+                variant="outline"
+                className="w-full bg-background border-primary-foreground/20 text-primary hover:bg-primary-foreground hover:text-primary"
+              >
               <Lightbulb className="w-4 h-4 mr-2" />
               {showHint ? 'Hint Used' : 'Show Hint'}
             </Button>
-            {showHint && (
-              <Card className="mt-2">
-                <CardContent className="pt-4">
-                  <p className="text-sm text-muted-foreground">{dailyWord.hint}</p>
-                </CardContent>
-              </Card>
-            )}
+              {showHint && (
+                <Card className="mt-2 bg-background/80 backdrop-blur-sm border-primary-foreground/20">
+                  <CardContent className="pt-4">
+                    <p className="text-sm text-primary">{dailyWord.hint}</p>
+                  </CardContent>
+                </Card>
+              )}
           </div>
         )}
 
@@ -374,7 +390,7 @@ const Wordle = () => {
         {/* Game Over Actions */}
         {(gameState !== 'playing' || todayGame) && (
           <div className="text-center">
-            <Button onClick={() => window.location.reload()} className="w-full">
+            <Button onClick={() => window.location.reload()} className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90">
               <RotateCcw className="w-4 h-4 mr-2" />
               {todayGame ? 'Check Tomorrow for New Word' : 'Play Again Tomorrow'}
             </Button>
