@@ -4,6 +4,8 @@ interface DictionaryEntry {
   word: string;
   valid: boolean;
   banned: boolean;
+  phonetic?: string;
+  audio?: string;
 }
 
 interface DictionaryCache {
@@ -82,19 +84,19 @@ export const useDictionary = () => {
 
     try {
       const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${normalizedWord}`);
-      
+
       if (response.status === 404) {
         // Word not found - permanently ban it
         const newBannedWords = new Set([...bannedWords, normalizedWord]);
         saveBannedWords(newBannedWords);
-        
+
         // Also save in cache
         const newCache = {
           ...cache,
           [normalizedWord]: { word: normalizedWord, valid: false, banned: true }
         };
         saveCache(newCache);
-        
+
         return { valid: false, message: 'Not in the word list' };
       }
 
@@ -104,12 +106,21 @@ export const useDictionary = () => {
       }
 
       // Word is valid
+      const responseJson = await response.json();
+      const [wordInfo] = responseJson;
+
       const newCache = {
         ...cache,
-        [normalizedWord]: { word: normalizedWord, valid: true, banned: false }
+        [normalizedWord]: {
+          word: normalizedWord, 
+          valid: true, 
+          banned: false, 
+          phonetic: wordInfo.phonetic,
+          audio: wordInfo?.phonetics?.[0]?.audio,
+        }
       };
       saveCache(newCache);
-      
+
       return { valid: true };
     } catch (error) {
       console.error('Dictionary API error:', error);

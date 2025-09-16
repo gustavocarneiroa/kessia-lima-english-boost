@@ -83,14 +83,18 @@ const Wordle = () => {
     if (!dailyWord) return;
     
     if (currentGuess.length !== dailyWord.letter_count) {
-      toast.error(`Word must be ${dailyWord.letter_count} letters long`);
+      toast.error(`Word must be ${dailyWord.letter_count} letters long`, {
+        position: "top-right"
+      });
       return;
     }
 
     // Validate word with dictionary API
     const validation = await validateWord(currentGuess);
     if (!validation.valid) {
-      toast.error(validation.message || 'Invalid word');
+      toast.error(validation.message || 'Invalid word', {
+        position: "top-right"
+      });
       return;
     }
 
@@ -173,7 +177,7 @@ const Wordle = () => {
     const status = getKeyStatus(key);
     
     if (key === 'ENTER' || key === 'BACKSPACE') {
-      return `${baseClass} bg-muted hover:bg-muted/80 px-3`;
+      return `${baseClass} bg-muted hover:bg-muted/80 px-3 text-primary`;
     }
     
     switch (status) {
@@ -184,12 +188,12 @@ const Wordle = () => {
       case 'absent':
         return `${baseClass} bg-muted text-muted-foreground`;
       default:
-        return `${baseClass} bg-background border hover:bg-muted`;
+        return `${baseClass} bg-background border hover:bg-muted text-primary`;
     }
   };
 
   const getCellClassName = (rowIndex: number, colIndex: number) => {
-    const baseClass = "w-12 h-12 border-2 flex items-center justify-center text-lg font-bold rounded";
+    const baseClass = "w-12 h-12 border-2 flex items-center justify-center text-lg font-bold rounded border-muted text-background";
     
     if (rowIndex < guessResults.length) {
       const status = guessResults[rowIndex][colIndex].status;
@@ -199,10 +203,10 @@ const Wordle = () => {
         case 'present':
           return `${baseClass} bg-yellow-500 text-white border-yellow-500`;
         case 'absent':
-          return `${baseClass} bg-muted text-muted-foreground border-muted`;
+          return `${baseClass} bg-muted text-muted-foreground/90 border-muted`;
       }
     } else if (rowIndex === guesses.length && !todayGame) {
-      return `${baseClass} border-primary ${colIndex < currentGuess.length ? 'bg-primary/10' : ''}`;
+      return `${baseClass} ${colIndex < currentGuess.length ? 'bg-primary/10' : ''}`;
     }
     
     return `${baseClass} border-muted`;
@@ -258,11 +262,8 @@ const Wordle = () => {
       <div className="container mx-auto px-4 max-w-lg">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-primary-foreground mb-2">Wordle</h1>
-          <p className="text-primary-foreground/80">Guess the {dailyWord.letter_count}-letter word!</p>
-          <Badge variant="outline" className="mt-2">
-            {dailyWord.date.replace(/_/g, '-')}
-          </Badge>
+          <h1 className="text-4xl font-bold text-primary-foreground mb-2">TKL Wordle</h1>
+          <p className="text-primary-foreground/80">Guess the {dailyWord.letter_count}-letter word and learn about it!</p>
           
           {/* Game Status */}
           {todayGame && (
@@ -272,7 +273,7 @@ const Wordle = () => {
                   <>
                     <CheckCircle className="w-5 h-5 text-green-400" />
                     <span className="text-green-200 font-semibold">
-                      You solved today's puzzle in {todayGame.guesses_count} tries!
+                      You solved today's puzzle ({dailyWord.word}) in {todayGame.guesses_count} tries!
                     </span>
                   </>
                 ) : (
