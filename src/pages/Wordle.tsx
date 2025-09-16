@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Lightbulb, RotateCcw, CheckCircle, XCircle, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useWordle } from '@/hooks/useWordle';
+import { useDictionary } from '@/hooks/useDictionary';
 import { Modal, ModalTrigger, ModalBody, ModalContent } from '@/components/ui/animated-modal';
 
 interface GuessResult {
@@ -21,6 +22,7 @@ const QWERTY_LAYOUT = [
 
 const Wordle = () => {
   const { dailyWord, userStats, todayGame, loading, error, saveGameSession } = useWordle();
+  const { validateWord, isValidating } = useDictionary();
   
   const [gameState, setGameState] = useState<'playing' | 'won' | 'lost'>('playing');
   const [currentGuess, setCurrentGuess] = useState('');
@@ -85,6 +87,13 @@ const Wordle = () => {
       return;
     }
 
+    // Validate word with dictionary API
+    const validation = await validateWord(currentGuess);
+    if (!validation.valid) {
+      toast.error(validation.message || 'Invalid word');
+      return;
+    }
+
     const result = checkGuess(currentGuess);
     const newGuesses = [...guesses, currentGuess];
     const newResults = [...guessResults, result];
@@ -135,7 +144,7 @@ const Wordle = () => {
   };
 
   const handleKeyPress = (key: string) => {
-    if (gameState !== 'playing' || todayGame) return;
+    if (gameState !== 'playing' || todayGame || isValidating) return;
 
     if (key === 'ENTER') {
       handleGuessSubmit();
@@ -378,9 +387,9 @@ const Wordle = () => {
                   key={key}
                   onClick={() => handleKeyPress(key)}
                   className={getKeyClassName(key)}
-                  disabled={gameState !== 'playing' || !!todayGame}
+                  disabled={gameState !== 'playing' || !!todayGame || (key === 'ENTER' && isValidating)}
                 >
-                  {key === 'BACKSPACE' ? '⌫' : key}
+                  {key === 'BACKSPACE' ? '⌫' : key === 'ENTER' && isValidating ? '...' : key}
                 </Button>
               ))}
             </div>
