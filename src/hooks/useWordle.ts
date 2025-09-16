@@ -54,11 +54,11 @@ export const useWordle = () => {
   // Fetch today's word
   const fetchDailyWord = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('daily_words')
         .select('*')
         .eq('date', todayDate)
-        .single();
+        .maybeSingle();
 
       if (error) {
         if (error.code === 'PGRST116') {
@@ -69,7 +69,7 @@ export const useWordle = () => {
         return;
       }
 
-      setDailyWord(data);
+      setDailyWord(data as DailyWord);
     } catch (err) {
       console.error('Error fetching daily word:', err);
       setError('Failed to load today\'s word');
@@ -79,24 +79,24 @@ export const useWordle = () => {
   // Fetch user stats
   const fetchUserStats = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('user_stats')
         .select('*')
         .eq('browser_id', browserId)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         throw error;
       }
 
-      setUserStats(data || {
+      setUserStats((data as UserStats) || {
         browser_id: browserId,
         current_streak: 0,
         best_streak: 0,
         games_played: 0,
         total_wins: 0,
         hints_used_total: 0
-      });
+      } as UserStats);
     } catch (err) {
       console.error('Error fetching user stats:', err);
     }
@@ -105,18 +105,18 @@ export const useWordle = () => {
   // Check if user already played today
   const checkTodayGame = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('game_sessions')
         .select('*')
         .eq('browser_id', browserId)
         .eq('date', todayDate)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         throw error;
       }
 
-      setTodayGame(data);
+      setTodayGame(data as GameSession);
     } catch (err) {
       console.error('Error checking today\'s game:', err);
     }
@@ -125,7 +125,7 @@ export const useWordle = () => {
   // Save game session
   const saveGameSession = async (won: boolean, guessesCount: number, hintsUsed: number) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('game_sessions')
         .insert({
           browser_id: browserId,
@@ -139,12 +139,12 @@ export const useWordle = () => {
 
       if (error) throw error;
 
-      setTodayGame(data);
+      setTodayGame(data as GameSession);
       
       // Refresh user stats after saving game
       await fetchUserStats();
       
-      return data;
+      return data as GameSession;
     } catch (err) {
       console.error('Error saving game session:', err);
       toast.error('Failed to save game progress');

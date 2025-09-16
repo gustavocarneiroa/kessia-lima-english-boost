@@ -191,6 +191,69 @@ export type Database = {
           },
         ]
       }
+      daily_words: {
+        Row: {
+          created_at: string
+          date: string
+          hint: string
+          id: string
+          letter_count: number
+          updated_at: string
+          word: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          hint: string
+          id?: string
+          letter_count: number
+          updated_at?: string
+          word: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          hint?: string
+          id?: string
+          letter_count?: number
+          updated_at?: string
+          word?: string
+        }
+        Relationships: []
+      }
+      game_sessions: {
+        Row: {
+          browser_id: string
+          created_at: string
+          date: string
+          guesses_count: number
+          hints_used: number
+          id: string
+          updated_at: string
+          won: boolean
+        }
+        Insert: {
+          browser_id: string
+          created_at?: string
+          date: string
+          guesses_count?: number
+          hints_used?: number
+          id?: string
+          updated_at?: string
+          won?: boolean
+        }
+        Update: {
+          browser_id?: string
+          created_at?: string
+          date?: string
+          guesses_count?: number
+          hints_used?: number
+          id?: string
+          updated_at?: string
+          won?: boolean
+        }
+        Relationships: []
+      }
       result: {
         Row: {
           json_build_object: Json | null
@@ -454,6 +517,42 @@ export type Database = {
           tenant_id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_stats: {
+        Row: {
+          best_streak: number
+          browser_id: string
+          created_at: string
+          current_streak: number
+          games_played: number
+          hints_used_total: number
+          id: string
+          total_wins: number
+          updated_at: string
+        }
+        Insert: {
+          best_streak?: number
+          browser_id: string
+          created_at?: string
+          current_streak?: number
+          games_played?: number
+          hints_used_total?: number
+          id?: string
+          total_wins?: number
+          updated_at?: string
+        }
+        Update: {
+          best_streak?: number
+          browser_id?: string
+          created_at?: string
+          current_streak?: number
+          games_played?: number
+          hints_used_total?: number
+          id?: string
+          total_wins?: number
+          updated_at?: string
         }
         Relationships: []
       }
