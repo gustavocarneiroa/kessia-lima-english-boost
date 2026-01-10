@@ -19,9 +19,9 @@ const IndexContent = () => {
         <section id="about">
           <AboutSection />
         </section>
-        <section id="services">
+        {/* <section id="services">
           <ServicesSection />
-        </section>
+        </section> */}
         <section id="pricing">
           <PricingSection />
         </section>

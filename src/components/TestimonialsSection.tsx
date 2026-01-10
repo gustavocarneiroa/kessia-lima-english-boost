@@ -6,9 +6,11 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Modal, ModalBody, ModalContent, ModalFooter, ModalTrigger } from './ui/animated-modal';
 import { motion } from 'motion/react';
 import teacherKessia from '@/assets/teacher-kessia-3.jpeg';
-import alunoPhoto from '@/assets/teacher-hero-1.png'
+import alunoPhoto from '@/assets/teacher-hero-1.png';
+import camilaCarina from '@/assets/testimonials/c15978.png';
+import lucasDuarte from '@/assets/testimonials/l159753.jpg';
 type TestimonialType = { 
-  id: number; 
+  id?: number; 
   name: string; 
   timeAgo: string; 
   avatar?: string; 
@@ -39,7 +41,87 @@ const TestimonialsSection = () => {
   ];
   const testimonials: TestimonialType[] = [
     {
-      id: 1,
+      name: "Camila Carina",
+      timeAgo: "17/09/2025",
+      avatar: camilaCarina,
+      rating: 5,
+      shortFeedback: {
+        pt: "Desde que comecei as aulas de inglês online, percebi uma grande evolução na minha confiança para falar e compreender a língua...",
+      },
+      fullFeedback: {
+        pt: "Desde que comecei as aulas de inglês online, percebi uma grande evolução na minha confiança para falar e compreender a língua. As aulas são personalizadas, interativas e sempre trazem conteúdos práticos que consigo aplicar no meu dia a dia. Além de aprender a estrutura da língua, me sinto cada vez mais à vontade em situações de conversação.",
+      }
+    },
+    {
+      name: "Lucas Duarte",
+      timeAgo: "20/09/2025",
+      rating: 5,
+      avatar: lucasDuarte,
+      shortFeedback: {
+        pt: "Eu consegui evoluir bastante, atualmente me sinto mais confiança para falar em inglês, além de ter melhorado muito meu vocabulário...",
+      },
+      fullFeedback: {
+        pt: "Eu consegui evoluir bastante, atualmente me sinto mais confiança para falar em inglês, além de ter melhorado muito meu vocabulário. Em 3 meses consegui participar de uma entrevista em inglês e com isso tive total noção da evolução que as aulas me proporcionaram.",
+      }
+    },
+    {
+      name: "Aluno anônimo",
+      timeAgo: "09/12/2025",
+      rating: 5,
+      shortFeedback: {
+        pt: "Minha experiência depois que eu comecei as aulas com kessia meu inglês melhorou demais...",
+      },
+      fullFeedback: {
+        pt: "Minha experiência depois que eu comecei as aulas com kessia meu inglês melhorou demaisss, consegui evoluir muito leitura, gramática e me ajudou demais no dia a dia do trabalho.",
+      }
+    },
+    {
+      name: "Cassiano",
+      timeAgo: "09/12/2025",
+      rating: 5,
+      shortFeedback: {
+        pt: "Quando comecei a ter aula com você, meu principal problema era falar com os outros...",
+        en: "When I started to take class with you, my mainly problem was to speak with others...",
+      },
+      fullFeedback: {
+        pt: "Quando comecei a ter aula com você, meu principal problema era falar com os outros, e agora estou muito melhor com meu speaking. Obrigado por me ajudar com isso!!!",
+        en: "When I started to take class with you, my mainly problem was to speak with others, and now  I'm much better with my speaking. Thanks for help me with this!!!",
+      }
+    },
+    {
+      name: "Ingryd Marques",
+      timeAgo: "09/12/2025",
+      rating: 5,
+      shortFeedback: {
+        pt: "",
+      },
+      fullFeedback: {
+        pt: "",
+      }
+    },
+    {
+      name: "Isabelle Bezerra",
+      timeAgo: "há mais de 1 ano",
+      rating: 5,
+      shortFeedback: {
+        pt: "Gosto da interação e mescla do nosso gosto pessoal com o conteúdo da aula...",
+      },
+      fullFeedback: {
+        pt: "Gosto da interação e mescla do nosso gosto pessoal com o conteúdo da aula. Assim deixa a aula mais dinâmica e divertida.",
+      }
+    },
+    {
+      name: "Maria Iza",
+      timeAgo: "há mais de 1 ano",
+      rating: 5,
+      shortFeedback: {
+        pt: "Adoro como vc fica atenta com o q gostamos e coloca na aula",
+      },
+      fullFeedback: {
+        pt: "Adoro como vc fica atenta com o q gostamos e coloca na aula",
+      }
+    },
+    {
       name: "Pedro Lucas",
       timeAgo: "há mais de 1 ano",
       rating: 5,
@@ -51,7 +133,6 @@ const TestimonialsSection = () => {
       }
     },
     {
-      id: 2,
       name: "Bianca Olveira",
       timeAgo: "há mais de 1 ano",
       rating: 5,
@@ -63,7 +144,6 @@ const TestimonialsSection = () => {
       }
     },
     {
-      id: 3,
       name: "Felipe Cabral",
       timeAgo: "há mais de 1 ano",
       rating: 5,
@@ -75,7 +155,6 @@ const TestimonialsSection = () => {
       }
     },
     {
-      id: 4,
       name: "Aluno anônimo",
       timeAgo: "há mais de 1 ano",
       rating: 5,
@@ -87,7 +166,6 @@ const TestimonialsSection = () => {
       }
     },
     {
-      id: 5,
       name: "Aluno anônimo",
       timeAgo: "há mais de 1 ano",
       rating: 5,
@@ -99,6 +177,10 @@ const TestimonialsSection = () => {
       }
     }
   ]
+
+  for (const [index, testimonial] of testimonials.entries()) {
+    testimonial.id = index;
+  }
 
   const itemsPerPage = 3;
   const totalPages = Math.ceil(testimonials.length / itemsPerPage);

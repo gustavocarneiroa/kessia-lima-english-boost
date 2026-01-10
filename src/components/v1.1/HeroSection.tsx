@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Clock } from 'lucide-react';
-import teacherKessia from '@/assets/teacker-kessia-2.png';
+import teacherKessia from '@/assets/teacker-kessia-6.png';
 import { Highlighter } from '../ui/highliter-magic-ui';
 import { renderTranslationWithHighlight } from '@/utils/translationHelpers';
 

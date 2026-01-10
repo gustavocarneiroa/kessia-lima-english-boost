@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Clock } from 'lucide-react';
-import teacherKessia from '@/assets/teacker-kessia-2.png';
+import teacherKessia from '@/assets/teacker-kessia-6.png';
 
 const HeroSection = () => {
   const { t } = useLanguage();
