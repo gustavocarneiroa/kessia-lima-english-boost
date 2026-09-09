@@ -9,7 +9,10 @@ import NotFound from "./pages/NotFound";
 import AceternityDemo from "./pages/AceternityDemo";
 import Wordle from "./pages/Wordle";
 import Login from "./pages/Login";
-import Portal from "./pages/Portal";
+import PortalLayout from "./pages/PortalLayout";
+import PortalOverview from "./pages/portal/Overview";
+import PortalStudents from "./pages/portal/Students";
+import PortalDevices from "./pages/portal/Devices";
 
 const queryClient = new QueryClient();
 
@@ -25,7 +28,11 @@ const App = () => (
             <Route path="/aceternity" element={<AceternityDemo />} />
             <Route path="/wordle" element={<Wordle />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/portal" element={<Portal />} />
+            <Route path="/portal" element={<PortalLayout />}>
+              <Route index element={<PortalOverview />} />
+              <Route path="alunos" element={<PortalStudents />} />
+              <Route path="dispositivos" element={<PortalDevices />} />
+            </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
