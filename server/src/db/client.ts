@@ -36,6 +36,19 @@ sqlite.exec(`
   );
 
   CREATE INDEX IF NOT EXISTS credentials_user_id_idx ON credentials(user_id);
+
+  CREATE TABLE IF NOT EXISTS student_profiles (
+    user_id TEXT PRIMARY KEY REFERENCES users(id),
+    full_name TEXT,
+    phone TEXT,
+    occupation TEXT,
+    english_level TEXT,
+    interests TEXT,
+    learning_goals TEXT,
+    schedule_preference TEXT,
+    notes TEXT,
+    updated_at TEXT NOT NULL
+  );
 `);
 
 export const db = drizzle(sqlite, { schema });

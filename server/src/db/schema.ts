@@ -8,6 +8,19 @@ export const users = sqliteTable("users", {
   createdAt: text("created_at").notNull(),
 });
 
+export const studentProfiles = sqliteTable("student_profiles", {
+  userId: text("user_id").primaryKey().references(() => users.id),
+  fullName: text("full_name"),
+  phone: text("phone"),
+  occupation: text("occupation"), // emprego/profissão
+  englishLevel: text("english_level"), // nível atual de inglês
+  interests: text("interests"), // o que gosta de aprender / assuntos de interesse
+  learningGoals: text("learning_goals"), // metas de estudo
+  schedulePreference: text("schedule_preference"), // cronograma/horários preferidos
+  notes: text("notes"), // observações gerais
+  updatedAt: text("updated_at").notNull(),
+});
+
 export const credentials = sqliteTable("credentials", {
   // credential ID do WebAuthn (base64url), gerado pelo autenticador/dispositivo
   id: text("id").primaryKey(),
