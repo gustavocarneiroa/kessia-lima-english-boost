@@ -35,6 +35,7 @@ jobs:
 
           cd server
           npm ci --omit=dev
+          npm run db:migrate
 
           sudo -n systemctl restart kessia-server
           sleep 2
