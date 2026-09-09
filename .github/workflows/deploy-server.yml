@@ -1,0 +1,45 @@
+name: Deploy server
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "server/**"
+      - ".github/workflows/deploy-server.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configurar chave SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H 45.90.123.41 >> ~/.ssh/known_hosts
+
+      - name: Deploy via SSH
+        run: |
+          ssh -i ~/.ssh/deploy_key kessia@45.90.123.41 'bash -s' <<'REMOTE'
+          set -euo pipefail
+          export PATH=/opt/node22/bin:$PATH
+          cd /home/kessia/app
+
+          git fetch origin main
+          git reset --hard origin/main
+
+          cd server
+          npm ci --omit=dev
+
+          sudo -n systemctl restart kessia-server
+          sleep 2
+          sudo -n systemctl is-active kessia-server
+
+          curl -f -s -o /dev/null http://127.0.0.1:3200/health
+          echo "deploy ok: $(git rev-parse --short HEAD)"
+          REMOTE
