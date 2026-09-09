@@ -6,6 +6,7 @@ const schema = z.object({
   HOST: z.string().default("127.0.0.1"),
 
   DATABASE_PATH: z.string().default("./data/kessia.db"),
+  AUDIO_DIR: z.string().optional(),
 
   PUBLIC_WEB_ORIGIN: z.string().url().default("https://www.teacherkessialima.com.br"),
   EXTRA_CORS_ORIGINS: z.string().optional(),

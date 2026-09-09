@@ -7,10 +7,12 @@ import { identifyRoutes } from "./modules/identify/routes.ts";
 import { authRoutes } from "./modules/auth/routes.ts";
 import { studentRoutes } from "./modules/students/routes.ts";
 import { webauthnRoutes } from "./modules/webauthn/routes.ts";
+import { vocabRoutes } from "./modules/vocab/routes.ts";
 
 const app = Fastify({
   logger: { level: env.NODE_ENV === "production" ? "info" : "debug" },
   trustProxy: true,
+  bodyLimit: 8 * 1024 * 1024,
 });
 
 await app.register(cors, { origin: corsOrigins, credentials: true });
@@ -26,6 +28,7 @@ await app.register(identifyRoutes);
 await app.register(authRoutes);
 await app.register(studentRoutes);
 await app.register(webauthnRoutes);
+await app.register(vocabRoutes);
 
 app.setErrorHandler((err: unknown, req, reply) => {
   req.log.error({ err }, "erro não tratado");

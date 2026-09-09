@@ -79,6 +79,7 @@ export async function studentRoutes(app: FastifyInstance) {
 
     db.delete(schema.credentials).where(eq(schema.credentials.userId, id)).run();
     db.delete(schema.studentProfiles).where(eq(schema.studentProfiles.userId, id)).run();
+    db.delete(schema.vocabListStudents).where(eq(schema.vocabListStudents.studentId, id)).run();
     db.delete(schema.users).where(eq(schema.users.id, id)).run();
     return reply.code(204).send();
   });
