@@ -22,6 +22,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   const isJson = res.headers.get("content-type")?.includes("application/json");
+  if (res.status === 204) {
+    if (!res.ok) throw new ApiError(res.status, "unknown_error", "Algo deu errado.");
+    return undefined as T;
+  }
   const body = isJson ? await res.json().catch(() => null) : null;
 
   if (!res.ok) {
@@ -37,5 +41,13 @@ export const api = {
     request<T>(path, { method: "POST", body: data !== undefined ? JSON.stringify(data) : undefined }),
   put: <T>(path: string, data?: unknown) =>
     request<T>(path, { method: "PUT", body: data !== undefined ? JSON.stringify(data) : undefined }),
+  patch: <T>(path: string, data?: unknown) =>
+    request<T>(path, { method: "PATCH", body: data !== undefined ? JSON.stringify(data) : undefined }),
   delete: <T>(path: string) => request<T>(path, { method: "DELETE" }),
 };
+
+export async function fetchAudioBlob(path: string): Promise<Blob> {
+  const res = await fetch(`${API_URL}${path}`, { credentials: "include" });
+  if (!res.ok) throw new ApiError(res.status, "audio_error", "Não foi possível ouvir o áudio.");
+  return res.blob();
+}

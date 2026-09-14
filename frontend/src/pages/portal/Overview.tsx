@@ -17,8 +17,8 @@ export default function Overview() {
           <CardTitle>{user.role === "teacher" ? "Bem-vinda ao portal" : "Bem-vindo(a) ao portal"}</CardTitle>
           <CardDescription>
             {user.role === "teacher"
-              ? "Use o menu ao lado para gerenciar os alunos e os dispositivos cadastrados."
-              : "Em breve novas funcionalidades por aqui. Use o menu ao lado para gerenciar seus dispositivos."}
+              ? "Use o menu ao lado para gerenciar os alunos, o vocabulário e os dispositivos cadastrados."
+              : "Use o menu ao lado para estudar as listas de vocabulário e gerenciar seus dispositivos."}
           </CardDescription>
         </CardHeader>
       </Card>
