@@ -199,7 +199,7 @@ export default function Lessons() {
                   <Input
                     id="classLink"
                     type="url"
-                    placeholder="https://meet.google.com/..."
+                    placeholder="https://docs.google.com/presentation/..."
                     value={form.classLink}
                     onChange={(e) => setForm({ ...form, classLink: e.target.value })}
                   />
