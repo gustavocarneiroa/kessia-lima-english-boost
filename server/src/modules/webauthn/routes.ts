@@ -8,13 +8,15 @@ import {
   verifyAuthenticationResponse,
 } from "@simplewebauthn/server";
 import { db, schema } from "../../db/client.ts";
-import { env } from "../../env.ts";
+import { env, corsOrigins } from "../../env.ts";
 import { requireAuth } from "../../auth/guards.ts";
 import { signSession, sessionCookieOptions, SESSION_COOKIE } from "../../auth/jwt.ts";
 import { saveChallenge, takeChallenge } from "../../lib/challenge-store.ts";
 
 const RP_ID = env.WEBAUTHN_RP_ID;
-const ORIGIN = env.PUBLIC_WEB_ORIGIN;
+// Aceita tanto "teacherkessialima.com.br" quanto "www.teacherkessialima.com.br"
+// (e localhost em dev), já que o navegador manda o domínio exato que o aluno acessou.
+const EXPECTED_ORIGINS = corsOrigins;
 
 export async function webauthnRoutes(app: FastifyInstance) {
   // ── Adicionar dispositivo (usuário já logado por senha) ──────────────────
@@ -34,7 +36,13 @@ export async function webauthnRoutes(app: FastifyInstance) {
       userID: new TextEncoder().encode(userId),
       attestationType: "none",
       excludeCredentials: existingCredentials.map((c) => ({ id: c.id })),
-      authenticatorSelection: { residentKey: "preferred", userVerification: "preferred" },
+      // "platform" força o navegador a pedir a digital/Face ID/PIN do próprio aparelho,
+      // em vez de oferecer chave de segurança externa ou QR code para outro dispositivo.
+      authenticatorSelection: {
+        authenticatorAttachment: "platform",
+        residentKey: "required",
+        userVerification: "required",
+      },
     });
 
     saveChallenge(`reg:${userId}`, options.challenge);
@@ -55,7 +63,7 @@ export async function webauthnRoutes(app: FastifyInstance) {
         // biome-ignore lint: formato validado pela lib
         response: body.response as any,
         expectedChallenge,
-        expectedOrigin: ORIGIN,
+        expectedOrigin: EXPECTED_ORIGINS,
         expectedRPID: RP_ID,
       });
 
@@ -100,7 +108,7 @@ export async function webauthnRoutes(app: FastifyInstance) {
 
     const options = await generateAuthenticationOptions({
       rpID: RP_ID,
-      userVerification: "preferred",
+      userVerification: "required",
       allowCredentials: userCredentials.map((c) => ({ id: c.id })),
     });
 
@@ -137,7 +145,7 @@ export async function webauthnRoutes(app: FastifyInstance) {
         // biome-ignore lint: formato validado pela lib
         response: parsed.data.response as any,
         expectedChallenge,
-        expectedOrigin: ORIGIN,
+        expectedOrigin: EXPECTED_ORIGINS,
         expectedRPID: RP_ID,
         credential: {
           id: credential.id,
