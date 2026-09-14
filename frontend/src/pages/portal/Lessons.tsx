@@ -14,7 +14,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Plus, Trash2, Link as LinkIcon, ClipboardList, ExternalLink } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Loader2, Plus, Trash2, Pencil, Link as LinkIcon, ClipboardList, ExternalLink } from "lucide-react";
 
 interface Lesson {
   id: string;
@@ -67,6 +74,12 @@ export default function Lessons() {
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [listError, setListError] = useState<string | null>(null);
+
+  const [editing, setEditing] = useState<Lesson | null>(null);
+  const [editForm, setEditForm] = useState(emptyForm);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -126,8 +139,53 @@ export default function Lessons() {
   }
 
   async function remove(id: string) {
-    await api.delete(`/api/lessons/${id}`);
-    await load();
+    if (!window.confirm("Tem certeza que quer excluir esta aula? Essa ação não pode ser desfeita.")) return;
+    setListError(null);
+    try {
+      await api.delete(`/api/lessons/${id}`);
+      await load();
+    } catch (err) {
+      setListError(err instanceof ApiError ? err.message : "Não foi possível excluir a aula.");
+    }
+  }
+
+  function openEdit(lesson: Lesson) {
+    setEditing(lesson);
+    setEditError(null);
+    setEditForm({
+      studentId: lesson.studentId,
+      ...splitDateTime(lesson.scheduledAt),
+      subject: lesson.subject,
+      classLink: lesson.classLink ?? "",
+      activityLink: lesson.activityLink ?? "",
+    });
+  }
+
+  async function saveEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editing) return;
+    setEditError(null);
+    if (!editForm.studentId || !editForm.date || !editForm.time) {
+      setEditError("Escolha o aluno, a data e o horário da aula.");
+      return;
+    }
+    setEditSaving(true);
+    try {
+      const scheduledAt = new Date(`${editForm.date}T${editForm.time}`).toISOString();
+      await api.put(`/api/lessons/${editing.id}`, {
+        studentId: editForm.studentId,
+        scheduledAt,
+        subject: editForm.subject,
+        classLink: editForm.classLink || null,
+        activityLink: editForm.activityLink || null,
+      });
+      setEditing(null);
+      await load();
+    } catch (err) {
+      setEditError(err instanceof ApiError ? err.message : "Não foi possível salvar as alterações.");
+    } finally {
+      setEditSaving(false);
+    }
   }
 
   return (
@@ -233,6 +291,7 @@ export default function Lessons() {
           <CardDescription>{lessons.length} aula(s)</CardDescription>
         </CardHeader>
         <CardContent>
+          {listError && <p className="mb-3 text-sm text-destructive">{listError}</p>}
           {loading ? (
             <div className="flex justify-center py-6 text-muted-foreground">
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -291,7 +350,10 @@ export default function Lessons() {
                         />
                         Aluno veio
                       </label>
-                      <Button variant="ghost" size="icon" onClick={() => remove(lesson.id)} aria-label="Remover aula">
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(lesson)} aria-label="Editar aula">
+                        <Pencil className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => remove(lesson.id)} aria-label="Excluir aula">
                         <Trash2 className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </div>
@@ -302,6 +364,95 @@ export default function Lessons() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
+        <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar aula</DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={saveEdit} className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Aluno</Label>
+                <Select
+                  value={editForm.studentId}
+                  onValueChange={(v) => setEditForm({ ...editForm, studentId: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Escolha o aluno" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {students.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-subject">Assunto</Label>
+                <Input
+                  id="edit-subject"
+                  value={editForm.subject}
+                  onChange={(e) => setEditForm({ ...editForm, subject: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-date">Data</Label>
+                <Input
+                  id="edit-date"
+                  type="date"
+                  value={editForm.date}
+                  onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-time">Horário</Label>
+                <Input
+                  id="edit-time"
+                  type="time"
+                  value={editForm.time}
+                  onChange={(e) => setEditForm({ ...editForm, time: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-classLink">Link da aula</Label>
+                <Input
+                  id="edit-classLink"
+                  type="url"
+                  placeholder="https://docs.google.com/presentation/..."
+                  value={editForm.classLink}
+                  onChange={(e) => setEditForm({ ...editForm, classLink: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-activityLink">Link da atividade</Label>
+                <Input
+                  id="edit-activityLink"
+                  type="url"
+                  placeholder="https://..."
+                  value={editForm.activityLink}
+                  onChange={(e) => setEditForm({ ...editForm, activityLink: e.target.value })}
+                />
+              </div>
+            </div>
+
+            {editError && <p className="text-sm text-destructive">{editError}</p>}
+
+            <DialogFooter>
+              <Button type="submit" disabled={editSaving} className="gap-2">
+                {editSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+                Salvar alterações
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
