@@ -21,6 +21,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Loader2, Plus, Trash2, Pencil, Link as LinkIcon, ClipboardList, ExternalLink } from "lucide-react";
 
 interface Lesson {
@@ -81,6 +91,9 @@ export default function Lessons() {
   const [editError, setEditError] = useState<string | null>(null);
   const [editSaving, setEditSaving] = useState(false);
 
+  const [deleting, setDeleting] = useState<Lesson | null>(null);
+  const [deleteSaving, setDeleteSaving] = useState(false);
+
   async function load() {
     setLoading(true);
     try {
@@ -138,14 +151,18 @@ export default function Lessons() {
     }
   }
 
-  async function remove(id: string) {
-    if (!window.confirm("Tem certeza que quer excluir esta aula? Essa ação não pode ser desfeita.")) return;
+  async function confirmRemove() {
+    if (!deleting) return;
     setListError(null);
+    setDeleteSaving(true);
     try {
-      await api.delete(`/api/lessons/${id}`);
+      await api.delete(`/api/lessons/${deleting.id}`);
+      setDeleting(null);
       await load();
     } catch (err) {
       setListError(err instanceof ApiError ? err.message : "Não foi possível excluir a aula.");
+    } finally {
+      setDeleteSaving(false);
     }
   }
 
@@ -353,7 +370,7 @@ export default function Lessons() {
                       <Button variant="ghost" size="icon" onClick={() => openEdit(lesson)} aria-label="Editar aula">
                         <Pencil className="h-4 w-4 text-muted-foreground" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => remove(lesson.id)} aria-label="Excluir aula">
+                      <Button variant="ghost" size="icon" onClick={() => setDeleting(lesson)} aria-label="Excluir aula">
                         <Trash2 className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </div>
@@ -453,6 +470,25 @@ export default function Lessons() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={deleting !== null} onOpenChange={(open) => !open && setDeleting(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir esta aula?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleting?.subject} — {deleting ? formatDateTime(deleting.scheduledAt) : ""}. Essa ação não pode ser
+              desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteSaving}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmRemove} disabled={deleteSaving} className="gap-2">
+              {deleteSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
