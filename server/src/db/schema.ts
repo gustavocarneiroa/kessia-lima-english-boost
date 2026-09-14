@@ -47,6 +47,17 @@ export const vocabListStudents = sqliteTable("vocab_list_students", {
   studentId: text("student_id").notNull().references(() => users.id),
 });
 
+export const lessons = sqliteTable("lessons", {
+  id: text("id").primaryKey(),
+  studentId: text("student_id").notNull().references(() => users.id),
+  scheduledAt: text("scheduled_at").notNull(), // data + horário da aula, ISO datetime
+  subject: text("subject").notNull(), // assunto da aula
+  classLink: text("class_link"), // link da videochamada
+  activityLink: text("activity_link"), // link da atividade/exercício
+  attended: integer("attended", { mode: "boolean" }), // null = aula ainda não ocorreu
+  createdAt: text("created_at").notNull(),
+});
+
 export const credentials = sqliteTable("credentials", {
   // credential ID do WebAuthn (base64url), gerado pelo autenticador/dispositivo
   id: text("id").primaryKey(),

@@ -78,6 +78,19 @@ sqlite.exec(`
     student_id TEXT NOT NULL REFERENCES users(id),
     PRIMARY KEY (list_id, student_id)
   );
+
+  CREATE TABLE IF NOT EXISTS lessons (
+    id TEXT PRIMARY KEY,
+    student_id TEXT NOT NULL REFERENCES users(id),
+    scheduled_at TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    class_link TEXT,
+    activity_link TEXT,
+    attended INTEGER,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS lessons_student_id_idx ON lessons(student_id);
 `);
 
 export const db = drizzle(sqlite, { schema });

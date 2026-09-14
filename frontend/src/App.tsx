@@ -15,6 +15,7 @@ import PortalStudents from "./pages/portal/Students";
 import PortalDevices from "./pages/portal/Devices";
 import VocabLists from "./pages/portal/VocabLists";
 import VocabListDetail from "./pages/portal/VocabListDetail";
+import Lessons from "./pages/portal/Lessons";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="dispositivos" element={<PortalDevices />} />
               <Route path="vocabulario" element={<VocabLists />} />
               <Route path="vocabulario/:id" element={<VocabListDetail />} />
+              <Route path="aulas" element={<Lessons />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

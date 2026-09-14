@@ -18,7 +18,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, LayoutDashboard, Layers, LogOut, Smartphone, Users } from "lucide-react";
+import { CalendarDays, GraduationCap, LayoutDashboard, Layers, LogOut, Smartphone, Users } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +57,19 @@ function PortalSidebar({ user, onLogout }: { user: { email: string; role: string
                   >
                     <LayoutDashboard />
                     <span>Início</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Aulas">
+                  <NavLink
+                    to="/portal/aulas"
+                    onClick={closeMobileMenu}
+                    className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
+                  >
+                    <CalendarDays />
+                    <span>Aulas</span>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
