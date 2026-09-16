@@ -35,7 +35,7 @@ function firstMeaning(entries: Entry[]): string | null {
   return null;
 }
 
-// Regra oficial do Merriam-Webster pra montar a URL do áudio a partir do nome do arquivo.
+// Regra oficial do Merriam-Webster para montar a URL do áudio a partir do nome do arquivo.
 function audioUrl(name: string): string {
   let subdir: string;
   if (name.startsWith("bix")) subdir = "bix";
