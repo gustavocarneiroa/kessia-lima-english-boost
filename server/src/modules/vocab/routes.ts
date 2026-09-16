@@ -8,6 +8,7 @@ import { db, schema } from "../../db/client.ts";
 import { requireAuth, requireTeacher } from "../../auth/guards.ts";
 import { audioFilePath } from "../../lib/audio.ts";
 import { downloadAudio, lookupEnglishWord } from "../../lib/dictionary.ts";
+import { findWordImage, imageFilePath } from "../../lib/image.ts";
 import { synthesizeSpeech } from "../../lib/tts.ts";
 
 const titleBody = z.object({
@@ -25,6 +26,11 @@ const manualBody = z.object({
   meaning: z.string().trim().min(1).max(4000),
   wordAudio: z.string().min(1).max(4_000_000),
   meaningAudio: z.string().min(1).max(4_000_000),
+  image: z.string().min(1).max(8_000_000).optional().nullable(),
+});
+
+const imageBody = z.object({
+  image: z.string().min(1).max(8_000_000),
 });
 
 const studentsBody = z.object({
@@ -81,6 +87,31 @@ function saveTeacherAudio(raw: string) {
   return name;
 }
 
+function decodeImageDataUrl(raw: string): { buf: Buffer; ext: string } {
+  const m = raw.match(/^data:image\/([a-z0-9.+-]+);base64,(.+)$/i);
+  if (!m) throw Object.assign(new Error("Imagem inválida."), { statusCode: 400 });
+  const mime = m[1].toLowerCase();
+  const buf = Buffer.from(m[2], "base64");
+  if (buf.length < 32) {
+    throw Object.assign(new Error("Imagem inválida."), { statusCode: 400 });
+  }
+  const ext = mime.includes("png") ? "png" : mime.includes("webp") ? "webp" : "jpg";
+  return { buf, ext };
+}
+
+function saveTeacherImage(raw: string) {
+  const { buf, ext } = decodeImageDataUrl(raw);
+  const name = `${randomUUID()}.${ext}`;
+  writeFileSync(imageFilePath(name), buf);
+  return name;
+}
+
+function saveDownloadedImage(buf: Buffer, ext: string) {
+  const name = `${randomUUID()}.${ext}`;
+  writeFileSync(imageFilePath(name), buf);
+  return name;
+}
+
 function nextOrder(listId: string) {
   const rows = db.select().from(schema.vocabCards).where(eq(schema.vocabCards.listId, listId)).all();
   return rows.reduce((max, c) => Math.max(max, c.sortOrder), -1) + 1;
@@ -96,6 +127,7 @@ function cardPublic(c: typeof schema.vocabCards.$inferSelect) {
     origin: c.origin,
     hasWordAudio: !!c.wordAudioPath,
     hasMeaningAudio: !!c.meaningAudioPath,
+    hasImage: !!c.imagePath,
     sortOrder: c.sortOrder,
   };
 }
@@ -254,6 +286,9 @@ export async function vocabRoutes(app: FastifyInstance) {
     }
     const meaningAudioPath = await saveTts(hit.meaning);
 
+    const foundImage = await findWordImage(hit.word).catch(() => null);
+    const imagePath = foundImage ? saveDownloadedImage(foundImage.buf, foundImage.ext) : null;
+
     const row = {
       id: randomUUID(),
       listId: id,
@@ -264,6 +299,7 @@ export async function vocabRoutes(app: FastifyInstance) {
       origin: "api" as const,
       wordAudioPath,
       meaningAudioPath,
+      imagePath,
       sortOrder: nextOrder(id),
       createdAt: new Date().toISOString(),
     };
@@ -292,11 +328,30 @@ export async function vocabRoutes(app: FastifyInstance) {
       origin: "teacher" as const,
       wordAudioPath: saveTeacherAudio(parsed.data.wordAudio),
       meaningAudioPath: saveTeacherAudio(parsed.data.meaningAudio),
+      imagePath: parsed.data.image ? saveTeacherImage(parsed.data.image) : null,
       sortOrder: nextOrder(id),
       createdAt: new Date().toISOString(),
     };
     db.insert(schema.vocabCards).values(row).run();
     return reply.code(201).send(cardPublic(row));
+  });
+
+  app.put("/api/vocab/lists/:id/cards/:cardId/image", { preHandler: requireTeacher }, async (req, reply) => {
+    const { id, cardId } = req.params as { id: string; cardId: string };
+    const card = db
+      .select()
+      .from(schema.vocabCards)
+      .where(and(eq(schema.vocabCards.id, cardId), eq(schema.vocabCards.listId, id)))
+      .get();
+    if (!card) return reply.code(404).send({ error: "not_found", message: "Card não encontrado." });
+
+    const parsed = imageBody.safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", message: "Imagem inválida." });
+    }
+    const imagePath = saveTeacherImage(parsed.data.image);
+    db.update(schema.vocabCards).set({ imagePath }).where(eq(schema.vocabCards.id, cardId)).run();
+    return cardPublic({ ...card, imagePath });
   });
 
   app.delete("/api/vocab/lists/:id/cards/:cardId", { preHandler: requireTeacher }, async (req, reply) => {
@@ -326,6 +381,18 @@ export async function vocabRoutes(app: FastifyInstance) {
     const ext = extname(rel).toLowerCase();
     const type =
       ext === ".mp3" ? "audio/mpeg" : ext === ".ogg" ? "audio/ogg" : ext === ".webm" ? "audio/webm" : "audio/wav";
+    return reply.type(type).send(buf);
+  });
+
+  app.get("/api/vocab/cards/:cardId/image", { preHandler: requireAuth }, async (req, reply) => {
+    const { cardId } = req.params as { cardId: string };
+    const card = db.select().from(schema.vocabCards).where(eq(schema.vocabCards.id, cardId)).get();
+    if (!card || !canReadList(card.listId, req.session!) || !card.imagePath) {
+      return reply.code(404).send({ error: "not_found", message: "Imagem não encontrada." });
+    }
+    const buf = readFileSync(imageFilePath(card.imagePath));
+    const ext = extname(card.imagePath).toLowerCase();
+    const type = ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg";
     return reply.type(type).send(buf);
   });
 }

@@ -23,6 +23,10 @@ const schema = z.object({
 
   // Chave da API do Merriam-Webster's Learner's Dictionary (dictionaryapi.com)
   MERRIAM_WEBSTER_LEARNERS_KEY: z.string().min(1),
+
+  // Chave da API do Pexels, usada pra buscar a imagem ilustrativa de cada card (pexels.com/api)
+  // Opcional por enquanto: sem ela a busca de imagem simplesmente não acontece.
+  PEXELS_API_KEY: z.string().min(1).optional(),
 });
 
 const parsed = schema.safeParse(process.env);

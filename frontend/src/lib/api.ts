@@ -51,3 +51,9 @@ export async function fetchAudioBlob(path: string): Promise<Blob> {
   if (!res.ok) throw new ApiError(res.status, "audio_error", "Não foi possível ouvir o áudio.");
   return res.blob();
 }
+
+export async function fetchImageBlob(path: string): Promise<Blob> {
+  const res = await fetch(`${API_URL}${path}`, { credentials: "include" });
+  if (!res.ok) throw new ApiError(res.status, "image_error", "Não foi possível carregar a imagem.");
+  return res.blob();
+}

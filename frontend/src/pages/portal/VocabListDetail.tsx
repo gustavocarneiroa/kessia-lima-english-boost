@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Copy, Loader2, Trash2 } from "lucide-react";
 import { VocabAudioButton } from "./VocabAudioButton";
 import { VocabAudioField } from "./VocabAudioField";
+import { VocabCardImage } from "./VocabCardImage";
+import { VocabImageField } from "./VocabImageField";
 
 interface VocabCard {
   id: string;
@@ -21,6 +23,7 @@ interface VocabCard {
   origin: "api" | "teacher";
   hasWordAudio: boolean;
   hasMeaningAudio: boolean;
+  hasImage: boolean;
   sortOrder: number;
 }
 
@@ -49,9 +52,14 @@ export default function VocabListDetail() {
   const [error, setError] = useState<string | null>(null);
   const [word, setWord] = useState("");
   const [adding, setAdding] = useState(false);
-  const [manual, setManual] = useState<{ word: string; phonetic: string; meaning: string; wordAudio: string | null; meaningAudio: string | null } | null>(
-    null,
-  );
+  const [manual, setManual] = useState<{
+    word: string;
+    phonetic: string;
+    meaning: string;
+    wordAudio: string | null;
+    meaningAudio: string | null;
+    image: string | null;
+  } | null>(null);
   const [savingManual, setSavingManual] = useState(false);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
@@ -95,7 +103,7 @@ export default function VocabListDetail() {
       await load();
     } catch (err) {
       if (err instanceof ApiError && err.code === "not_in_dictionary") {
-        setManual({ word, phonetic: "", meaning: "", wordAudio: null, meaningAudio: null });
+        setManual({ word, phonetic: "", meaning: "", wordAudio: null, meaningAudio: null, image: null });
       } else {
         setError(err instanceof ApiError ? err.message : "Não foi possível adicionar a palavra.");
       }
@@ -116,6 +124,7 @@ export default function VocabListDetail() {
         meaning: manual.meaning,
         wordAudio: manual.wordAudio,
         meaningAudio: manual.meaningAudio,
+        image: manual.image,
       });
       setWord("");
       setManual(null);
@@ -142,6 +151,18 @@ export default function VocabListDetail() {
   async function removeCard(cardId: string) {
     if (!id) return;
     await api.delete(`/api/vocab/lists/${id}/cards/${cardId}`);
+    await load();
+  }
+
+  async function replaceCardImage(cardId: string, file: File) {
+    if (!id) return;
+    const image = await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result));
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(file);
+    });
+    await api.put(`/api/vocab/lists/${id}/cards/${cardId}/image`, { image });
     await load();
   }
 
@@ -194,24 +215,51 @@ export default function VocabListDetail() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <button
-              type="button"
+            <div
+              className="min-h-64 w-full cursor-pointer"
+              style={{ perspective: "1200px" }}
               onClick={() => setFlipped((v) => !v)}
-              className="flex min-h-40 w-full flex-col items-center justify-center rounded-xl border bg-muted/30 px-6 py-8 text-center"
             >
-              {flipped ? (
-                <>
-                  <p className="text-3xl font-semibold">{card.word}</p>
-                  <p className="mt-2 text-muted-foreground">{card.phonetic}</p>
-                </>
-              ) : (
-                <p className="text-lg leading-relaxed">{card.meaning}</p>
-              )}
-            </button>
-            <div className="flex flex-wrap gap-2">
-              {card.hasMeaningAudio && <VocabAudioButton cardId={card.id} kind="meaning" label="Ouvir significado" />}
-              {card.hasWordAudio && <VocabAudioButton cardId={card.id} kind="word" label="Ouvir palavra" />}
+              <div
+                className="relative min-h-64 w-full transition-transform duration-500"
+                style={{
+                  transformStyle: "preserve-3d",
+                  transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                }}
+              >
+                {/* Frente: imagem + significado, sem mostrar a palavra */}
+                <div
+                  className="absolute inset-0 flex flex-col gap-3 rounded-xl border bg-muted/30 p-4"
+                  style={{ backfaceVisibility: "hidden" }}
+                >
+                  {card.hasImage && <VocabCardImage cardId={card.id} />}
+                  <div className="flex flex-1 items-center gap-2">
+                    <p className="flex-1 text-lg leading-relaxed">{card.meaning}</p>
+                    {card.hasMeaningAudio && (
+                      <span onClick={(e) => e.stopPropagation()}>
+                        <VocabAudioButton cardId={card.id} kind="meaning" label="Ouvir" />
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {/* Verso: a palavra */}
+                <div
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-xl border bg-muted/30 p-4 text-center"
+                  style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+                >
+                  <div className="flex items-center gap-2">
+                    <p className="text-3xl font-semibold">{card.word}</p>
+                    {card.hasWordAudio && (
+                      <span onClick={(e) => e.stopPropagation()}>
+                        <VocabAudioButton cardId={card.id} kind="word" label="Ouvir" />
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-muted-foreground">{card.phonetic}</p>
+                </div>
+              </div>
             </div>
+            <p className="text-center text-xs text-muted-foreground">Toque no card para virar</p>
             {card.sourceUrl && (
               <p className="text-xs text-muted-foreground">
                 Definição:{" "}
@@ -266,6 +314,11 @@ export default function VocabListDetail() {
                       required
                     />
                   </div>
+                  <VocabImageField
+                    label="Imagem (opcional)"
+                    value={manual.image}
+                    onChange={(v) => setManual({ ...manual, image: v })}
+                  />
                   <VocabAudioField
                     label="Áudio da palavra"
                     value={manual.wordAudio}
@@ -336,9 +389,23 @@ export default function VocabListDetail() {
                         <p className="font-medium">{c.word}</p>
                         <p className="text-xs text-muted-foreground">{c.phonetic}</p>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => void removeCard(c.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <label className="inline-flex cursor-pointer items-center rounded-md border border-input bg-background px-2 py-1 text-xs">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) void replaceCardImage(c.id, f);
+                            }}
+                          />
+                          {c.hasImage ? "Trocar imagem" : "Adicionar imagem"}
+                        </label>
+                        <Button variant="ghost" size="icon" onClick={() => void removeCard(c.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </li>
                   ))}
                 </ul>

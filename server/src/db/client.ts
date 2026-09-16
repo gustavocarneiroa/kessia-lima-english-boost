@@ -67,6 +67,7 @@ sqlite.exec(`
     origin TEXT NOT NULL CHECK (origin IN ('api', 'teacher')),
     word_audio_path TEXT,
     meaning_audio_path TEXT,
+    image_path TEXT,
     sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL
   );
@@ -77,6 +78,21 @@ sqlite.exec(`
     list_id TEXT NOT NULL REFERENCES vocab_lists(id),
     student_id TEXT NOT NULL REFERENCES users(id),
     PRIMARY KEY (list_id, student_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS activities (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    kind TEXT NOT NULL DEFAULT 'embed' CHECK (kind IN ('embed')),
+    embed_src TEXT NOT NULL,
+    embed_height INTEGER NOT NULL DEFAULT 500,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS activity_students (
+    activity_id TEXT NOT NULL REFERENCES activities(id),
+    student_id TEXT NOT NULL REFERENCES users(id),
+    PRIMARY KEY (activity_id, student_id)
   );
 
   CREATE TABLE IF NOT EXISTS lessons (
@@ -92,6 +108,14 @@ sqlite.exec(`
 
   CREATE INDEX IF NOT EXISTS lessons_student_id_idx ON lessons(student_id);
 `);
+
+// Colunas adicionadas depois que a tabela já existia em produção — CREATE TABLE
+// IF NOT EXISTS não altera tabelas existentes, então precisam ser aplicadas à parte.
+try {
+  sqlite.exec(`ALTER TABLE vocab_cards ADD COLUMN image_path TEXT`);
+} catch {
+  // já existe
+}
 
 export const db = drizzle(sqlite, { schema });
 export { schema };

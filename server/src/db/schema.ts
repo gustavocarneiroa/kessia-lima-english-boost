@@ -38,12 +38,27 @@ export const vocabCards = sqliteTable("vocab_cards", {
   origin: text("origin", { enum: ["api", "teacher"] }).notNull(),
   wordAudioPath: text("word_audio_path"),
   meaningAudioPath: text("meaning_audio_path"),
+  imagePath: text("image_path"),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: text("created_at").notNull(),
 });
 
 export const vocabListStudents = sqliteTable("vocab_list_students", {
   listId: text("list_id").notNull().references(() => vocabLists.id),
+  studentId: text("student_id").notNull().references(() => users.id),
+});
+
+export const activities = sqliteTable("activities", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  kind: text("kind", { enum: ["embed"] }).notNull().default("embed"),
+  embedSrc: text("embed_src").notNull(),
+  embedHeight: integer("embed_height").notNull().default(500),
+  createdAt: text("created_at").notNull(),
+});
+
+export const activityStudents = sqliteTable("activity_students", {
+  activityId: text("activity_id").notNull().references(() => activities.id),
   studentId: text("student_id").notNull().references(() => users.id),
 });
 
