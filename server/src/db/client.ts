@@ -45,7 +45,8 @@ sqlite.exec(`
     english_level TEXT,
     interests TEXT,
     learning_goals TEXT,
-    schedule_preference TEXT,
+    class_weekday TEXT,
+    class_time TEXT,
     notes TEXT,
     updated_at TEXT NOT NULL
   );
@@ -113,6 +114,17 @@ sqlite.exec(`
 // IF NOT EXISTS não altera tabelas existentes, então precisam ser aplicadas à parte.
 try {
   sqlite.exec(`ALTER TABLE vocab_cards ADD COLUMN image_path TEXT`);
+} catch {
+  // já existe
+}
+
+try {
+  sqlite.exec(`ALTER TABLE student_profiles ADD COLUMN class_weekday TEXT`);
+} catch {
+  // já existe
+}
+try {
+  sqlite.exec(`ALTER TABLE student_profiles ADD COLUMN class_time TEXT`);
 } catch {
   // já existe
 }

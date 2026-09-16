@@ -15,7 +15,17 @@ const profileBody = z.object({
   englishLevel: z.string().trim().max(100).optional().nullable(),
   interests: z.string().trim().max(2000).optional().nullable(),
   learningGoals: z.string().trim().max(2000).optional().nullable(),
-  schedulePreference: z.string().trim().max(2000).optional().nullable(),
+  classWeekday: z
+    .enum(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", ""])
+    .optional()
+    .nullable(),
+  classTime: z
+    .string()
+    .trim()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .or(z.literal(""))
+    .optional()
+    .nullable(),
   notes: z.string().trim().max(2000).optional().nullable(),
 });
 
@@ -121,7 +131,8 @@ export async function studentRoutes(app: FastifyInstance) {
       englishLevel: parsed.data.englishLevel || null,
       interests: parsed.data.interests || null,
       learningGoals: parsed.data.learningGoals || null,
-      schedulePreference: parsed.data.schedulePreference || null,
+      classWeekday: parsed.data.classWeekday || null,
+      classTime: parsed.data.classTime || null,
       notes: parsed.data.notes || null,
       updatedAt: new Date().toISOString(),
     };

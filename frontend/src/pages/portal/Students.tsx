@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -31,10 +32,21 @@ interface StudentProfile {
   englishLevel?: string | null;
   interests?: string | null;
   learningGoals?: string | null;
-  schedulePreference?: string | null;
+  classWeekday?: string | null;
+  classTime?: string | null;
   notes?: string | null;
   updatedAt?: string;
 }
+
+const WEEKDAYS: { value: string; label: string }[] = [
+  { value: "monday", label: "Segunda-feira" },
+  { value: "tuesday", label: "Terça-feira" },
+  { value: "wednesday", label: "Quarta-feira" },
+  { value: "thursday", label: "Quinta-feira" },
+  { value: "friday", label: "Sexta-feira" },
+  { value: "saturday", label: "Sábado" },
+  { value: "sunday", label: "Domingo" },
+];
 
 interface Lesson {
   id: string;
@@ -60,7 +72,8 @@ const emptyProfile: StudentProfile = {
   englishLevel: "",
   interests: "",
   learningGoals: "",
-  schedulePreference: "",
+  classWeekday: "",
+  classTime: "",
   notes: "",
 };
 
@@ -298,14 +311,34 @@ export default function Students() {
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="schedulePreference">Cronograma / horários preferidos</Label>
-                <Textarea
-                  id="schedulePreference"
-                  rows={2}
-                  value={profile.schedulePreference ?? ""}
-                  onChange={(e) => setProfile({ ...profile, schedulePreference: e.target.value })}
-                />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="classWeekday">Dia da aula</Label>
+                  <Select
+                    value={profile.classWeekday || undefined}
+                    onValueChange={(v) => setProfile({ ...profile, classWeekday: v })}
+                  >
+                    <SelectTrigger id="classWeekday">
+                      <SelectValue placeholder="Escolha o dia" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {WEEKDAYS.map((w) => (
+                        <SelectItem key={w.value} value={w.value}>
+                          {w.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="classTime">Horário da aula</Label>
+                  <Input
+                    id="classTime"
+                    type="time"
+                    value={profile.classTime ?? ""}
+                    onChange={(e) => setProfile({ ...profile, classTime: e.target.value })}
+                  />
+                </div>
               </div>
 
               <div className="space-y-1.5">

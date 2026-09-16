@@ -16,7 +16,8 @@ export const studentProfiles = sqliteTable("student_profiles", {
   englishLevel: text("english_level"), // nível atual de inglês
   interests: text("interests"), // o que gosta de aprender / assuntos de interesse
   learningGoals: text("learning_goals"), // metas de estudo
-  schedulePreference: text("schedule_preference"), // cronograma/horários preferidos
+  classWeekday: text("class_weekday"), // dia da semana da aula fixa (ex.: "tuesday")
+  classTime: text("class_time"), // horário da aula fixa, "HH:MM"
   notes: text("notes"), // observações gerais
   updatedAt: text("updated_at").notNull(),
 });
