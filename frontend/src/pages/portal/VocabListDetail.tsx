@@ -216,9 +216,8 @@ export default function VocabListDetail() {
               <p className="text-xs text-muted-foreground">
                 Definição:{" "}
                 <a className="underline" href={card.sourceUrl} target="_blank" rel="noreferrer">
-                  Wiktionary
-                </a>{" "}
-                (CC BY-SA)
+                  Merriam-Webster Learner's Dictionary
+                </a>
               </p>
             )}
             <div className="flex gap-2">

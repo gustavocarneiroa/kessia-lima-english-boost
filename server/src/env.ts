@@ -20,6 +20,9 @@ const schema = z.object({
   // Nome/id do Relying Party usado pelo WebAuthn — precisa bater com o domínio do front.
   WEBAUTHN_RP_ID: z.string().min(1).default("teacherkessialima.com.br"),
   WEBAUTHN_RP_NAME: z.string().min(1).default("Teacher Kessia Lima"),
+
+  // Chave da API do Merriam-Webster's Learner's Dictionary (dictionaryapi.com)
+  MERRIAM_WEBSTER_LEARNERS_KEY: z.string().min(1),
 });
 
 const parsed = schema.safeParse(process.env);

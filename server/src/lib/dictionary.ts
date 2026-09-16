@@ -1,66 +1,48 @@
-const DICT_URL = "https://freedictionaryapi.com/api/v1/entries/en";
+import { env } from "../env.ts";
 
-type Pronunciation = { type?: string; text?: string };
-type Sense = {
-  definition?: string;
-  examples?: string[];
-  subsenses?: Sense[];
-};
+const DICT_URL = "https://dictionaryapi.com/api/v3/references/learners/json";
+const AUDIO_BASE = "https://media.merriam-webster.com/audio/prons/en/us/mp3";
+
+type Pronunciation = { ipa?: string; sound?: { audio?: string } };
+type Hwi = { hw?: string; prs?: Pronunciation[] };
 type Entry = {
-  pronunciations?: Pronunciation[];
-  senses?: Sense[];
-};
-type DictResponse = {
-  word?: string;
-  entries?: Entry[];
-  source?: { url?: string };
+  meta?: { id?: string; "app-shortdef"?: { hw?: string } };
+  hwi?: Hwi;
+  shortdef?: string[];
 };
 
 function firstIpa(entries: Entry[]): string | null {
   for (const e of entries) {
-    const ipa = e.pronunciations?.find((p) => p.type === "ipa" && p.text)?.text;
+    const ipa = e.hwi?.prs?.find((p) => p.ipa)?.ipa;
     if (ipa) return ipa;
   }
   return null;
 }
 
-function firstMeaning(senses: Sense[] | undefined): string | null {
-  if (!senses) return null;
-  for (const s of senses) {
-    const ex = s.examples?.find((x) => x.trim());
-    if (ex) return ex.trim();
-    if (s.definition?.trim()) return s.definition.trim();
-    const nested = firstMeaning(s.subsenses);
-    if (nested) return nested;
+function firstAudioName(entries: Entry[]): string | null {
+  for (const e of entries) {
+    const audio = e.hwi?.prs?.find((p) => p.sound?.audio)?.sound?.audio;
+    if (audio) return audio;
   }
   return null;
 }
 
-function findAudioUrl(value: unknown, depth = 0): string | null {
-  if (depth > 8 || value == null) return null;
-  if (typeof value === "string") {
-    if (/^https?:\/\/.+\.(mp3|ogg|wav)(\?|$)/i.test(value)) return value;
-    return null;
-  }
-  if (Array.isArray(value)) {
-    for (const item of value) {
-      const found = findAudioUrl(item, depth + 1);
-      if (found) return found;
-    }
-    return null;
-  }
-  if (typeof value === "object") {
-    const rec = value as Record<string, unknown>;
-    if (typeof rec.audio === "string") {
-      const found = findAudioUrl(rec.audio, depth + 1);
-      if (found) return found;
-    }
-    for (const v of Object.values(rec)) {
-      const found = findAudioUrl(v, depth + 1);
-      if (found) return found;
-    }
+function firstMeaning(entries: Entry[]): string | null {
+  for (const e of entries) {
+    const def = e.shortdef?.find((d) => d.trim());
+    if (def) return def.trim();
   }
   return null;
+}
+
+// Regra oficial do Merriam-Webster pra montar a URL do áudio a partir do nome do arquivo.
+function audioUrl(name: string): string {
+  let subdir: string;
+  if (name.startsWith("bix")) subdir = "bix";
+  else if (name.startsWith("gg")) subdir = "gg";
+  else if (/^[0-9]/.test(name) || /^[^a-zA-Z]/.test(name)) subdir = "number";
+  else subdir = name[0]!.toLowerCase();
+  return `${AUDIO_BASE}/${subdir}/${name}.mp3`;
 }
 
 export type DictionaryHit = {
@@ -75,28 +57,35 @@ export async function lookupEnglishWord(rawWord: string): Promise<DictionaryHit 
   const word = rawWord.trim().toLowerCase();
   if (!word) return null;
 
-  const res = await fetch(`${DICT_URL}/${encodeURIComponent(word)}`);
-  if (res.status === 404) return null;
+  const res = await fetch(`${DICT_URL}/${encodeURIComponent(word)}?key=${env.MERRIAM_WEBSTER_LEARNERS_KEY}`);
   if (!res.ok) {
     throw Object.assign(new Error("O dicionário está indisponível agora. Tente de novo em instantes."), {
       statusCode: 502,
     });
   }
 
-  const data = (await res.json()) as DictResponse;
-  const entries = data.entries ?? [];
-  if (entries.length === 0) return null;
+  const entries = (await res.json()) as unknown;
+  if (!Array.isArray(entries) || entries.length === 0) return null;
 
-  const meaning = firstMeaning(entries[0]?.senses) ?? firstMeaning(entries.flatMap((e) => e.senses ?? []));
-  const phonetic = firstIpa(entries);
+  // A API retorna sugestões de palavras parecidas (strings) quando não encontra a palavra exata.
+  const valid = entries.filter((e): e is Entry => typeof e === "object" && e !== null && "shortdef" in e);
+  if (valid.length === 0) return null;
+
+  const matched = valid.filter((e) => e.meta?.id?.split(":")[0] === word);
+  const pool = matched.length > 0 ? matched : valid;
+
+  const meaning = firstMeaning(pool);
+  const phonetic = firstIpa(pool);
   if (!meaning || !phonetic) return null;
 
+  const audioName = firstAudioName(pool);
+
   return {
-    word: data.word ?? word,
+    word: pool[0]?.hwi?.hw?.replace(/\*/g, "") ?? word,
     phonetic,
     meaning,
-    sourceUrl: data.source?.url ?? null,
-    audioUrl: findAudioUrl(data),
+    sourceUrl: `https://learnersdictionary.com/definition/${encodeURIComponent(word)}`,
+    audioUrl: audioName ? audioUrl(audioName) : null,
   };
 }
 
