@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Maximize2, Minimize2, Trash2 } from "lucide-react";
 
 interface ActivityDetail {
   id: string;
@@ -31,6 +31,7 @@ export default function ActivityDetail() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
 
   async function load() {
     if (!id) return;
@@ -74,6 +75,26 @@ export default function ActivityDetail() {
     return <p className="text-sm text-destructive">{error ?? "Atividade não encontrada."}</p>;
   }
 
+  if (expanded) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col bg-background">
+        <div className="flex items-center justify-between gap-3 border-b px-4 py-2">
+          <p className="truncate font-medium">{activity.title}</p>
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => setExpanded(false)}>
+            <Minimize2 className="h-4 w-4" />
+            Sair da tela cheia
+          </Button>
+        </div>
+        <iframe
+          src={activity.embedSrc}
+          className="flex-1"
+          style={{ border: 0, width: "100%" }}
+          title={activity.title}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -83,12 +104,18 @@ export default function ActivityDetail() {
           </Link>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">{activity.title}</h1>
         </div>
-        {isTeacher && (
-          <Button variant="outline" size="sm" className="gap-2 text-destructive" onClick={() => void removeActivity()}>
-            <Trash2 className="h-4 w-4" />
-            Apagar atividade
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="gap-2" onClick={() => setExpanded(true)}>
+            <Maximize2 className="h-4 w-4" />
+            Tela cheia
           </Button>
-        )}
+          {isTeacher && (
+            <Button variant="outline" size="sm" className="gap-2 text-destructive" onClick={() => void removeActivity()}>
+              <Trash2 className="h-4 w-4" />
+              Apagar atividade
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card>
