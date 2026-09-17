@@ -84,9 +84,11 @@ sqlite.exec(`
   CREATE TABLE IF NOT EXISTS activities (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
-    kind TEXT NOT NULL DEFAULT 'embed' CHECK (kind IN ('embed')),
-    embed_src TEXT NOT NULL,
+    kind TEXT NOT NULL DEFAULT 'embed' CHECK (kind IN ('embed', 'listening')),
+    embed_src TEXT,
     embed_height INTEGER NOT NULL DEFAULT 500,
+    youtube_video_id TEXT,
+    questions TEXT,
     created_at TEXT NOT NULL
   );
 
@@ -94,6 +96,17 @@ sqlite.exec(`
     activity_id TEXT NOT NULL REFERENCES activities(id),
     student_id TEXT NOT NULL REFERENCES users(id),
     PRIMARY KEY (activity_id, student_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS activity_answers (
+    id TEXT PRIMARY KEY,
+    activity_id TEXT NOT NULL REFERENCES activities(id),
+    student_id TEXT NOT NULL REFERENCES users(id),
+    answers TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    total INTEGER NOT NULL,
+    submitted_at TEXT NOT NULL,
+    UNIQUE (activity_id, student_id)
   );
 
   CREATE TABLE IF NOT EXISTS lessons (
@@ -127,6 +140,33 @@ try {
   sqlite.exec(`ALTER TABLE student_profiles ADD COLUMN class_time TEXT`);
 } catch {
   // já existe
+}
+
+// activities: a tabela já existia em produção com CHECK (kind IN ('embed')) e
+// embed_src NOT NULL — SQLite não permite alterar CHECK/NOT NULL com ALTER TABLE,
+// então reconstruímos a tabela (idempotente: só roda se ainda estiver no formato antigo).
+const activitiesTable = sqlite
+  .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'activities'`)
+  .get() as { sql: string } | undefined;
+if (activitiesTable && !activitiesTable.sql.includes("listening")) {
+  sqlite.exec(`
+    PRAGMA foreign_keys = OFF;
+    CREATE TABLE activities_new (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      kind TEXT NOT NULL DEFAULT 'embed' CHECK (kind IN ('embed', 'listening')),
+      embed_src TEXT,
+      embed_height INTEGER NOT NULL DEFAULT 500,
+      youtube_video_id TEXT,
+      questions TEXT,
+      created_at TEXT NOT NULL
+    );
+    INSERT INTO activities_new (id, title, kind, embed_src, embed_height, created_at)
+      SELECT id, title, kind, embed_src, embed_height, created_at FROM activities;
+    DROP TABLE activities;
+    ALTER TABLE activities_new RENAME TO activities;
+    PRAGMA foreign_keys = ON;
+  `);
 }
 
 export const db = drizzle(sqlite, { schema });

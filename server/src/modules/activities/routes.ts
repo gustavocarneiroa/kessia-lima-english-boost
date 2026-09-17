@@ -1,18 +1,39 @@
 import type { FastifyInstance } from "fastify";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
 import { requireAuth, requireTeacher } from "../../auth/guards.ts";
 import { parseIframeEmbed } from "../../lib/embed.ts";
+import { extractYoutubeVideoId } from "../../lib/youtube.ts";
 
-const createBody = z.object({
+const questionSchema = z
+  .object({
+    prompt: z.string().trim().min(1).max(500),
+    options: z.array(z.string().trim().min(1).max(200)).min(2).max(6),
+    correctIndex: z.number().int().min(0),
+  })
+  .refine((q) => q.correctIndex < q.options.length, { message: "correctIndex fora do intervalo" });
+
+const embedCreateBody = z.object({
+  kind: z.literal("embed").optional(),
   title: z.string().trim().min(1).max(200),
   embedCode: z.string().trim().min(1).max(20_000),
 });
 
+const listeningCreateBody = z.object({
+  kind: z.literal("listening"),
+  title: z.string().trim().min(1).max(200),
+  youtubeUrl: z.string().trim().min(1).max(500),
+  questions: z.array(questionSchema).min(1).max(20),
+});
+
 const studentsBody = z.object({
   studentIds: z.array(z.string().uuid()),
+});
+
+const submitBody = z.object({
+  answers: z.array(z.number().int().min(0)).max(20),
 });
 
 function activityOr404(id: string) {
@@ -30,6 +51,22 @@ function assignedStudentIds(activityId: string) {
 
 function studentAssigned(activityId: string, studentId: string) {
   return assignedStudentIds(activityId).includes(studentId);
+}
+
+type Question = z.infer<typeof questionSchema>;
+
+function parseQuestions(raw: string | null): Question[] {
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw) as Question[];
+  } catch {
+    return [];
+  }
+}
+
+// Nunca devolvemos correctIndex pro aluno antes de ele responder.
+function questionsForStudent(questions: Question[]) {
+  return questions.map((q) => ({ prompt: q.prompt, options: q.options }));
 }
 
 export async function activitiesRoutes(app: FastifyInstance) {
@@ -52,7 +89,38 @@ export async function activitiesRoutes(app: FastifyInstance) {
   });
 
   app.post("/api/activities", { preHandler: requireTeacher }, async (req, reply) => {
-    const parsed = createBody.safeParse(req.body);
+    const body = req.body as { kind?: string };
+
+    if (body?.kind === "listening") {
+      const parsed = listeningCreateBody.safeParse(req.body);
+      if (!parsed.success) {
+        return reply.code(400).send({
+          error: "invalid_body",
+          message: "Informe um título, o link do vídeo do YouTube e pelo menos uma pergunta com as opções.",
+        });
+      }
+      const videoId = extractYoutubeVideoId(parsed.data.youtubeUrl);
+      if (!videoId) {
+        return reply.code(400).send({
+          error: "invalid_youtube_url",
+          message: "Não encontrei um vídeo válido nesse link do YouTube.",
+        });
+      }
+      const row = {
+        id: randomUUID(),
+        title: parsed.data.title,
+        kind: "listening" as const,
+        embedSrc: null,
+        embedHeight: 500,
+        youtubeVideoId: videoId,
+        questions: JSON.stringify(parsed.data.questions),
+        createdAt: new Date().toISOString(),
+      };
+      db.insert(schema.activities).values(row).run();
+      return reply.code(201).send(row);
+    }
+
+    const parsed = embedCreateBody.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ error: "invalid_body", message: "Informe um título e o código de incorporação." });
     }
@@ -69,6 +137,8 @@ export async function activitiesRoutes(app: FastifyInstance) {
       kind: "embed" as const,
       embedSrc: embed.src,
       embedHeight: embed.height,
+      youtubeVideoId: null,
+      questions: null,
       createdAt: new Date().toISOString(),
     };
     db.insert(schema.activities).values(row).run();
@@ -83,13 +153,105 @@ export async function activitiesRoutes(app: FastifyInstance) {
     if (session.role !== "teacher" && !studentAssigned(id, session.userId)) {
       return reply.code(404).send({ error: "not_found", message: "Atividade não encontrada." });
     }
-    const studentIds = session.role === "teacher" ? assignedStudentIds(id) : undefined;
-    return { ...activity, studentIds };
+
+    if (activity.kind !== "listening") {
+      const studentIds = session.role === "teacher" ? assignedStudentIds(id) : undefined;
+      return { ...activity, studentIds };
+    }
+
+    const questions = parseQuestions(activity.questions);
+
+    if (session.role === "teacher") {
+      const studentIds = assignedStudentIds(id);
+      const results = db
+        .select({
+          studentId: schema.activityAnswers.studentId,
+          score: schema.activityAnswers.score,
+          total: schema.activityAnswers.total,
+          submittedAt: schema.activityAnswers.submittedAt,
+          email: schema.users.email,
+        })
+        .from(schema.activityAnswers)
+        .innerJoin(schema.users, eq(schema.users.id, schema.activityAnswers.studentId))
+        .where(eq(schema.activityAnswers.activityId, id))
+        .all();
+      return { ...activity, questions, studentIds, results };
+    }
+
+    const mine = db
+      .select()
+      .from(schema.activityAnswers)
+      .where(and(eq(schema.activityAnswers.activityId, id), eq(schema.activityAnswers.studentId, session.userId)))
+      .get();
+
+    return {
+      ...activity,
+      questions: questionsForStudent(questions),
+      mySubmission: mine
+        ? {
+            answers: JSON.parse(mine.answers) as number[],
+            score: mine.score,
+            total: mine.total,
+            correctAnswers: questions.map((q) => q.correctIndex),
+          }
+        : null,
+    };
+  });
+
+  app.post("/api/activities/:id/submit", { preHandler: requireAuth }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const session = req.session!;
+    if (session.role === "teacher") {
+      return reply.code(403).send({ error: "forbidden", message: "Só alunos respondem atividades." });
+    }
+    const activity = activityOr404(id);
+    if (!activity || activity.kind !== "listening" || !studentAssigned(id, session.userId)) {
+      return reply.code(404).send({ error: "not_found", message: "Atividade não encontrada." });
+    }
+    const parsed = submitBody.safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", message: "Respostas inválidas." });
+    }
+
+    const questions = parseQuestions(activity.questions);
+    if (parsed.data.answers.length !== questions.length) {
+      return reply.code(400).send({ error: "invalid_body", message: "Responda todas as perguntas." });
+    }
+
+    const score = questions.reduce((acc, q, i) => acc + (q.correctIndex === parsed.data.answers[i] ? 1 : 0), 0);
+    const now = new Date().toISOString();
+    const existing = db
+      .select()
+      .from(schema.activityAnswers)
+      .where(and(eq(schema.activityAnswers.activityId, id), eq(schema.activityAnswers.studentId, session.userId)))
+      .get();
+
+    if (existing) {
+      db.update(schema.activityAnswers)
+        .set({ answers: JSON.stringify(parsed.data.answers), score, total: questions.length, submittedAt: now })
+        .where(eq(schema.activityAnswers.id, existing.id))
+        .run();
+    } else {
+      db.insert(schema.activityAnswers)
+        .values({
+          id: randomUUID(),
+          activityId: id,
+          studentId: session.userId,
+          answers: JSON.stringify(parsed.data.answers),
+          score,
+          total: questions.length,
+          submittedAt: now,
+        })
+        .run();
+    }
+
+    return { score, total: questions.length, correctAnswers: questions.map((q) => q.correctIndex) };
   });
 
   app.delete("/api/activities/:id", { preHandler: requireTeacher }, async (req, reply) => {
     const { id } = req.params as { id: string };
     if (!activityOr404(id)) return reply.code(404).send({ error: "not_found", message: "Atividade não encontrada." });
+    db.delete(schema.activityAnswers).where(eq(schema.activityAnswers.activityId, id)).run();
     db.delete(schema.activityStudents).where(eq(schema.activityStudents.activityId, id)).run();
     db.delete(schema.activities).where(eq(schema.activities.id, id)).run();
     return reply.code(204).send();

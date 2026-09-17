@@ -4,16 +4,44 @@ import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Maximize2, Minimize2, Trash2 } from "lucide-react";
+import { CheckCircle2, Loader2, Maximize2, Minimize2, Trash2, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+interface Question {
+  prompt: string;
+  options: string[];
+  correctIndex?: number;
+}
+
+interface Submission {
+  answers: number[];
+  score: number;
+  total: number;
+  correctAnswers?: number[];
+}
+
+interface StudentResult {
+  studentId: string;
+  email: string;
+  score: number;
+  total: number;
+  submittedAt: string;
+}
 
 interface ActivityDetail {
   id: string;
   title: string;
-  kind: "embed";
-  embedSrc: string;
-  embedHeight: number;
+  kind: "embed" | "listening";
+  embedSrc?: string | null;
+  embedHeight?: number;
+  youtubeVideoId?: string | null;
+  questions?: Question[];
   studentIds?: string[];
+  results?: StudentResult[];
+  mySubmission?: Submission | null;
 }
 
 interface Student {
@@ -33,6 +61,11 @@ export default function ActivityDetail() {
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
 
+  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [result, setResult] = useState<Submission | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   async function load() {
     if (!id) return;
     setLoading(true);
@@ -40,6 +73,12 @@ export default function ActivityDetail() {
       const data = await api.get<ActivityDetail>(`/api/activities/${id}`);
       setActivity(data);
       setSelected(new Set(data.studentIds ?? []));
+      if (data.mySubmission) {
+        setResult(data.mySubmission);
+        const initial: Record<number, number> = {};
+        data.mySubmission.answers.forEach((a, i) => (initial[i] = a));
+        setAnswers(initial);
+      }
       if (isTeacher) setStudents(await api.get<Student[]>("/api/students"));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Não foi possível abrir a atividade.");
@@ -63,6 +102,21 @@ export default function ActivityDetail() {
     await api.put(`/api/activities/${id}/students`, { studentIds: [...selected] });
   }
 
+  async function submitAnswers() {
+    if (!id || !activity?.questions) return;
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      const orderedAnswers = activity.questions.map((_, i) => answers[i]);
+      const res = await api.post<Submission>(`/api/activities/${id}/submit`, { answers: orderedAnswers });
+      setResult(res);
+    } catch (err) {
+      setSubmitError(err instanceof ApiError ? err.message : "Não foi possível enviar as respostas.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center py-12 text-muted-foreground">
@@ -75,7 +129,9 @@ export default function ActivityDetail() {
     return <p className="text-sm text-destructive">{error ?? "Atividade não encontrada."}</p>;
   }
 
-  if (expanded) {
+  const allAnswered = activity.questions ? activity.questions.every((_, i) => answers[i] !== undefined) : false;
+
+  if (expanded && activity.kind === "embed") {
     return (
       <div className="fixed inset-0 z-50 flex flex-col bg-background">
         <div className="flex items-center justify-between gap-3 border-b px-4 py-2">
@@ -86,7 +142,7 @@ export default function ActivityDetail() {
           </Button>
         </div>
         <iframe
-          src={activity.embedSrc}
+          src={activity.embedSrc ?? undefined}
           className="flex-1"
           style={{ border: 0, width: "100%" }}
           title={activity.title}
@@ -105,10 +161,12 @@ export default function ActivityDetail() {
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">{activity.title}</h1>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-2" onClick={() => setExpanded(true)}>
-            <Maximize2 className="h-4 w-4" />
-            Tela cheia
-          </Button>
+          {activity.kind === "embed" && (
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => setExpanded(true)}>
+              <Maximize2 className="h-4 w-4" />
+              Tela cheia
+            </Button>
+          )}
           {isTeacher && (
             <Button variant="outline" size="sm" className="gap-2 text-destructive" onClick={() => void removeActivity()}>
               <Trash2 className="h-4 w-4" />
@@ -118,17 +176,143 @@ export default function ActivityDetail() {
         </div>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
-          <iframe
-            src={activity.embedSrc}
-            height={activity.embedHeight}
-            width="100%"
-            style={{ border: 0, display: "block" }}
-            title={activity.title}
-          />
-        </CardContent>
-      </Card>
+      {activity.kind === "embed" ? (
+        <Card>
+          <CardContent className="p-0">
+            <iframe
+              src={activity.embedSrc ?? undefined}
+              height={activity.embedHeight}
+              width="100%"
+              style={{ border: 0, display: "block" }}
+              title={activity.title}
+            />
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <Card>
+            <CardContent className="p-0">
+              <div className="aspect-video w-full">
+                <iframe
+                  src={`https://www.youtube.com/embed/${activity.youtubeVideoId}`}
+                  className="h-full w-full"
+                  style={{ border: 0 }}
+                  title={activity.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {!isTeacher && activity.questions && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Perguntas</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {result && (
+                  <div className="rounded-md border bg-muted/40 p-3 text-sm">
+                    Sua nota: <span className="font-semibold">{result.score}</span> de {result.total}
+                  </div>
+                )}
+
+                {activity.questions.map((q, qi) => {
+                  const correct = result?.correctAnswers?.[qi];
+                  return (
+                    <div key={qi} className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        {qi + 1}. {q.prompt}
+                      </Label>
+                      <RadioGroup
+                        value={answers[qi] !== undefined ? String(answers[qi]) : undefined}
+                        onValueChange={(v) => setAnswers((prev) => ({ ...prev, [qi]: Number(v) }))}
+                        className="space-y-1"
+                        disabled={!!result}
+                      >
+                        {q.options.map((opt, oi) => {
+                          const isCorrect = result && correct === oi;
+                          const isWrongPick = result && correct !== oi && answers[qi] === oi;
+                          return (
+                            <div
+                              key={oi}
+                              className={cn(
+                                "flex items-center gap-2 rounded-md px-2 py-1",
+                                isCorrect && "bg-green-500/10",
+                                isWrongPick && "bg-destructive/10",
+                              )}
+                            >
+                              <RadioGroupItem value={String(oi)} id={`ans-q${qi}-o${oi}`} />
+                              <Label htmlFor={`ans-q${qi}-o${oi}`} className="flex-1 font-normal">
+                                {opt}
+                              </Label>
+                              {isCorrect && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                              {isWrongPick && <XCircle className="h-4 w-4 text-destructive" />}
+                            </div>
+                          );
+                        })}
+                      </RadioGroup>
+                    </div>
+                  );
+                })}
+
+                {!result && (
+                  <Button onClick={() => void submitAnswers()} disabled={!allAnswered || submitting} className="gap-2">
+                    {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                    Enviar respostas
+                  </Button>
+                )}
+                {result && (
+                  <Button variant="outline" onClick={() => setResult(null)}>
+                    Tentar novamente
+                  </Button>
+                )}
+                {submitError && <p className="text-sm text-destructive">{submitError}</p>}
+              </CardContent>
+            </Card>
+          )}
+
+          {isTeacher && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Gabarito</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {activity.questions?.map((q, qi) => (
+                  <div key={qi} className="text-sm">
+                    <p className="font-medium">
+                      {qi + 1}. {q.prompt}
+                    </p>
+                    <p className="text-muted-foreground">
+                      Correta: {q.options[q.correctIndex ?? -1] ?? "—"}
+                    </p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {isTeacher && (activity.results?.length ?? 0) > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Resultados dos alunos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-1 text-sm">
+                  {activity.results!.map((r) => (
+                    <li key={r.studentId} className="flex justify-between">
+                      <span>{r.email}</span>
+                      <span className="font-medium">
+                        {r.score}/{r.total}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
 
       {isTeacher && (
         <Card>

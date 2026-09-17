@@ -52,15 +52,27 @@ export const vocabListStudents = sqliteTable("vocab_list_students", {
 export const activities = sqliteTable("activities", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
-  kind: text("kind", { enum: ["embed"] }).notNull().default("embed"),
-  embedSrc: text("embed_src").notNull(),
+  kind: text("kind", { enum: ["embed", "listening"] }).notNull().default("embed"),
+  embedSrc: text("embed_src"),
   embedHeight: integer("embed_height").notNull().default(500),
+  youtubeVideoId: text("youtube_video_id"),
+  questions: text("questions"), // JSON: { prompt, options[], correctIndex }[] — só kind "listening"
   createdAt: text("created_at").notNull(),
 });
 
 export const activityStudents = sqliteTable("activity_students", {
   activityId: text("activity_id").notNull().references(() => activities.id),
   studentId: text("student_id").notNull().references(() => users.id),
+});
+
+export const activityAnswers = sqliteTable("activity_answers", {
+  id: text("id").primaryKey(),
+  activityId: text("activity_id").notNull().references(() => activities.id),
+  studentId: text("student_id").notNull().references(() => users.id),
+  answers: text("answers").notNull(), // JSON: number[] (índice escolhido por pergunta, na ordem)
+  score: integer("score").notNull(),
+  total: integer("total").notNull(),
+  submittedAt: text("submitted_at").notNull(),
 });
 
 export const lessons = sqliteTable("lessons", {
