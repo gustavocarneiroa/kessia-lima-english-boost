@@ -18,6 +18,7 @@ import VocabListDetail from "./pages/portal/VocabListDetail";
 import Lessons from "./pages/portal/Lessons";
 import Activities from "./pages/portal/Activities";
 import ActivityDetail from "./pages/portal/ActivityDetail";
+import Settings from "./pages/portal/Settings";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="aulas" element={<Lessons />} />
               <Route path="atividades" element={<Activities />} />
               <Route path="atividades/:id" element={<ActivityDetail />} />
+              <Route path="configuracoes" element={<Settings />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

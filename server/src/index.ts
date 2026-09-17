@@ -10,6 +10,7 @@ import { webauthnRoutes } from "./modules/webauthn/routes.ts";
 import { vocabRoutes } from "./modules/vocab/routes.ts";
 import { lessonRoutes } from "./modules/lessons/routes.ts";
 import { activitiesRoutes } from "./modules/activities/routes.ts";
+import { settingsRoutes } from "./modules/settings/routes.ts";
 
 const app = Fastify({
   logger: { level: env.NODE_ENV === "production" ? "info" : "debug" },
@@ -33,6 +34,7 @@ await app.register(webauthnRoutes);
 await app.register(vocabRoutes);
 await app.register(lessonRoutes);
 await app.register(activitiesRoutes);
+await app.register(settingsRoutes);
 
 app.setErrorHandler((err: unknown, req, reply) => {
   req.log.error({ err }, "erro não tratado");

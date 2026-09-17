@@ -86,6 +86,14 @@ export const lessons = sqliteTable("lessons", {
   createdAt: text("created_at").notNull(),
 });
 
+// Configurações que a professora cadastra pelo próprio site (ex.: chave da API de IA).
+// Guardadas só aqui — nunca devolvidas pelo servidor depois de salvas, só "está configurada?".
+export const appSettings = sqliteTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
 export const credentials = sqliteTable("credentials", {
   // credential ID do WebAuthn (base64url), gerado pelo autenticador/dispositivo
   id: text("id").primaryKey(),

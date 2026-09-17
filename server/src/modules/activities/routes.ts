@@ -6,6 +6,7 @@ import { db, schema } from "../../db/client.ts";
 import { requireAuth, requireTeacher } from "../../auth/guards.ts";
 import { parseIframeEmbed } from "../../lib/embed.ts";
 import { extractYoutubeVideoId } from "../../lib/youtube.ts";
+import { ListeningAiError, generateListeningQuestions } from "../../lib/listeningQuestionsAi.ts";
 
 const questionSchema = z
   .object({
@@ -28,12 +29,29 @@ const listeningCreateBody = z.object({
   questions: z.array(questionSchema).min(1).max(20),
 });
 
+const embedUpdateBody = z.object({
+  title: z.string().trim().min(1).max(200),
+  embedCode: z.string().trim().min(1).max(20_000),
+});
+
+const listeningUpdateBody = z.object({
+  title: z.string().trim().min(1).max(200),
+  youtubeUrl: z.string().trim().min(1).max(500),
+  questions: z.array(questionSchema).min(1).max(20),
+});
+
 const studentsBody = z.object({
   studentIds: z.array(z.string().uuid()),
 });
 
 const submitBody = z.object({
   answers: z.array(z.number().int().min(0)).max(20),
+});
+
+const generateQuestionsBody = z.object({
+  transcript: z.string().trim().min(20).max(20_000),
+  level: z.enum(["beginner", "intermediate", "advanced"]),
+  count: z.number().int().min(1).max(10).default(5),
 });
 
 function activityOr404(id: string) {
@@ -86,6 +104,26 @@ export async function activitiesRoutes(app: FastifyInstance) {
       .from(schema.activities)
       .all()
       .filter((a) => ids.has(a.id));
+  });
+
+  app.post("/api/activities/generate-questions", { preHandler: requireTeacher }, async (req, reply) => {
+    const parsed = generateQuestionsBody.safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({
+        error: "invalid_body",
+        message: "Cole a transcrição do vídeo (pelo menos algumas frases) e escolha o nível do aluno.",
+      });
+    }
+
+    try {
+      const questions = await generateListeningQuestions(parsed.data.transcript, parsed.data.level, parsed.data.count);
+      return { questions };
+    } catch (err) {
+      if (err instanceof ListeningAiError) {
+        return reply.code(422).send({ error: "ai_error", message: err.message });
+      }
+      throw err;
+    }
   });
 
   app.post("/api/activities", { preHandler: requireTeacher }, async (req, reply) => {
@@ -143,6 +181,57 @@ export async function activitiesRoutes(app: FastifyInstance) {
     };
     db.insert(schema.activities).values(row).run();
     return reply.code(201).send(row);
+  });
+
+  app.put("/api/activities/:id", { preHandler: requireTeacher }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const activity = activityOr404(id);
+    if (!activity) return reply.code(404).send({ error: "not_found", message: "Atividade não encontrada." });
+
+    if (activity.kind === "listening") {
+      const parsed = listeningUpdateBody.safeParse(req.body);
+      if (!parsed.success) {
+        return reply.code(400).send({
+          error: "invalid_body",
+          message: "Informe um título, o link do vídeo do YouTube e pelo menos uma pergunta com as opções.",
+        });
+      }
+      const videoId = extractYoutubeVideoId(parsed.data.youtubeUrl);
+      if (!videoId) {
+        return reply.code(400).send({
+          error: "invalid_youtube_url",
+          message: "Não encontrei um vídeo válido nesse link do YouTube.",
+        });
+      }
+      db.update(schema.activities)
+        .set({
+          title: parsed.data.title,
+          youtubeVideoId: videoId,
+          questions: JSON.stringify(parsed.data.questions),
+        })
+        .where(eq(schema.activities.id, id))
+        .run();
+      // As perguntas podem ter mudado — respostas antigas não fariam mais sentido comparadas a elas.
+      db.delete(schema.activityAnswers).where(eq(schema.activityAnswers.activityId, id)).run();
+      return activityOr404(id);
+    }
+
+    const parsed = embedUpdateBody.safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", message: "Informe um título e o código de incorporação." });
+    }
+    const embed = parseIframeEmbed(parsed.data.embedCode);
+    if (!embed) {
+      return reply.code(400).send({
+        error: "invalid_embed",
+        message: "Não encontrei um link válido nesse código. Cole o <iframe> completo que o site te deu.",
+      });
+    }
+    db.update(schema.activities)
+      .set({ title: parsed.data.title, embedSrc: embed.src, embedHeight: embed.height })
+      .where(eq(schema.activities.id, id))
+      .run();
+    return activityOr404(id);
   });
 
   app.get("/api/activities/:id", { preHandler: requireAuth }, async (req, reply) => {

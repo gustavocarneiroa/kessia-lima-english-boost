@@ -7,13 +7,18 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Loader2, Maximize2, Minimize2, Trash2, XCircle } from "lucide-react";
+import { CheckCircle2, Loader2, Maximize2, Minimize2, Pencil, Trash2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ActivityForm, { type ActivityFormPayload } from "./ActivityForm";
 
 interface Question {
   prompt: string;
   options: string[];
   correctIndex?: number;
+}
+
+function reconstructEmbedCode(src: string, height: number) {
+  return `<iframe src="${src}" height="${height}" width="100%"></iframe>`;
 }
 
 interface Submission {
@@ -60,6 +65,7 @@ export default function ActivityDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [result, setResult] = useState<Submission | null>(null);
@@ -100,6 +106,13 @@ export default function ActivityDetail() {
   async function saveStudents() {
     if (!id) return;
     await api.put(`/api/activities/${id}/students`, { studentIds: [...selected] });
+  }
+
+  async function saveEdit(payload: ActivityFormPayload) {
+    if (!id) return;
+    await api.put(`/api/activities/${id}`, payload);
+    setEditing(false);
+    await load();
   }
 
   async function submitAnswers() {
@@ -167,6 +180,12 @@ export default function ActivityDetail() {
               Tela cheia
             </Button>
           )}
+          {isTeacher && !editing && (
+            <Button variant="outline" size="sm" className="gap-2" onClick={() => setEditing(true)}>
+              <Pencil className="h-4 w-4" />
+              Editar
+            </Button>
+          )}
           {isTeacher && (
             <Button variant="outline" size="sm" className="gap-2 text-destructive" onClick={() => void removeActivity()}>
               <Trash2 className="h-4 w-4" />
@@ -176,7 +195,34 @@ export default function ActivityDetail() {
         </div>
       </div>
 
-      {activity.kind === "embed" ? (
+      {editing ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Editar atividade</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActivityForm
+              lockKind={activity.kind}
+              initial={
+                activity.kind === "embed"
+                  ? { title: activity.title, embedCode: reconstructEmbedCode(activity.embedSrc ?? "", activity.embedHeight ?? 500) }
+                  : {
+                      title: activity.title,
+                      youtubeUrl: `https://www.youtube.com/watch?v=${activity.youtubeVideoId}`,
+                      questions: activity.questions?.map((q) => ({
+                        prompt: q.prompt,
+                        options: q.options,
+                        correctIndex: q.correctIndex ?? 0,
+                      })),
+                    }
+              }
+              submitLabel="Salvar alterações"
+              onSubmit={saveEdit}
+              onCancel={() => setEditing(false)}
+            />
+          </CardContent>
+        </Card>
+      ) : activity.kind === "embed" ? (
         <Card>
           <CardContent className="p-0">
             <iframe

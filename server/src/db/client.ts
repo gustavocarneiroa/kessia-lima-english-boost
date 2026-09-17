@@ -121,6 +121,12 @@ sqlite.exec(`
   );
 
   CREATE INDEX IF NOT EXISTS lessons_student_id_idx ON lessons(student_id);
+
+  CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
 `);
 
 // Colunas adicionadas depois que a tabela já existia em produção — CREATE TABLE
