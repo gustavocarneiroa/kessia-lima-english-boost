@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Layers, Smartphone, Users, type LucideIcon } from "lucide-react";
+import { CalendarDays, ClipboardList, Layers, Smartphone, Users, type LucideIcon } from "lucide-react";
 
 interface ShortcutItem {
   to: string;
@@ -17,6 +17,12 @@ const shortcuts: ShortcutItem[] = [
     label: "Aulas",
     description: "Datas, horários, links e presença",
     icon: CalendarDays,
+  },
+  {
+    to: "/portal/atividades",
+    label: "Atividades",
+    description: "Exercícios para praticar o conteúdo",
+    icon: ClipboardList,
   },
   {
     to: "/portal/vocabulario",
