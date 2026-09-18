@@ -62,6 +62,15 @@ export async function studentRoutes(app: FastifyInstance) {
     return { items, total, page, pageSize };
   });
 
+  app.get("/api/students/:id", { preHandler: requireTeacher }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const student = db.select().from(schema.users).where(eq(schema.users.id, id)).get();
+    if (!student || student.role !== "student") {
+      return reply.code(404).send({ error: "not_found", message: "Aluno não encontrado." });
+    }
+    return { id: student.id, email: student.email, createdAt: student.createdAt, hasLoggedIn: student.passwordHash !== null };
+  });
+
   app.post("/api/students", { preHandler: requireTeacher }, async (req, reply) => {
     const parsed = addStudentBody.safeParse(req.body);
     if (!parsed.success) {

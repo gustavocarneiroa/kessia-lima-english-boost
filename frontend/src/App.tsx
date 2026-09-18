@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import PortalLayout from "./pages/PortalLayout";
 import PortalOverview from "./pages/portal/Overview";
 import PortalStudents from "./pages/portal/Students";
+import StudentDetail from "./pages/portal/StudentDetail";
 import PortalDevices from "./pages/portal/Devices";
 import VocabLists from "./pages/portal/VocabLists";
 import VocabListDetail from "./pages/portal/VocabListDetail";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/portal" element={<PortalLayout />}>
               <Route index element={<PortalOverview />} />
               <Route path="alunos" element={<PortalStudents />} />
+              <Route path="alunos/:id" element={<StudentDetail />} />
               <Route path="dispositivos" element={<PortalDevices />} />
               <Route path="vocabulario" element={<VocabLists />} />
               <Route path="vocabulario/:id" element={<VocabListDetail />} />
