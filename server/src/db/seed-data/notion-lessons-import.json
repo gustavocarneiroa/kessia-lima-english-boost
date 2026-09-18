@@ -1,0 +1,2965 @@
+{
+  "hugoholanda.arqui@gmail.com": [
+    {
+      "subject": "Yesterday",
+      "scheduledAt": "2022-11-23T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Yesterday",
+      "scheduledAt": "2022-11-30T18:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Yesterday",
+      "scheduledAt": "2022-12-07T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Looking back",
+      "scheduledAt": "2023-01-04T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Speaking - VMA Edition",
+      "scheduledAt": "2023-10-11T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What is your dream home?",
+      "scheduledAt": "2023-10-18T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Trick ot treat? Halloween Lesson A1",
+      "scheduledAt": "2023-11-01T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What is your dream home?",
+      "scheduledAt": "2023-11-08T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "It’s all about Thanksgiving day!",
+      "scheduledAt": "2023-11-22T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "It’s all about Thanksgiving day!",
+      "scheduledAt": "2023-11-29T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "The working day - Simple Present Review",
+      "scheduledAt": "2023-12-06T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "The working day - Simple Present Review",
+      "scheduledAt": "2023-12-13T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Have yourself a merry Christmas!",
+      "scheduledAt": "2023-12-20T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "A New Year’s Resolution - TKL Lesson",
+      "scheduledAt": "2024-01-10T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Verbs x Simple Present",
+      "scheduledAt": "2024-01-17T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Verbs x Simple Present",
+      "scheduledAt": "2024-01-24T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Verbs x Simple Present",
+      "scheduledAt": "2024-01-31T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Daily Routine Review",
+      "scheduledAt": "2024-02-07T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Daily Routine Review",
+      "scheduledAt": "2024-02-14T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Introducing and Describing People",
+      "scheduledAt": "2024-02-21T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Getting in contact with Verbs",
+      "scheduledAt": "2024-04-06T11:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What's your favorite movie? - Conversation",
+      "scheduledAt": "2024-04-13T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What's your favorite movie? - Conversation",
+      "scheduledAt": "2024-04-20T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "How much is it? Cheap or expensive? (listening class)",
+      "scheduledAt": "2024-04-27T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What are you doing? - present continuous + wh questions",
+      "scheduledAt": "2024-05-04T11:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What are you doing? - present continuous + wh questions",
+      "scheduledAt": "2024-05-11T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Travelling Guide",
+      "scheduledAt": "2024-05-18T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Travelling Guide",
+      "scheduledAt": "2024-05-25T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Travelling Guide",
+      "scheduledAt": "2024-06-01T11:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Travelling Guide",
+      "scheduledAt": "2024-06-08T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Travelling Guide",
+      "scheduledAt": "2024-06-15T11:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Travelling Guide",
+      "scheduledAt": "2024-06-22T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Travelling Guide",
+      "scheduledAt": "2024-06-29T11:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Conversa sobre a viagem",
+      "scheduledAt": "2024-07-13T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Reality Show",
+      "scheduledAt": "2024-07-20T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Company roles - Business",
+      "scheduledAt": "2024-08-10T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Company roles - Business",
+      "scheduledAt": "2024-08-17T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "First impressions matter",
+      "scheduledAt": "2024-08-24T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "First impressions matter",
+      "scheduledAt": "2024-08-31T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Jigsaw Reading And Questions",
+      "scheduledAt": "2024-09-14T11:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Jigsaw Reading And Questions",
+      "scheduledAt": "2024-09-21T11:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Jigsaw Reading And Questions",
+      "scheduledAt": "2024-09-28T11:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Jigsaw Reading And Questions",
+      "scheduledAt": "2024-10-05T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Feriado - Jigsaw Reading And Questions",
+      "scheduledAt": "2024-10-12T11:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "My morning routine",
+      "scheduledAt": "2024-10-19T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "How to start a conversation with a stranger",
+      "scheduledAt": "2024-10-26T11:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Nice to meet you, again!",
+      "scheduledAt": "2024-11-09T11:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Nice to meet you, again!",
+      "scheduledAt": "2024-11-23T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Let’s revise Present Simple and Present Continuous",
+      "scheduledAt": "2024-11-30T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What's in your calendar? (prepositions of time)",
+      "scheduledAt": "2024-12-07T11:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What's in your calendar? (prepositions of time)",
+      "scheduledAt": "2024-12-10T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Last Class of 2024",
+      "scheduledAt": "2024-12-17T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Welcome back class!",
+      "scheduledAt": "2025-01-07T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Excuse me, where is the food court?",
+      "scheduledAt": "2026-09-01T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Excuse me, where is the food court?",
+      "scheduledAt": "2026-09-08T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "For breakfast, I have…",
+      "scheduledAt": "2026-09-15T08:00:00-03:00",
+      "attended": true
+    }
+  ],
+  "cassiano9189@gmail.com": [
+    {
+      "subject": "Who am I - Guessing Game",
+      "scheduledAt": "2023-10-10T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Who am I - Guessing Game",
+      "scheduledAt": "2023-10-17T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My dog ate my homework (Simple Past x Past Continuous)",
+      "scheduledAt": "2023-10-24T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Trick ot treat? Halloween Lesson B1",
+      "scheduledAt": "2023-10-31T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Questions no one knows the answers to",
+      "scheduledAt": "2023-11-07T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Climate change",
+      "scheduledAt": "2023-11-14T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Smart and poor financial decisions",
+      "scheduledAt": "2023-11-21T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Smart and poor financial decisions",
+      "scheduledAt": "2023-11-28T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Smart and poor financial decisions + Stationary Vocab",
+      "scheduledAt": "2023-12-05T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Being unproductive (uses of gerund)",
+      "scheduledAt": "2023-12-12T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Have yourself a merry little Christmas!",
+      "scheduledAt": "2023-12-19T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "A New Year’s Resolution - TKL Lesson",
+      "scheduledAt": "2024-01-09T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Comparative Review",
+      "scheduledAt": "2024-01-16T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Comparative Review",
+      "scheduledAt": "2024-01-23T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Comparative Review",
+      "scheduledAt": "2024-01-30T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Superlative Review",
+      "scheduledAt": "2024-02-06T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Comparative x Superlative Review",
+      "scheduledAt": "2024-02-20T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Listening Practice - Hawaii",
+      "scheduledAt": "2024-02-27T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Imperative Mood",
+      "scheduledAt": "2024-04-02T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What's your favorite movie? - Conversation",
+      "scheduledAt": "2024-04-09T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What's your favorite movie? - Conversation",
+      "scheduledAt": "2024-04-16T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What's your favorite movie? - Conversation",
+      "scheduledAt": "2024-04-23T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Job Skills and Phrasal Verbs",
+      "scheduledAt": "2024-04-30T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Job Skills and Phrasal Verbs",
+      "scheduledAt": "2024-05-07T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Why do we procrastinate?",
+      "scheduledAt": "2024-05-14T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Why do we procrastinate?",
+      "scheduledAt": "2024-05-21T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Ghosting - Conversation Class",
+      "scheduledAt": "2024-05-28T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Nostalgia - Conversation lesson",
+      "scheduledAt": "2024-06-04T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Would you like to be a meme?",
+      "scheduledAt": "2024-06-11T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Would you like to be a meme?",
+      "scheduledAt": "2024-06-18T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Kindness means everything (past tense review)",
+      "scheduledAt": "2024-06-25T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Good news or bad news, which do you want first?",
+      "scheduledAt": "2024-07-02T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Would you like to work a four-day week?",
+      "scheduledAt": "2024-07-09T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Kindness means everything (past tense review)",
+      "scheduledAt": "2024-07-16T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "His Presentation - Homework",
+      "scheduledAt": "2024-08-06T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Meeting a celebrity (expressing frequency)",
+      "scheduledAt": "2024-08-13T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Meeting a celebrity (expressing frequency)",
+      "scheduledAt": "2024-08-20T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I'll do it better next time! - (Will Review)",
+      "scheduledAt": "2024-08-27T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "I'll do it better next time! - (Will Review)",
+      "scheduledAt": "2024-09-03T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I'll do it better next time! - (Will Review)",
+      "scheduledAt": "2024-09-10T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "How to start a conversation with a stranger",
+      "scheduledAt": "2024-09-17T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "How to start a conversation with a stranger",
+      "scheduledAt": "2024-09-24T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Jigsaw Reading And Questions",
+      "scheduledAt": "2024-10-01T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Jigsaw Reading And Questions",
+      "scheduledAt": "2024-10-08T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Jigsaw Reading And Questions",
+      "scheduledAt": "2024-10-22T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What are you going to be for Halloween?",
+      "scheduledAt": "2024-10-29T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What are you going to be for Halloween?",
+      "scheduledAt": "2024-11-05T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Let’s revise Present Simple and Present Continuous",
+      "scheduledAt": "2024-11-12T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Let’s revise Present Simple and Present Continuous",
+      "scheduledAt": "2024-11-19T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Let’s revise Present Simple and Present Continuous",
+      "scheduledAt": "2024-11-26T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Me, my work and I",
+      "scheduledAt": "2025-06-05T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What's in your calendar?",
+      "scheduledAt": "2025-06-12T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Problems at work (making suggestions)",
+      "scheduledAt": "2025-07-10T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Problems at work (making suggestions)",
+      "scheduledAt": "2025-07-17T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Problems at work (making suggestions)",
+      "scheduledAt": "2025-07-24T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Problems at work (making suggestions)",
+      "scheduledAt": "2025-07-31T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Problems at work (making suggestions)",
+      "scheduledAt": "2025-08-07T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Problems at work (making suggestions)",
+      "scheduledAt": "2025-08-14T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Problems at work (making suggestions)",
+      "scheduledAt": "2025-08-21T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "How social media content affects us",
+      "scheduledAt": "2025-08-28T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "How social media content affects us",
+      "scheduledAt": "2025-09-04T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Let me tell you how I feel",
+      "scheduledAt": "2025-09-11T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Let me tell you how I feel",
+      "scheduledAt": "2025-09-18T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Let me tell you how I feel",
+      "scheduledAt": "2025-09-25T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Let me tell you how I feel",
+      "scheduledAt": "2025-10-02T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Posh and Fancy",
+      "scheduledAt": "2025-10-09T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Rules are rules (modal verbs)",
+      "scheduledAt": "2025-10-16T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Rules are rules (modal verbs)",
+      "scheduledAt": "2025-10-23T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Rules are rules + Better. Faster. Stronger",
+      "scheduledAt": "2025-10-30T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Better. Faster. Stronger",
+      "scheduledAt": "2025-11-06T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Better. Faster. Stronger",
+      "scheduledAt": "2025-11-27T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Talking about slides",
+      "scheduledAt": "2025-12-04T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "As you can see in the slide",
+      "scheduledAt": "2025-12-11T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Do you stick to your resolutions?",
+      "scheduledAt": "2025-12-18T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Business trips: fun or boring?",
+      "scheduledAt": "2026-01-15T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’d like to change something",
+      "scheduledAt": "2026-01-22T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’d like to change something",
+      "scheduledAt": "2026-01-29T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Skills for the Job",
+      "scheduledAt": "2026-02-05T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Skills for the Job",
+      "scheduledAt": "2026-02-12T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Skills for the Job",
+      "scheduledAt": "2026-02-19T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Skills for the Job",
+      "scheduledAt": "2026-02-26T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What would happen if you quit texting for a week?",
+      "scheduledAt": "2026-04-01T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What would happen if you quit texting for a week?",
+      "scheduledAt": "2026-04-08T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What would happen if you quit texting for a week?",
+      "scheduledAt": "2026-04-15T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What motivates you at work?",
+      "scheduledAt": "2026-04-22T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Old enough to decide",
+      "scheduledAt": "2026-04-29T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Old enough to decide",
+      "scheduledAt": "2026-05-06T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Join the club! | Speaking Class",
+      "scheduledAt": "2026-08-19T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What is your city like?",
+      "scheduledAt": "2026-08-28T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What is your city like?",
+      "scheduledAt": "2026-09-11T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What is your city like?",
+      "scheduledAt": "2026-09-18T17:00:00-03:00",
+      "attended": null
+    }
+  ],
+  "dev.paulovictor@gmail.com": [
+    {
+      "subject": "First Class Drill",
+      "scheduledAt": "2024-09-04T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Greetings and introducing",
+      "scheduledAt": "2024-09-11T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Weather and Seasons",
+      "scheduledAt": "2024-09-18T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Clothes and seasons",
+      "scheduledAt": "2024-09-25T20:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Clothes and seasons",
+      "scheduledAt": "2024-10-02T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Clothes and seasons",
+      "scheduledAt": "2024-10-09T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Colors (listening)",
+      "scheduledAt": "2024-10-16T20:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What do you do everyday?",
+      "scheduledAt": "2024-10-23T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What do you do everyday?",
+      "scheduledAt": "2024-10-30T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What do you do everyday?",
+      "scheduledAt": "2024-11-06T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What do you do everyday?",
+      "scheduledAt": "2024-11-13T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Holiday",
+      "scheduledAt": "2024-11-20T20:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What does she do everyday?",
+      "scheduledAt": "2024-11-27T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What does she do everyday?",
+      "scheduledAt": "2024-12-04T20:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What does she do everyday?",
+      "scheduledAt": "2024-12-11T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Last Class of 2024",
+      "scheduledAt": "2024-12-18T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Welcome back class!",
+      "scheduledAt": "2025-01-06T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Daily Routine (listening practice)",
+      "scheduledAt": "2025-01-08T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2025-01-13T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2025-01-15T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Welcome to my workspace",
+      "scheduledAt": "2025-01-20T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "It’s his friends' house",
+      "scheduledAt": "2025-01-22T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "It’s his friends' house",
+      "scheduledAt": "2025-01-27T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Family Members + Possessive S",
+      "scheduledAt": "2025-01-29T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2025-02-03T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2025-02-05T20:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2025-02-10T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Were your school days fun?",
+      "scheduledAt": "2025-02-12T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Were your school days fun?",
+      "scheduledAt": "2025-02-17T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In a souvenir shop",
+      "scheduledAt": "2025-02-19T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Introducing and Describing People",
+      "scheduledAt": "2025-02-24T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What is your city like?",
+      "scheduledAt": "2025-02-26T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "At the Hotel",
+      "scheduledAt": "2025-04-02T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Excuse me, where is the food court?",
+      "scheduledAt": "2025-04-07T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Excuse me, where is the food court?",
+      "scheduledAt": "2025-04-09T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Excuse me, where is the food court?",
+      "scheduledAt": "2025-04-14T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My friend works as a…",
+      "scheduledAt": "2025-04-16T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My friend works as a…",
+      "scheduledAt": "2025-04-23T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What’s in your Calendar?",
+      "scheduledAt": "2025-04-28T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What’s in your Calendar?",
+      "scheduledAt": "2025-04-30T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Is it easier than English?",
+      "scheduledAt": "2025-05-05T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Is it easier than English?",
+      "scheduledAt": "2025-05-12T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Is it easier than English?",
+      "scheduledAt": "2025-05-14T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My perfect day",
+      "scheduledAt": "2025-05-19T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I watched a film yesterday",
+      "scheduledAt": "2025-05-21T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I watched a film yesterday",
+      "scheduledAt": "2025-05-26T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I watched a film yesterday",
+      "scheduledAt": "2025-05-28T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Kindness means everything",
+      "scheduledAt": "2025-06-02T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Kindness means everything",
+      "scheduledAt": "2025-06-04T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Celebrities helping people",
+      "scheduledAt": "2025-06-09T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Celebrities helping people",
+      "scheduledAt": "2025-06-11T20:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Celebrities helping people",
+      "scheduledAt": "2025-06-16T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What's she like?",
+      "scheduledAt": "2025-06-18T20:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What's she like?",
+      "scheduledAt": "2025-07-07T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What's she like?",
+      "scheduledAt": "2025-07-09T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Problems at work (making suggestions)",
+      "scheduledAt": "2025-07-14T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Problems at work (making suggestions)",
+      "scheduledAt": "2025-07-16T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What are you doing now?",
+      "scheduledAt": "2025-07-21T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What are you doing now?",
+      "scheduledAt": "2025-07-23T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Let’s revise Present Simple and Present Continuous",
+      "scheduledAt": "2025-07-28T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Let’s revise Present Simple and Present Continuous",
+      "scheduledAt": "2025-07-31T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My typical weekday is...",
+      "scheduledAt": "2025-08-04T20:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "My typical weekday is...",
+      "scheduledAt": "2025-08-07T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My typical weekday is...",
+      "scheduledAt": "2025-08-14T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My typical weekday is...",
+      "scheduledAt": "2025-08-18T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What is your dream home?",
+      "scheduledAt": "2025-08-21T20:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What is your dream home?",
+      "scheduledAt": "2025-08-25T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What is your dream home?",
+      "scheduledAt": "2025-08-28T20:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What is your dream home?",
+      "scheduledAt": "2025-09-01T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "How do you feel about…?",
+      "scheduledAt": "2025-09-04T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "How do you feel about…?",
+      "scheduledAt": "2025-09-08T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Let me tell how I feel…",
+      "scheduledAt": "2025-09-11T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My dog ate my homework",
+      "scheduledAt": "2025-09-15T20:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "My dog ate my homework",
+      "scheduledAt": "2025-09-18T20:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "My dog ate my homework",
+      "scheduledAt": "2025-09-22T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My dog ate my homework + Posh and fancy",
+      "scheduledAt": "2025-09-25T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Posh and fancy",
+      "scheduledAt": "2025-09-29T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Posh and fancy",
+      "scheduledAt": "2025-10-02T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Rules are rules",
+      "scheduledAt": "2025-10-06T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Rules are rules",
+      "scheduledAt": "2025-10-09T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Rules are rules",
+      "scheduledAt": "2025-10-13T20:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Better. Faster. Stronger",
+      "scheduledAt": "2025-10-16T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Better. Faster. Stronger",
+      "scheduledAt": "2025-10-20T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Better. Faster. Stronger",
+      "scheduledAt": "2025-10-23T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Would you like to work there?",
+      "scheduledAt": "2025-10-27T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What are you going to be for Halloween?",
+      "scheduledAt": "2025-10-30T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Nice glasses! (giving and receiving compliments)",
+      "scheduledAt": "2025-11-03T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Nice glasses! (giving and receiving compliments)",
+      "scheduledAt": "2025-11-06T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Welcome on board!",
+      "scheduledAt": "2025-11-17T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Welcome on board! - (reposição)",
+      "scheduledAt": "2025-11-20T16:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What to do when you’re stressed",
+      "scheduledAt": "2025-11-24T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What to do when you’re stressed",
+      "scheduledAt": "2025-11-27T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Talking about slides",
+      "scheduledAt": "2025-12-01T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Talking about slides",
+      "scheduledAt": "2025-12-04T19:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Talking about slides",
+      "scheduledAt": "2025-12-08T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’ll do that now!",
+      "scheduledAt": "2025-12-11T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’ll do that now!",
+      "scheduledAt": "2025-12-15T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Do you stick to your resolutions?",
+      "scheduledAt": "2025-12-18T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’d like to change something",
+      "scheduledAt": "2026-01-12T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’d like to change something",
+      "scheduledAt": "2026-01-15T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’d like to change something",
+      "scheduledAt": "2026-01-19T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’d like to change something",
+      "scheduledAt": "2026-01-22T19:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "I’d like to change something",
+      "scheduledAt": "2026-01-26T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Being unproductive (uses of gerund)",
+      "scheduledAt": "2026-01-29T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Being unproductive (uses of gerund)",
+      "scheduledAt": "2026-02-02T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "That’s a good question",
+      "scheduledAt": "2026-02-05T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "That’s a good question",
+      "scheduledAt": "2026-02-09T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Let’s go on a date - Valentine’s day",
+      "scheduledAt": "2026-02-12T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What happened?",
+      "scheduledAt": "2026-02-19T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What happened?",
+      "scheduledAt": "2026-02-23T19:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What happened?",
+      "scheduledAt": "2026-02-26T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I'll do it better next time!",
+      "scheduledAt": "2026-04-06T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I'll do it better next time!",
+      "scheduledAt": "2026-04-10T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Travel is the only thing you buy…",
+      "scheduledAt": "2026-04-13T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Learning English with Guns n’ roses",
+      "scheduledAt": "2026-04-16T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Are you ready to order?",
+      "scheduledAt": "2026-04-20T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Are you ready to order?",
+      "scheduledAt": "2026-04-23T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Are you ready to order?",
+      "scheduledAt": "2026-04-27T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Renting a flat",
+      "scheduledAt": "2026-04-30T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Renting a flat",
+      "scheduledAt": "2026-05-04T19:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Renting a flat",
+      "scheduledAt": "2026-05-07T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Welcome Back Class",
+      "scheduledAt": "2026-08-10T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "It's kind of my favourite stuff (Functional Language)",
+      "scheduledAt": "2026-08-24T19:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Just to confirm... (functional language for meetings)",
+      "scheduledAt": "2026-08-31T19:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Just to confirm... (functional language for meetings)",
+      "scheduledAt": "2026-09-14T19:00:00-03:00",
+      "attended": true
+    }
+  ],
+  "anne.epde05@gmail.com": [
+    {
+      "subject": "Greetings and Introducing",
+      "scheduledAt": "2024-11-07T16:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Weather and Seasons",
+      "scheduledAt": "2024-11-14T16:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Clothes and Seasons",
+      "scheduledAt": "2024-11-21T16:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Colors (listening)",
+      "scheduledAt": "2024-11-28T16:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Colors (listening) - To Be Practice",
+      "scheduledAt": "2024-12-05T16:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Colors (listening) - To Be Practice",
+      "scheduledAt": "2024-12-12T16:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Getting in contact with Verbs",
+      "scheduledAt": "2024-12-19T16:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Getting in contact with Verbs",
+      "scheduledAt": "2025-01-09T16:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Getting in contact with Verbs",
+      "scheduledAt": "2025-01-16T16:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My morning routine",
+      "scheduledAt": "2025-01-24T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "My morning routine",
+      "scheduledAt": "2025-01-31T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My morning routine",
+      "scheduledAt": "2025-02-07T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Welcome to my workspace!",
+      "scheduledAt": "2025-02-14T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2025-02-21T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2025-02-28T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "A day in the life",
+      "scheduledAt": "2025-04-04T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "A day in the life",
+      "scheduledAt": "2025-04-11T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Healthy lifestyle",
+      "scheduledAt": "2025-04-25T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Healthy lifestyle",
+      "scheduledAt": "2025-05-02T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Healthy lifestyle",
+      "scheduledAt": "2025-05-09T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Healthy lifestyle",
+      "scheduledAt": "2025-05-16T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Healthy lifestyle",
+      "scheduledAt": "2025-05-23T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What time do you?",
+      "scheduledAt": "2025-05-30T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What time do you?",
+      "scheduledAt": "2025-06-06T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "When is your birthday?",
+      "scheduledAt": "2025-06-13T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "When is your birthday?",
+      "scheduledAt": "2025-06-20T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "When is your birthday?",
+      "scheduledAt": "2025-07-11T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2025-07-18T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Is it easier than English?",
+      "scheduledAt": "2025-07-25T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Is it easier than English?",
+      "scheduledAt": "2025-08-01T16:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "My favourite room",
+      "scheduledAt": "2025-08-08T16:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Can I get a cup of tea? (at a café)",
+      "scheduledAt": "2025-08-15T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "How much time do you spend...?",
+      "scheduledAt": "2025-08-22T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Were your school days fun?",
+      "scheduledAt": "2025-08-29T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Were your school days fun?",
+      "scheduledAt": "2025-09-05T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Were your school days fun?",
+      "scheduledAt": "2025-09-12T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I watched a film yesterday",
+      "scheduledAt": "2025-09-19T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "I watched a film yesterday",
+      "scheduledAt": "2025-09-26T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I watched a film yesterday + Did you cook dinner?",
+      "scheduledAt": "2025-10-03T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "I watched a film yesterday + Did you cook dinner?",
+      "scheduledAt": "2025-10-10T17:30:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "I watched a film yesterday + Did you cook dinner?",
+      "scheduledAt": "2025-10-17T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Celebrities helping people",
+      "scheduledAt": "2025-10-24T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What are you going to be for Halloween?",
+      "scheduledAt": "2025-10-31T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Celebrities helping people",
+      "scheduledAt": "2025-11-07T18:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Celebrities helping people",
+      "scheduledAt": "2025-11-14T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Terrible weekend trip",
+      "scheduledAt": "2025-11-21T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Terrible weekend trip",
+      "scheduledAt": "2025-11-28T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We are playing! (Present Continuous)",
+      "scheduledAt": "2025-12-05T18:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Would you like to work there?",
+      "scheduledAt": "2025-12-12T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Do you stick to your resolutions?",
+      "scheduledAt": "2025-12-19T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’d like to change something",
+      "scheduledAt": "2026-01-16T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’d like to change something",
+      "scheduledAt": "2026-01-21T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Who am I? - Guessing Game",
+      "scheduledAt": "2026-01-28T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What's in your calendar?",
+      "scheduledAt": "2026-02-04T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "How do you feel about…?",
+      "scheduledAt": "2026-02-11T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "How do you feel about…?",
+      "scheduledAt": "2026-02-18T19:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "How do you feel about…?",
+      "scheduledAt": "2026-02-25T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My dog ate my homework",
+      "scheduledAt": "2026-04-01T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My dog ate my homework + Posh and fancy",
+      "scheduledAt": "2026-04-08T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Posh and fancy",
+      "scheduledAt": "2026-04-15T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Better. Faster. Stronger",
+      "scheduledAt": "2026-04-22T19:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Better. Faster. Stronger",
+      "scheduledAt": "2026-04-29T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Better. Faster. Stronger",
+      "scheduledAt": "2026-05-06T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Welcome Back Class",
+      "scheduledAt": "2026-08-19T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Become a confident English speaker",
+      "scheduledAt": "2026-08-26T19:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Whatever the weather",
+      "scheduledAt": "2026-09-09T19:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My typical weekday is…",
+      "scheduledAt": "2026-09-16T19:00:00-03:00",
+      "attended": false
+    }
+  ],
+  "johnya.1992@gmail.com": [
+    {
+      "subject": "Leveling Class",
+      "scheduledAt": "2025-02-24T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My morning routine",
+      "scheduledAt": "2025-02-26T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Healthy lifestyle",
+      "scheduledAt": "2025-04-02T17:30:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What time do you...?",
+      "scheduledAt": "2025-04-07T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What time do you...?",
+      "scheduledAt": "2025-04-09T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What time do you...?",
+      "scheduledAt": "2025-04-14T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What time do you...?",
+      "scheduledAt": "2025-04-16T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "When is your birthday?",
+      "scheduledAt": "2025-04-23T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "When is your birthday?",
+      "scheduledAt": "2025-04-28T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "When is your birthday?",
+      "scheduledAt": "2025-04-30T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2025-05-05T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2025-05-12T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2025-05-14T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Excuse me, where is the food court?",
+      "scheduledAt": "2025-05-19T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Excuse me, where is the food court?",
+      "scheduledAt": "2025-05-21T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Excuse me, where is the food court?",
+      "scheduledAt": "2025-05-26T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2025-05-28T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2025-06-02T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2025-06-04T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2025-06-09T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2025-06-11T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Can I get a cup of tea? (at a café)",
+      "scheduledAt": "2025-06-16T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "How much time do you spend...?",
+      "scheduledAt": "2025-06-18T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "How much time do you spend...?",
+      "scheduledAt": "2025-07-07T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Were your school days fun?",
+      "scheduledAt": "2025-07-09T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Were your school days fun?",
+      "scheduledAt": "2025-07-14T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Were your school days fun?",
+      "scheduledAt": "2025-07-16T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Is it easier than English?",
+      "scheduledAt": "2025-07-21T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Is it easier than English?",
+      "scheduledAt": "2025-07-23T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My favourite room",
+      "scheduledAt": "2025-07-28T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "My favourite room",
+      "scheduledAt": "2025-07-30T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "My favourite room",
+      "scheduledAt": "2025-08-04T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "My favourite room",
+      "scheduledAt": "2025-08-06T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I watched a film yesterday",
+      "scheduledAt": "2025-08-18T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I watched a film yesterday",
+      "scheduledAt": "2025-08-20T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "I watched a film yesterday",
+      "scheduledAt": "2025-08-25T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I watched a film yesterday",
+      "scheduledAt": "2025-08-27T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "I watched a film yesterday - Rep",
+      "scheduledAt": "2025-09-01T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "I watched a film yesterday - Rep",
+      "scheduledAt": "2025-09-03T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Did you cook dinner? (Past Simple negative and questions)",
+      "scheduledAt": "2025-09-08T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Did you cook dinner? (Past Simple negative and questions)",
+      "scheduledAt": "2025-09-10T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Celebrities helping people",
+      "scheduledAt": "2025-09-15T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Celebrities helping people",
+      "scheduledAt": "2025-09-17T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Last Time/Next Time Warm-up + Terrible weekend trip",
+      "scheduledAt": "2025-09-22T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Terrible weekend trip",
+      "scheduledAt": "2025-09-24T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Terrible weekend trip + Practice",
+      "scheduledAt": "2025-09-29T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "When I want to feel comfortable, I wear…",
+      "scheduledAt": "2025-10-01T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "When I want to feel comfortable, I wear…",
+      "scheduledAt": "2025-10-06T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What's she like? (different uses of 'like')",
+      "scheduledAt": "2025-10-08T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What's she like? (different uses of 'like')",
+      "scheduledAt": "2025-10-13T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What's she like? (different uses of 'like')",
+      "scheduledAt": "2025-10-15T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Who am I Game",
+      "scheduledAt": "2025-10-20T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Who am I Game",
+      "scheduledAt": "2025-10-22T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Show your talent! (can, can't)",
+      "scheduledAt": "2025-10-27T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What are you going to be for Halloween?",
+      "scheduledAt": "2025-10-29T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We are playing! (Present Continuous)",
+      "scheduledAt": "2025-11-03T18:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "We are playing! (Present Continuous)",
+      "scheduledAt": "2025-11-05T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We are playing! (Present Continuous)",
+      "scheduledAt": "2025-11-17T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What are you doing now?",
+      "scheduledAt": "2025-11-19T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Please have your boarding pass ready",
+      "scheduledAt": "2025-12-01T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "The power of brands",
+      "scheduledAt": "2025-12-03T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Pineapple pizza isn’t my thing",
+      "scheduledAt": "2025-12-08T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "That's a good question!",
+      "scheduledAt": "2025-12-10T18:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "That's a good question!",
+      "scheduledAt": "2025-12-15T18:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Do you stick to your resolutions?",
+      "scheduledAt": "2025-12-17T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’d like to change something",
+      "scheduledAt": "2026-01-12T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’d like to change something",
+      "scheduledAt": "2026-01-14T18:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "I’d like to change something",
+      "scheduledAt": "2026-01-19T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "How much does it cost?",
+      "scheduledAt": "2026-01-21T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "How much does it cost?",
+      "scheduledAt": "2026-01-26T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Social Media: Posting Habits & Personal Choices",
+      "scheduledAt": "2026-01-28T18:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Social Media: Posting Habits & Personal Choices",
+      "scheduledAt": "2026-02-02T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Are you living an insta lie?",
+      "scheduledAt": "2026-02-04T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "How do you feel about…?",
+      "scheduledAt": "2026-02-09T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "How do you feel about…?",
+      "scheduledAt": "2026-02-11T18:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "How do you feel about…?",
+      "scheduledAt": "2026-02-18T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My dog ate my homework",
+      "scheduledAt": "2026-02-23T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Posh and fancy",
+      "scheduledAt": "2026-02-25T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "The film genre I can’t stand is…",
+      "scheduledAt": "2026-04-02T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "The film genre… + What do they look like?",
+      "scheduledAt": "2026-04-09T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What do they look like?",
+      "scheduledAt": "2026-04-16T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Are you ready to order?",
+      "scheduledAt": "2026-04-23T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Renting a flat",
+      "scheduledAt": "2026-04-30T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Renting a flat",
+      "scheduledAt": "2026-05-07T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "It's kind of my favourite stuff (Functional Language)",
+      "scheduledAt": "2026-08-27T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "I’ve got elevn cups",
+      "scheduledAt": "2026-09-03T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Shopping experience",
+      "scheduledAt": "2026-09-10T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Shopping experience",
+      "scheduledAt": "2026-09-17T17:00:00-03:00",
+      "attended": false
+    }
+  ],
+  "engcarolinemorais@gmail.com": [
+    {
+      "subject": "It’s his friends' house",
+      "scheduledAt": "2025-04-01T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "It’s his friends' house",
+      "scheduledAt": "2025-04-08T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Welcome to my workspace",
+      "scheduledAt": "2025-04-15T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Welcome to my workspace",
+      "scheduledAt": "2025-04-22T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What's the weather like?",
+      "scheduledAt": "2025-04-29T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2025-05-06T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2025-05-13T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2025-05-20T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My morning routine",
+      "scheduledAt": "2025-05-27T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My morning routine",
+      "scheduledAt": "2025-06-03T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "A day in the life",
+      "scheduledAt": "2025-06-10T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "A day in the life",
+      "scheduledAt": "2025-06-17T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "A day in the life",
+      "scheduledAt": "2025-07-08T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Healthy lifestyle",
+      "scheduledAt": "2025-07-15T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What time do you...?",
+      "scheduledAt": "2025-07-22T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What time do you...?",
+      "scheduledAt": "2025-07-29T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2025-08-05T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2025-08-19T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "When is your birthday?",
+      "scheduledAt": "2025-08-26T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "When is your birthday?",
+      "scheduledAt": "2025-09-02T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "When is your birthday?",
+      "scheduledAt": "2025-09-09T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "When is your birthday?",
+      "scheduledAt": "2025-09-16T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Is it easier than English?",
+      "scheduledAt": "2025-09-23T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My favourite room",
+      "scheduledAt": "2025-09-30T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My favourite room",
+      "scheduledAt": "2025-10-07T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Can I get a cup of tea? (at a café)",
+      "scheduledAt": "2025-10-14T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Would you like to work there?",
+      "scheduledAt": "2025-10-21T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We are playing! (Present Continuous)",
+      "scheduledAt": "2025-10-28T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We are playing! + What are you doing now?",
+      "scheduledAt": "2025-11-04T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "We are playing! + What are you doing now?",
+      "scheduledAt": "2025-11-18T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What are you doing now?",
+      "scheduledAt": "2025-11-25T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What's in your calendar?",
+      "scheduledAt": "2025-12-02T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Tallking about slides",
+      "scheduledAt": "2025-12-09T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Do you stick to your resolutions?",
+      "scheduledAt": "2025-12-16T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’d like to change something",
+      "scheduledAt": "2026-01-13T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’d like to change something",
+      "scheduledAt": "2026-01-20T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’d like to change something",
+      "scheduledAt": "2026-01-27T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "That’s a good question",
+      "scheduledAt": "2026-02-03T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Were your school days fun?",
+      "scheduledAt": "2026-02-10T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Were your school days fun?",
+      "scheduledAt": "2026-02-24T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "She was born in 1991 (Past Simple Review)",
+      "scheduledAt": "2026-04-07T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Rules are rules (modal verbs)",
+      "scheduledAt": "2026-04-14T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Rules are rules (modal verbs)",
+      "scheduledAt": "2026-04-28T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What do you do?",
+      "scheduledAt": "2026-05-05T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Become a confident English speaker",
+      "scheduledAt": "2026-08-26T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Become a confident English speaker",
+      "scheduledAt": "2026-09-02T17:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Whatever the weather",
+      "scheduledAt": "2026-09-09T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My typical weekday is…",
+      "scheduledAt": "2026-09-16T17:00:00-03:00",
+      "attended": true
+    }
+  ],
+  "sosos.moro@gmail.com": [
+    {
+      "subject": "Nice to meet you!",
+      "scheduledAt": "2025-07-11T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My morning routine",
+      "scheduledAt": "2025-07-18T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "My morning routine",
+      "scheduledAt": "2025-07-25T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My morning routine",
+      "scheduledAt": "2025-08-01T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Welcome to my workspace!",
+      "scheduledAt": "2025-08-08T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2025-08-15T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2025-08-22T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In my neighbourhood + My favourite room (",
+      "scheduledAt": "2025-08-29T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "My favourite room",
+      "scheduledAt": "2025-09-05T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What's your favorite food?",
+      "scheduledAt": "2025-09-12T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What's your favorite food?",
+      "scheduledAt": "2025-09-19T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "For breakfast, I have…",
+      "scheduledAt": "2025-09-26T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Good food for good mood",
+      "scheduledAt": "2025-10-03T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Good food for good mood",
+      "scheduledAt": "2025-10-10T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "How much time do you spend...?",
+      "scheduledAt": "2025-10-17T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Show your talent! (can, can't)",
+      "scheduledAt": "2025-10-24T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Halloween with the Addams family",
+      "scheduledAt": "2025-10-31T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Show your talent! (can, can't)",
+      "scheduledAt": "2025-11-07T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "A day in the life",
+      "scheduledAt": "2025-11-14T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Healthy Lifestyle",
+      "scheduledAt": "2025-11-21T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Healthy Lifestyle",
+      "scheduledAt": "2025-11-28T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Healthy Lifestyle",
+      "scheduledAt": "2025-12-05T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What time do you...?",
+      "scheduledAt": "2025-12-12T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "It's Christmas time! 🎅",
+      "scheduledAt": "2025-12-19T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "That's a good question!",
+      "scheduledAt": "2026-01-16T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "That's a good question!",
+      "scheduledAt": "2026-01-23T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2026-01-30T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2026-02-06T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2026-02-13T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2026-02-20T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Is it easier than English? (comparatives)",
+      "scheduledAt": "2026-02-27T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Can I get a cup of tea? (at a café)",
+      "scheduledAt": "2026-04-10T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "She sells shell",
+      "scheduledAt": "2026-04-17T15:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Chores in the house",
+      "scheduledAt": "2026-04-24T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Chores in the house",
+      "scheduledAt": "2026-05-08T15:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "I’ll do that now! (will and going to)",
+      "scheduledAt": "2026-08-17T16:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I'll do it better next time!",
+      "scheduledAt": "2026-08-24T16:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Let's have a party! (be going to)",
+      "scheduledAt": "2026-08-31T16:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Let's have a party! (be going to)",
+      "scheduledAt": "2026-09-14T16:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Meeting a celebrity (expressing frequency)",
+      "scheduledAt": "2026-09-21T16:00:00-03:00",
+      "attended": null
+    }
+  ],
+  "hewerson.freitas@gmail.com": [
+    {
+      "subject": "Nice to meet you!",
+      "scheduledAt": "2026-01-12T08:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Nice to meet you!",
+      "scheduledAt": "2026-01-14T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My morning routine (rep)",
+      "scheduledAt": "2026-01-16T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My morning routine",
+      "scheduledAt": "2026-01-19T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "A day in the life",
+      "scheduledAt": "2026-01-21T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "A day in the life",
+      "scheduledAt": "2026-01-26T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "A day in the life",
+      "scheduledAt": "2026-01-28T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Healthy Lifestyle",
+      "scheduledAt": "2026-02-02T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Healthy Lifestyle",
+      "scheduledAt": "2026-02-04T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What time do you...?",
+      "scheduledAt": "2026-02-09T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What time do you...?",
+      "scheduledAt": "2026-02-11T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What time do you...?",
+      "scheduledAt": "2026-02-23T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Present Simple activities",
+      "scheduledAt": "2026-02-25T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2026-04-01T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2026-04-08T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Things in the house",
+      "scheduledAt": "2026-04-10T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Things in the house (reposição)",
+      "scheduledAt": "2026-04-15T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My workday",
+      "scheduledAt": "2026-04-22T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What do you do?",
+      "scheduledAt": "2026-04-24T08:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "What do you do?",
+      "scheduledAt": "2026-04-29T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What do you do?",
+      "scheduledAt": "2026-05-06T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My friend works as a...",
+      "scheduledAt": "2026-05-08T08:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "We should make our office smart! (agreeing disagreeing)",
+      "scheduledAt": "2026-08-19T08:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "We should make our office smart! (agreeing disagreeing)",
+      "scheduledAt": "2026-08-21T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We should make our office smart! (agreeing disagreeing)",
+      "scheduledAt": "2026-08-26T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We should make our office smart! (agreeing disagreeing)",
+      "scheduledAt": "2026-08-28T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We should make our office smart! (agreeing disagreeing)",
+      "scheduledAt": "2026-09-02T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Everyone has it, but no one can lose it: indefinite pronouns",
+      "scheduledAt": "2026-09-04T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Everyone has it, but no one can lose it: indefinite pronouns",
+      "scheduledAt": "2026-09-09T08:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Everyone has it, but no one can lose it: indefinite pronouns",
+      "scheduledAt": "2026-09-11T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Become a confident English speaker",
+      "scheduledAt": "2026-09-16T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Become a confident English speaker",
+      "scheduledAt": "2026-09-18T08:00:00-03:00",
+      "attended": false
+    }
+  ],
+  "leticia.ramoslima@gmail.com": [
+    {
+      "subject": "Leveling/First Class",
+      "scheduledAt": "2026-01-21T11:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My morning routine",
+      "scheduledAt": "2026-01-28T11:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "A day in the life",
+      "scheduledAt": "2026-02-04T11:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What time do you...?",
+      "scheduledAt": "2026-04-01T11:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2026-04-07T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2026-04-15T11:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "How much time do you spend...?",
+      "scheduledAt": "2026-04-20T09:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "This is my home",
+      "scheduledAt": "2026-04-29T11:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My friend works as a...",
+      "scheduledAt": "2026-05-06T11:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Were your school days fun?",
+      "scheduledAt": "2026-08-27T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I watched a film yesterday",
+      "scheduledAt": "2026-09-03T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I watched a film yesterday",
+      "scheduledAt": "2026-09-10T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I watched a film yesterday",
+      "scheduledAt": "2026-09-17T08:00:00-03:00",
+      "attended": true
+    }
+  ],
+  "belltorresteixeira@gmail.com": [
+    {
+      "subject": "Leveling/First Class",
+      "scheduledAt": "2026-02-27T10:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Are you American?",
+      "scheduledAt": "2026-04-10T10:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Are you American?",
+      "scheduledAt": "2026-04-17T10:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "It’s his friends' house",
+      "scheduledAt": "2026-04-24T10:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I've got eleven cups!",
+      "scheduledAt": "2026-05-08T10:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What time do you...?",
+      "scheduledAt": "2026-08-28T10:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What time do you...?",
+      "scheduledAt": "2026-09-04T10:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "This or that (demonstrative pronouns)",
+      "scheduledAt": "2026-09-11T10:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "This or that (demonstrative pronouns)",
+      "scheduledAt": "2026-09-18T10:00:00-03:00",
+      "attended": null
+    }
+  ],
+  "gabrielhhardt@gmail.com": [
+    {
+      "subject": "What we do and why we do it",
+      "scheduledAt": "2026-08-10T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Welcome on board!",
+      "scheduledAt": "2026-08-24T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Better. Faster. Stronger",
+      "scheduledAt": "2026-08-31T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Just ask it a question!",
+      "scheduledAt": "2026-09-14T08:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "The changing work model",
+      "scheduledAt": "2026-09-21T08:00:00-03:00",
+      "attended": null
+    }
+  ],
+  "padupb@gmail.com": [
+    {
+      "subject": "Welcome Back Class",
+      "scheduledAt": "2026-08-10T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’d like to learn",
+      "scheduledAt": "2026-08-17T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "I’d like to learn",
+      "scheduledAt": "2026-08-24T18:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2026-08-31T18:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "We love travelling!",
+      "scheduledAt": "2026-09-14T18:00:00-03:00",
+      "attended": true
+    }
+  ],
+  "suellenvieiraab@gmail.com": [
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2026-08-25T10:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2026-09-01T16:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2026-09-08T10:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "What's the weather like?",
+      "scheduledAt": "2026-09-15T10:00:00-03:00",
+      "attended": true
+    }
+  ],
+  "caroline.annerp@gmail.com": [
+    {
+      "subject": "Welcome to my workspace!",
+      "scheduledAt": "2026-08-25T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Welcome to my workspace!",
+      "scheduledAt": "2026-09-01T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "In my neighbourhood",
+      "scheduledAt": "2026-09-08T17:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "It’s my friend’s house",
+      "scheduledAt": "2026-09-15T17:00:00-03:00",
+      "attended": true
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db, sqlite, schema } from "./client.ts";
 import { env } from "../env.ts";
+import { importNotionLessons } from "./import-notion-lessons.ts";
 
 /**
  * Cria o schema (via CREATE TABLE IF NOT EXISTS em client.ts, aplicado ao importar
@@ -20,6 +21,8 @@ if (!existing) {
     .run();
   console.log(`[db] admin seed: ${env.ADMIN_EMAIL}`);
 }
+
+importNotionLessons();
 
 sqlite.close();
 console.log("[db] schema ok");
