@@ -738,6 +738,93 @@
       "attended": null
     }
   ],
+  "soares.nsm@gmail.com": [
+    {
+      "subject": "Who are they? - End",
+      "scheduledAt": "2023-10-14T09:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Why don’t we go out?",
+      "scheduledAt": "2023-10-21T09:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Why don’t we go out?",
+      "scheduledAt": "2023-11-04T09:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Let’s go shopping",
+      "scheduledAt": "2023-12-09T09:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Let’s go shopping",
+      "scheduledAt": "2023-12-16T09:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Have yourself a merry Christmas!",
+      "scheduledAt": "2023-12-23T09:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "A New Year’s Resolution - TKL Lesson",
+      "scheduledAt": "2024-01-13T09:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Verbs x Simple Present",
+      "scheduledAt": "2024-01-20T09:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Verbs x Simple Present",
+      "scheduledAt": "2024-01-27T09:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Weather and Seasons",
+      "scheduledAt": "2024-02-03T09:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Weather and Seasons",
+      "scheduledAt": "2024-02-17T09:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Weather and Seasons",
+      "scheduledAt": "2024-02-24T09:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Places we go often",
+      "scheduledAt": "2024-04-06T09:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Places we go often",
+      "scheduledAt": "2024-04-13T09:00:00-03:00",
+      "attended": false
+    },
+    {
+      "subject": "Daily Routine",
+      "scheduledAt": "2024-04-20T09:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "Nice to meet you!",
+      "scheduledAt": "2026-09-11T16:00:00-03:00",
+      "attended": true
+    },
+    {
+      "subject": "My morning routine",
+      "scheduledAt": "2026-09-18T16:00:00-03:00",
+      "attended": null
+    }
+  ],
   "dev.paulovictor@gmail.com": [
     {
       "subject": "First Class Drill",
