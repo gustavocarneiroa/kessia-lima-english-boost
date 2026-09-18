@@ -16,6 +16,10 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Loader2, Trash2, UserPlus, IdCard, Link as LinkIcon, ClipboardList, ExternalLink } from "lucide-react";
+import Pagination from "@/components/Pagination";
+
+const PAGE_SIZE = 20;
+const LESSONS_PREVIEW_SIZE = 50;
 
 interface Student {
   id: string;
@@ -93,12 +97,19 @@ export default function Students() {
 
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [lessonsLoading, setLessonsLoading] = useState(false);
+  const [lessonsTotal, setLessonsTotal] = useState(0);
+
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
   async function loadStudents() {
     setLoadingList(true);
     try {
-      const list = await api.get<Student[]>("/api/students");
-      setStudents(list);
+      const res = await api.get<{ items: Student[]; total: number }>(
+        `/api/students?page=${page}&pageSize=${PAGE_SIZE}`,
+      );
+      setStudents(res.items);
+      setTotal(res.total);
     } finally {
       setLoadingList(false);
     }
@@ -106,7 +117,8 @@ export default function Students() {
 
   useEffect(() => {
     loadStudents();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -134,6 +146,7 @@ export default function Students() {
     setProfileError(null);
     setProfileLoading(true);
     setLessons([]);
+    setLessonsTotal(0);
     setLessonsLoading(true);
     try {
       const data = await api.get<StudentProfile>(`/api/students/${student.id}/profile`);
@@ -145,8 +158,11 @@ export default function Students() {
     }
 
     try {
-      const allLessons = await api.get<Lesson[]>("/api/lessons");
-      setLessons(allLessons.filter((l) => l.studentId === student.id));
+      const res = await api.get<{ items: Lesson[]; total: number }>(
+        `/api/lessons?studentId=${student.id}&pageSize=${LESSONS_PREVIEW_SIZE}`,
+      );
+      setLessons(res.items);
+      setLessonsTotal(res.total);
     } finally {
       setLessonsLoading(false);
     }
@@ -203,7 +219,7 @@ export default function Students() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Todos os alunos</CardTitle>
-          <CardDescription>{students.length} cadastrado(s)</CardDescription>
+          <CardDescription>{total} cadastrado(s)</CardDescription>
         </CardHeader>
         <CardContent>
           {loadingList ? (
@@ -239,6 +255,7 @@ export default function Students() {
               ))}
             </ul>
           )}
+          <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
         </CardContent>
       </Card>
 
@@ -408,6 +425,12 @@ export default function Students() {
                   </li>
                 ))}
               </ul>
+            )}
+            {lessonsTotal > lessons.length && (
+              <p className="text-xs text-muted-foreground">
+                Mostrando as {lessons.length} aulas mais recentes de {lessonsTotal}. Veja o histórico completo na
+                aba "Aulas", filtrando por este aluno.
+              </p>
             )}
             <p className="text-xs text-muted-foreground">
               Para adicionar ou editar aulas, use a aba "Aulas" no menu.

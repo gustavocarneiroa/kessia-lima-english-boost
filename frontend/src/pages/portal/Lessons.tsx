@@ -31,7 +31,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Plus, Trash2, Pencil, Link as LinkIcon, ClipboardList, ExternalLink } from "lucide-react";
+import { Loader2, Plus, Trash2, Pencil, Link as LinkIcon, ClipboardList, ExternalLink, X } from "lucide-react";
+import Pagination from "@/components/Pagination";
+
+const PAGE_SIZE = 20;
 
 interface Lesson {
   id: string;
@@ -79,12 +82,19 @@ export default function Lessons() {
   const isTeacher = user?.role === "teacher";
 
   const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [total, setTotal] = useState(0);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyForm);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
+
+  const [page, setPage] = useState(1);
+  const [filterStudentId, setFilterStudentId] = useState("");
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
+  const [filterAttended, setFilterAttended] = useState("");
 
   const [editing, setEditing] = useState<Lesson | null>(null);
   const [editForm, setEditForm] = useState(emptyForm);
@@ -97,7 +107,16 @@ export default function Lessons() {
   async function load() {
     setLoading(true);
     try {
-      setLessons(await api.get<Lesson[]>("/api/lessons"));
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+      params.set("pageSize", String(PAGE_SIZE));
+      if (filterStudentId) params.set("studentId", filterStudentId);
+      if (filterFrom) params.set("from", new Date(`${filterFrom}T00:00`).toISOString());
+      if (filterTo) params.set("to", new Date(`${filterTo}T23:59:59`).toISOString());
+      if (filterAttended) params.set("attended", filterAttended);
+      const res = await api.get<{ items: Lesson[]; total: number }>(`/api/lessons?${params.toString()}`);
+      setLessons(res.items);
+      setTotal(res.total);
     } finally {
       setLoading(false);
     }
@@ -105,10 +124,24 @@ export default function Lessons() {
 
   useEffect(() => {
     void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, filterStudentId, filterFrom, filterTo, filterAttended]);
+
+  useEffect(() => {
     if (isTeacher) {
       api.get<Student[]>("/api/students").then(setStudents).catch(() => setStudents([]));
     }
   }, [isTeacher]);
+
+  function clearFilters() {
+    setFilterStudentId("");
+    setFilterFrom("");
+    setFilterTo("");
+    setFilterAttended("");
+    setPage(1);
+  }
+
+  const hasFilters = filterStudentId || filterFrom || filterTo || filterAttended;
 
   const studentEmailById = useMemo(() => {
     const map = new Map<string, string>();
@@ -305,16 +338,94 @@ export default function Lessons() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{isTeacher ? "Todas as aulas" : "Suas aulas"}</CardTitle>
-          <CardDescription>{lessons.length} aula(s)</CardDescription>
+          <CardDescription>{total} aula(s)</CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {isTeacher && (
+              <div className="space-y-1.5">
+                <Label>Aluno</Label>
+                <Select
+                  value={filterStudentId || "all"}
+                  onValueChange={(v) => {
+                    setFilterStudentId(v === "all" ? "" : v);
+                    setPage(1);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos os alunos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os alunos</SelectItem>
+                    {students.map((s) => (
+                      <SelectItem key={s.id} value={s.id}>
+                        {s.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label htmlFor="filter-from">De</Label>
+              <Input
+                id="filter-from"
+                type="date"
+                value={filterFrom}
+                onChange={(e) => {
+                  setFilterFrom(e.target.value);
+                  setPage(1);
+                }}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="filter-to">Até</Label>
+              <Input
+                id="filter-to"
+                type="date"
+                value={filterTo}
+                onChange={(e) => {
+                  setFilterTo(e.target.value);
+                  setPage(1);
+                }}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Comparecimento</Label>
+              <Select
+                value={filterAttended || "all"}
+                onValueChange={(v) => {
+                  setFilterAttended(v === "all" ? "" : v);
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="yes">Compareceu</SelectItem>
+                  <SelectItem value="no">Faltou</SelectItem>
+                  <SelectItem value="pending">Aguardando</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {hasFilters ? (
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="mb-4 gap-1 text-muted-foreground">
+              <X className="h-3.5 w-3.5" /> Limpar filtros
+            </Button>
+          ) : null}
+
           {listError && <p className="mb-3 text-sm text-destructive">{listError}</p>}
           {loading ? (
             <div className="flex justify-center py-6 text-muted-foreground">
               <Loader2 className="h-5 w-5 animate-spin" />
             </div>
           ) : lessons.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">Nenhuma aula cadastrada ainda.</p>
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              {hasFilters ? "Nenhuma aula encontrada com esses filtros." : "Nenhuma aula cadastrada ainda."}
+            </p>
           ) : (
             <ul className="divide-y">
               {lessons.map((lesson) => (
@@ -379,6 +490,7 @@ export default function Lessons() {
               ))}
             </ul>
           )}
+          <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
         </CardContent>
       </Card>
 

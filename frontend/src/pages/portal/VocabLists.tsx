@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Plus } from "lucide-react";
+import Pagination from "@/components/Pagination";
+
+const PAGE_SIZE = 20;
 
 interface VocabList {
   id: string;
@@ -18,6 +21,8 @@ export default function VocabLists() {
   const { user } = useAuth();
   const isTeacher = user?.role === "teacher";
   const [lists, setLists] = useState<VocabList[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +31,11 @@ export default function VocabLists() {
   async function load() {
     setLoading(true);
     try {
-      setLists(await api.get<VocabList[]>("/api/vocab/lists"));
+      const res = await api.get<{ items: VocabList[]; total: number }>(
+        `/api/vocab/lists?page=${page}&pageSize=${PAGE_SIZE}`,
+      );
+      setLists(res.items);
+      setTotal(res.total);
     } finally {
       setLoading(false);
     }
@@ -34,7 +43,8 @@ export default function VocabLists() {
 
   useEffect(() => {
     void load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
@@ -43,7 +53,8 @@ export default function VocabLists() {
     try {
       await api.post("/api/vocab/lists", { title });
       setTitle("");
-      await load();
+      if (page !== 1) setPage(1);
+      else await load();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Não foi possível criar a lista.");
     } finally {
@@ -88,7 +99,7 @@ export default function VocabLists() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Listas</CardTitle>
-          <CardDescription>{lists.length} lista(s)</CardDescription>
+          <CardDescription>{total} lista(s)</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -114,6 +125,7 @@ export default function VocabLists() {
               ))}
             </ul>
           )}
+          <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
         </CardContent>
       </Card>
     </div>

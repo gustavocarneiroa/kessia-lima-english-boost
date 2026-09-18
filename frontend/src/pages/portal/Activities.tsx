@@ -5,6 +5,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Headphones, Link2 } from "lucide-react";
 import ActivityForm, { type ActivityFormPayload } from "./ActivityForm";
+import Pagination from "@/components/Pagination";
+
+const PAGE_SIZE = 20;
 
 interface Activity {
   id: string;
@@ -17,13 +20,19 @@ export default function Activities() {
   const { user } = useAuth();
   const isTeacher = user?.role === "teacher";
   const [activities, setActivities] = useState<Activity[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [formKey, setFormKey] = useState(0);
 
   async function load() {
     setLoading(true);
     try {
-      setActivities(await api.get<Activity[]>("/api/activities"));
+      const res = await api.get<{ items: Activity[]; total: number }>(
+        `/api/activities?page=${page}&pageSize=${PAGE_SIZE}`,
+      );
+      setActivities(res.items);
+      setTotal(res.total);
     } finally {
       setLoading(false);
     }
@@ -31,12 +40,14 @@ export default function Activities() {
 
   useEffect(() => {
     void load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   async function create(payload: ActivityFormPayload) {
     await api.post("/api/activities", payload);
     setFormKey((k) => k + 1); // reseta o formulário
-    await load();
+    if (page !== 1) setPage(1);
+    else await load();
   }
 
   return (
@@ -65,7 +76,7 @@ export default function Activities() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Atividades</CardTitle>
-          <CardDescription>{activities.length} atividade(s)</CardDescription>
+          <CardDescription>{total} atividade(s)</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -95,6 +106,7 @@ export default function Activities() {
               ))}
             </ul>
           )}
+          <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
         </CardContent>
       </Card>
     </div>

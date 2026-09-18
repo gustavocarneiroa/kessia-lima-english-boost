@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
@@ -7,6 +7,7 @@ import { requireAuth, requireTeacher } from "../../auth/guards.ts";
 import { parseIframeEmbed } from "../../lib/embed.ts";
 import { extractYoutubeVideoId } from "../../lib/youtube.ts";
 import { ListeningAiError, generateListeningQuestions } from "../../lib/listeningQuestionsAi.ts";
+import { parsePagination } from "../../lib/pagination.ts";
 
 const questionSchema = z
   .object({
@@ -90,20 +91,27 @@ function questionsForStudent(questions: Question[]) {
 export async function activitiesRoutes(app: FastifyInstance) {
   app.get("/api/activities", { preHandler: requireAuth }, async (req) => {
     const session = req.session!;
+    const { page, pageSize, offset } = parsePagination(req.query as Record<string, unknown>);
+
+    let all: (typeof schema.activities.$inferSelect)[];
     if (session.role === "teacher") {
-      return db.select().from(schema.activities).all();
+      all = db.select().from(schema.activities).orderBy(desc(schema.activities.createdAt)).all();
+    } else {
+      const assigned = db
+        .select({ activityId: schema.activityStudents.activityId })
+        .from(schema.activityStudents)
+        .where(eq(schema.activityStudents.studentId, session.userId))
+        .all();
+      const ids = new Set(assigned.map((a) => a.activityId));
+      all = db
+        .select()
+        .from(schema.activities)
+        .orderBy(desc(schema.activities.createdAt))
+        .all()
+        .filter((a) => ids.has(a.id));
     }
-    const assigned = db
-      .select({ activityId: schema.activityStudents.activityId })
-      .from(schema.activityStudents)
-      .where(eq(schema.activityStudents.studentId, session.userId))
-      .all();
-    const ids = new Set(assigned.map((a) => a.activityId));
-    return db
-      .select()
-      .from(schema.activities)
-      .all()
-      .filter((a) => ids.has(a.id));
+
+    return { items: all.slice(offset, offset + pageSize), total: all.length, page, pageSize };
   });
 
   app.post("/api/activities/generate-questions", { preHandler: requireTeacher }, async (req, reply) => {

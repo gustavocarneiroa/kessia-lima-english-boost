@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
 import { extname } from "node:path";
@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
 import { requireAuth, requireTeacher } from "../../auth/guards.ts";
 import { audioFilePath } from "../../lib/audio.ts";
+import { parsePagination } from "../../lib/pagination.ts";
 import { downloadAudio, lookupEnglishWord } from "../../lib/dictionary.ts";
 import { findWordImage, imageFilePath } from "../../lib/image.ts";
 import { synthesizeSpeech } from "../../lib/tts.ts";
@@ -135,20 +136,27 @@ function cardPublic(c: typeof schema.vocabCards.$inferSelect) {
 export async function vocabRoutes(app: FastifyInstance) {
   app.get("/api/vocab/lists", { preHandler: requireAuth }, async (req) => {
     const session = req.session!;
+    const { page, pageSize, offset } = parsePagination(req.query as Record<string, unknown>);
+
+    let all: (typeof schema.vocabLists.$inferSelect)[];
     if (session.role === "teacher") {
-      return db.select().from(schema.vocabLists).all();
+      all = db.select().from(schema.vocabLists).orderBy(desc(schema.vocabLists.createdAt)).all();
+    } else {
+      const assigned = db
+        .select({ listId: schema.vocabListStudents.listId })
+        .from(schema.vocabListStudents)
+        .where(eq(schema.vocabListStudents.studentId, session.userId))
+        .all();
+      const ids = new Set(assigned.map((a) => a.listId));
+      all = db
+        .select()
+        .from(schema.vocabLists)
+        .orderBy(desc(schema.vocabLists.createdAt))
+        .all()
+        .filter((l) => ids.has(l.id));
     }
-    const assigned = db
-      .select({ listId: schema.vocabListStudents.listId })
-      .from(schema.vocabListStudents)
-      .where(eq(schema.vocabListStudents.studentId, session.userId))
-      .all();
-    const ids = new Set(assigned.map((a) => a.listId));
-    return db
-      .select()
-      .from(schema.vocabLists)
-      .all()
-      .filter((l) => ids.has(l.id));
+
+    return { items: all.slice(offset, offset + pageSize), total: all.length, page, pageSize };
   });
 
   app.post("/api/vocab/lists", { preHandler: requireTeacher }, async (req, reply) => {

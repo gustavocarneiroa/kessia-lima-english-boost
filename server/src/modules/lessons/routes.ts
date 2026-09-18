@@ -1,8 +1,18 @@
 import type { FastifyInstance } from "fastify";
-import { eq } from "drizzle-orm";
+import { and, desc, eq, gte, isNull, lte, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
 import { requireAuth, requireTeacher } from "../../auth/guards.ts";
+import { parsePagination } from "../../lib/pagination.ts";
+
+const lessonQuery = z.object({
+  page: z.string().optional(),
+  pageSize: z.string().optional(),
+  studentId: z.string().optional(),
+  from: z.string().optional(),
+  to: z.string().optional(),
+  attended: z.enum(["yes", "no", "pending"]).optional(),
+});
 
 const lessonBody = z.object({
   studentId: z.string().min(1),
@@ -31,26 +41,44 @@ function serialize(lesson: typeof schema.lessons.$inferSelect) {
 }
 
 export async function lessonRoutes(app: FastifyInstance) {
-  app.get("/api/lessons", { preHandler: requireAuth }, async (req) => {
+  app.get("/api/lessons", { preHandler: requireAuth }, async (req, reply) => {
     const { userId, role } = req.session!;
-
-    if (role === "teacher") {
-      const rows = db
-        .select({
-          lesson: schema.lessons,
-          studentEmail: schema.users.email,
-        })
-        .from(schema.lessons)
-        .leftJoin(schema.users, eq(schema.users.id, schema.lessons.studentId))
-        .all();
-
-      return rows
-        .map((r) => ({ ...serialize(r.lesson), studentEmail: r.studentEmail }))
-        .sort((a, b) => b.scheduledAt.localeCompare(a.scheduledAt));
+    const parsedQuery = lessonQuery.safeParse(req.query);
+    if (!parsedQuery.success) {
+      return reply.code(400).send({ error: "invalid_query", message: "Filtros inválidos." });
     }
+    const q = parsedQuery.data;
+    const { page, pageSize, offset } = parsePagination(req.query as Record<string, unknown>);
 
-    const rows = db.select().from(schema.lessons).where(eq(schema.lessons.studentId, userId)).all();
-    return rows.map(serialize).sort((a, b) => b.scheduledAt.localeCompare(a.scheduledAt));
+    const conditions: SQL[] = [];
+    if (role === "teacher" && q.studentId) conditions.push(eq(schema.lessons.studentId, q.studentId));
+    if (role !== "teacher") conditions.push(eq(schema.lessons.studentId, userId));
+    if (q.from) conditions.push(gte(schema.lessons.scheduledAt, q.from));
+    if (q.to) conditions.push(lte(schema.lessons.scheduledAt, q.to));
+    if (q.attended === "yes") conditions.push(eq(schema.lessons.attended, true));
+    else if (q.attended === "no") conditions.push(eq(schema.lessons.attended, false));
+    else if (q.attended === "pending") conditions.push(isNull(schema.lessons.attended));
+
+    const where = conditions.length ? and(...conditions) : undefined;
+
+    const totalRow = db.select({ count: sql<number>`count(*)` }).from(schema.lessons).where(where).get();
+
+    const rows = db
+      .select({ lesson: schema.lessons, studentEmail: schema.users.email })
+      .from(schema.lessons)
+      .leftJoin(schema.users, eq(schema.users.id, schema.lessons.studentId))
+      .where(where)
+      .orderBy(desc(schema.lessons.scheduledAt))
+      .limit(pageSize)
+      .offset(offset)
+      .all();
+
+    return {
+      items: rows.map((r) => ({ ...serialize(r.lesson), studentEmail: r.studentEmail })),
+      total: totalRow?.count ?? 0,
+      page,
+      pageSize,
+    };
   });
 
   app.post("/api/lessons", { preHandler: requireTeacher }, async (req, reply) => {

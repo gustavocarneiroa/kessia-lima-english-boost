@@ -1,8 +1,9 @@
 import type { FastifyInstance } from "fastify";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
 import { requireTeacher } from "../../auth/guards.ts";
+import { parsePagination } from "../../lib/pagination.ts";
 
 const addStudentBody = z.object({
   email: z.string().email(),
@@ -30,8 +31,8 @@ const profileBody = z.object({
 });
 
 export async function studentRoutes(app: FastifyInstance) {
-  app.get("/api/students", { preHandler: requireTeacher }, async () => {
-    const students = db
+  app.get("/api/students", { preHandler: requireTeacher }, async (req) => {
+    const base = db
       .select({
         id: schema.users.id,
         email: schema.users.email,
@@ -39,15 +40,26 @@ export async function studentRoutes(app: FastifyInstance) {
         passwordHash: schema.users.passwordHash,
       })
       .from(schema.users)
-      .where(eq(schema.users.role, "student"))
-      .all();
+      .where(eq(schema.users.role, "student"));
 
-    return students.map((s) => ({
+    const toPublic = (s: { id: string; email: string; createdAt: string; passwordHash: string | null }) => ({
       id: s.id,
       email: s.email,
       createdAt: s.createdAt,
       hasLoggedIn: s.passwordHash !== null,
-    }));
+    });
+
+    // Sem "page" na query: devolve a lista inteira (usado pelos seletores de aluno em
+    // aulas/atividades/vocabulário). Com "page": pagina, usado pela tela de listagem.
+    const query = req.query as Record<string, unknown>;
+    if (query.page === undefined) {
+      return base.orderBy(desc(schema.users.createdAt)).all().map(toPublic);
+    }
+
+    const { page, pageSize, offset } = parsePagination(query);
+    const total = await db.$count(schema.users, eq(schema.users.role, "student"));
+    const items = base.orderBy(desc(schema.users.createdAt)).limit(pageSize).offset(offset).all().map(toPublic);
+    return { items, total, page, pageSize };
   });
 
   app.post("/api/students", { preHandler: requireTeacher }, async (req, reply) => {
