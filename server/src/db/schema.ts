@@ -52,11 +52,14 @@ export const vocabListStudents = sqliteTable("vocab_list_students", {
 export const activities = sqliteTable("activities", {
   id: text("id").primaryKey(),
   title: text("title").notNull(),
-  kind: text("kind", { enum: ["embed", "listening"] }).notNull().default("embed"),
+  kind: text("kind", { enum: ["embed", "listening", "quiz"] }).notNull().default("embed"),
   embedSrc: text("embed_src"),
   embedHeight: integer("embed_height").notNull().default(500),
   youtubeVideoId: text("youtube_video_id"),
-  questions: text("questions"), // JSON: { prompt, options[], correctIndex }[] — só kind "listening"
+  // JSON. kind "listening": { prompt, options[], correctIndex }[].
+  // kind "quiz" (feita pela professora, sem vídeo): { type: "choice", prompt, options[], correctIndex }[] |
+  // { type: "blank", prompt }[] — a professora mistura os dois tipos livremente.
+  questions: text("questions"),
   createdAt: text("created_at").notNull(),
 });
 
@@ -69,9 +72,14 @@ export const activityAnswers = sqliteTable("activity_answers", {
   id: text("id").primaryKey(),
   activityId: text("activity_id").notNull().references(() => activities.id),
   studentId: text("student_id").notNull().references(() => users.id),
-  answers: text("answers").notNull(), // JSON: number[] (índice escolhido por pergunta, na ordem)
+  // JSON: (number | string)[] na ordem das perguntas — número pro índice escolhido
+  // (choice/listening), texto pra resposta escrita (quiz "blank").
+  answers: text("answers").notNull(),
   score: integer("score").notNull(),
   total: integer("total").notNull(),
+  // JSON: Record<string, boolean> — nota manual da professora por índice de pergunta
+  // "blank" (essas não são corrigidas automaticamente). Null até ela corrigir alguma.
+  manualGrades: text("manual_grades"),
   submittedAt: text("submitted_at").notNull(),
 });
 

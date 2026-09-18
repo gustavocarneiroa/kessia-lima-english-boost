@@ -9,11 +9,19 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Loader2, Maximize2, Minimize2, Pencil, Trash2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import ActivityForm, { type ActivityFormPayload } from "./ActivityForm";
+import { Input } from "@/components/ui/input";
+import ActivityForm, { type ActivityFormPayload, type QuizItemDraft } from "./ActivityForm";
 
 interface Question {
   prompt: string;
   options: string[];
+  correctIndex?: number;
+}
+
+interface QuizItem {
+  type: "choice" | "blank";
+  prompt: string;
+  options?: string[];
   correctIndex?: number;
 }
 
@@ -22,10 +30,11 @@ function reconstructEmbedCode(src: string, height: number) {
 }
 
 interface Submission {
-  answers: number[];
+  answers: (number | string)[];
   score: number;
   total: number;
-  correctAnswers?: number[];
+  correctAnswers?: (number | null)[];
+  manualGrades?: Record<string, boolean>;
 }
 
 interface StudentResult {
@@ -34,16 +43,18 @@ interface StudentResult {
   score: number;
   total: number;
   submittedAt: string;
+  answers?: (number | string)[];
+  manualGrades?: Record<string, boolean>;
 }
 
 interface ActivityDetail {
   id: string;
   title: string;
-  kind: "embed" | "listening";
+  kind: "embed" | "listening" | "quiz";
   embedSrc?: string | null;
   embedHeight?: number;
   youtubeVideoId?: string | null;
-  questions?: Question[];
+  questions?: (Question | QuizItem)[];
   studentIds?: string[];
   results?: StudentResult[];
   mySubmission?: Submission | null;
@@ -67,7 +78,8 @@ export default function ActivityDetail() {
   const [expanded, setExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
 
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [answers, setAnswers] = useState<Record<number, number | string>>({});
+  const [grading, setGrading] = useState<Set<string>>(new Set());
   const [result, setResult] = useState<Submission | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -81,7 +93,7 @@ export default function ActivityDetail() {
       setSelected(new Set(data.studentIds ?? []));
       if (data.mySubmission) {
         setResult(data.mySubmission);
-        const initial: Record<number, number> = {};
+        const initial: Record<number, number | string> = {};
         data.mySubmission.answers.forEach((a, i) => (initial[i] = a));
         setAnswers(initial);
       }
@@ -130,6 +142,22 @@ export default function ActivityDetail() {
     }
   }
 
+  async function gradeBlank(studentId: string, qi: number, correct: boolean) {
+    if (!id) return;
+    const key = `${studentId}-${qi}`;
+    setGrading((prev) => new Set(prev).add(key));
+    try {
+      await api.put(`/api/activities/${id}/answers/${studentId}/grade`, { index: qi, correct });
+      await load();
+    } finally {
+      setGrading((prev) => {
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex justify-center py-12 text-muted-foreground">
@@ -142,7 +170,9 @@ export default function ActivityDetail() {
     return <p className="text-sm text-destructive">{error ?? "Atividade não encontrada."}</p>;
   }
 
-  const allAnswered = activity.questions ? activity.questions.every((_, i) => answers[i] !== undefined) : false;
+  const allAnswered = activity.questions
+    ? activity.questions.every((_, i) => answers[i] !== undefined && answers[i] !== "")
+    : false;
 
   if (expanded && activity.kind === "embed") {
     return (
@@ -206,15 +236,25 @@ export default function ActivityDetail() {
               initial={
                 activity.kind === "embed"
                   ? { title: activity.title, embedCode: reconstructEmbedCode(activity.embedSrc ?? "", activity.embedHeight ?? 500) }
-                  : {
-                      title: activity.title,
-                      youtubeUrl: `https://www.youtube.com/watch?v=${activity.youtubeVideoId}`,
-                      questions: activity.questions?.map((q) => ({
-                        prompt: q.prompt,
-                        options: q.options,
-                        correctIndex: q.correctIndex ?? 0,
-                      })),
-                    }
+                  : activity.kind === "quiz"
+                    ? {
+                        title: activity.title,
+                        quizItems: (activity.questions as QuizItem[] | undefined)?.map(
+                          (q): QuizItemDraft =>
+                            q.type === "choice"
+                              ? { type: "choice", prompt: q.prompt, options: q.options ?? ["", ""], correctIndex: q.correctIndex ?? 0 }
+                              : { type: "blank", prompt: q.prompt },
+                        ),
+                      }
+                    : {
+                        title: activity.title,
+                        youtubeUrl: `https://www.youtube.com/watch?v=${activity.youtubeVideoId}`,
+                        questions: (activity.questions as Question[] | undefined)?.map((q) => ({
+                          prompt: q.prompt,
+                          options: q.options,
+                          correctIndex: q.correctIndex ?? 0,
+                        })),
+                      }
               }
               submitLabel="Salvar alterações"
               onSubmit={saveEdit}
@@ -234,6 +274,184 @@ export default function ActivityDetail() {
             />
           </CardContent>
         </Card>
+      ) : activity.kind === "quiz" ? (
+        <>
+          {!isTeacher && activity.questions && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Perguntas</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {result && (
+                  <div className="rounded-md border bg-muted/40 p-3 text-sm">
+                    Nota (múltipla escolha): <span className="font-semibold">{result.score}</span> de {result.total}
+                    {(activity.questions as QuizItem[]).some((q) => q.type === "blank") && (
+                      <p className="mt-1 text-muted-foreground">
+                        As perguntas de completar são corrigidas pela professora depois.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {(activity.questions as QuizItem[]).map((q, qi) => {
+                  if (q.type === "choice") {
+                    const correct = result?.correctAnswers?.[qi];
+                    return (
+                      <div key={qi} className="space-y-2">
+                        <Label className="text-sm font-medium">
+                          {qi + 1}. {q.prompt}
+                        </Label>
+                        <RadioGroup
+                          value={answers[qi] !== undefined ? String(answers[qi]) : undefined}
+                          onValueChange={(v) => setAnswers((prev) => ({ ...prev, [qi]: Number(v) }))}
+                          className="space-y-1"
+                          disabled={!!result}
+                        >
+                          {q.options!.map((opt, oi) => {
+                            const isCorrect = result && correct === oi;
+                            const isWrongPick = result && correct !== oi && answers[qi] === oi;
+                            return (
+                              <div
+                                key={oi}
+                                className={cn(
+                                  "flex items-center gap-2 rounded-md px-2 py-1",
+                                  isCorrect && "bg-green-500/10",
+                                  isWrongPick && "bg-destructive/10",
+                                )}
+                              >
+                                <RadioGroupItem value={String(oi)} id={`quiz-ans-q${qi}-o${oi}`} />
+                                <Label htmlFor={`quiz-ans-q${qi}-o${oi}`} className="flex-1 font-normal">
+                                  {opt}
+                                </Label>
+                                {isCorrect && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                                {isWrongPick && <XCircle className="h-4 w-4 text-destructive" />}
+                              </div>
+                            );
+                          })}
+                        </RadioGroup>
+                      </div>
+                    );
+                  }
+
+                  const grade = result?.manualGrades?.[String(qi)];
+                  return (
+                    <div key={qi} className="space-y-2">
+                      <Label className="text-sm font-medium">
+                        {qi + 1}. {q.prompt}
+                      </Label>
+                      <Input
+                        value={(answers[qi] as string) ?? ""}
+                        onChange={(e) => setAnswers((prev) => ({ ...prev, [qi]: e.target.value }))}
+                        disabled={!!result}
+                        placeholder="Sua resposta"
+                      />
+                      {result &&
+                        (grade === undefined ? (
+                          <p className="text-xs text-muted-foreground">Aguardando correção da professora.</p>
+                        ) : grade ? (
+                          <p className="flex items-center gap-1 text-xs text-green-600">
+                            <CheckCircle2 className="h-3 w-3" /> Certo
+                          </p>
+                        ) : (
+                          <p className="flex items-center gap-1 text-xs text-destructive">
+                            <XCircle className="h-3 w-3" /> Errado
+                          </p>
+                        ))}
+                    </div>
+                  );
+                })}
+
+                {!result && (
+                  <Button onClick={() => void submitAnswers()} disabled={!allAnswered || submitting} className="gap-2">
+                    {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
+                    Enviar respostas
+                  </Button>
+                )}
+                {result && (
+                  <Button variant="outline" onClick={() => setResult(null)}>
+                    Tentar novamente
+                  </Button>
+                )}
+                {submitError && <p className="text-sm text-destructive">{submitError}</p>}
+              </CardContent>
+            </Card>
+          )}
+
+          {isTeacher && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Gabarito</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {(activity.questions as QuizItem[] | undefined)?.map((q, qi) => (
+                  <div key={qi} className="text-sm">
+                    <p className="font-medium">
+                      {qi + 1}. {q.prompt}
+                    </p>
+                    <p className="text-muted-foreground">
+                      {q.type === "choice"
+                        ? `Correta: ${q.options?.[q.correctIndex ?? -1] ?? "—"}`
+                        : "Completar — você corrige depois que o aluno responder"}
+                    </p>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {isTeacher && (activity.results?.length ?? 0) > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Respostas dos alunos</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {activity.results!.map((r) => (
+                  <div key={r.studentId} className="space-y-2 rounded-md border p-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium">{r.email}</span>
+                      <span>{r.score}/{r.total} (múltipla escolha)</span>
+                    </div>
+                    {(activity.questions as QuizItem[]).map((q, qi) => {
+                      if (q.type !== "blank") return null;
+                      const ans = r.answers?.[qi];
+                      const gradeKey = `${r.studentId}-${qi}`;
+                      const currentGrade = r.manualGrades?.[String(qi)];
+                      return (
+                        <div key={qi} className="rounded-md bg-muted/30 p-2 text-sm">
+                          <p className="text-xs text-muted-foreground">
+                            {qi + 1}. {q.prompt}
+                          </p>
+                          <p>{ans || <span className="italic text-muted-foreground">(sem resposta)</span>}</p>
+                          <div className="mt-1 flex items-center gap-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant={currentGrade === true ? "default" : "outline"}
+                              disabled={grading.has(gradeKey)}
+                              onClick={() => void gradeBlank(r.studentId, qi, true)}
+                            >
+                              Certo
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant={currentGrade === false ? "default" : "outline"}
+                              disabled={grading.has(gradeKey)}
+                              onClick={() => void gradeBlank(r.studentId, qi, false)}
+                            >
+                              Errado
+                            </Button>
+                            {grading.has(gradeKey) && <Loader2 className="h-3 w-3 animate-spin" />}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </>
       ) : (
         <>
           <Card>
@@ -263,7 +481,7 @@ export default function ActivityDetail() {
                   </div>
                 )}
 
-                {activity.questions.map((q, qi) => {
+                {(activity.questions as Question[]).map((q, qi) => {
                   const correct = result?.correctAnswers?.[qi];
                   return (
                     <div key={qi} className="space-y-2">
@@ -324,7 +542,7 @@ export default function ActivityDetail() {
                 <CardTitle className="text-base">Gabarito</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {activity.questions?.map((q, qi) => (
+                {(activity.questions as Question[] | undefined)?.map((q, qi) => (
                   <div key={qi} className="text-sm">
                     <p className="font-medium">
                       {qi + 1}. {q.prompt}

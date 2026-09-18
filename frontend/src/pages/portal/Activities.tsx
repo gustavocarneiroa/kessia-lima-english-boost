@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Headphones, Link2 } from "lucide-react";
+import { Loader2, Headphones, Link2, PenLine } from "lucide-react";
 import ActivityForm, { type ActivityFormPayload } from "./ActivityForm";
 import Pagination from "@/components/Pagination";
 
@@ -12,7 +12,7 @@ const PAGE_SIZE = 20;
 interface Activity {
   id: string;
   title: string;
-  kind: "embed" | "listening";
+  kind: "embed" | "listening" | "quiz";
   createdAt: string;
 }
 
@@ -56,7 +56,7 @@ export default function Activities() {
         <h1 className="text-2xl font-semibold tracking-tight">Atividades</h1>
         <p className="text-muted-foreground">
           {isTeacher
-            ? "Crie um exercício de listening com um vídeo do YouTube, ou cole o código de um site (ex.: Quizlet)."
+            ? "Crie um exercício de listening com um vídeo do YouTube, uma atividade sua com múltipla escolha e completar, ou cole o código de um site (ex.: Quizlet)."
             : "Atividades que a professora enviou para você."}
         </p>
       </div>
@@ -97,6 +97,8 @@ export default function Activities() {
                   >
                     {a.kind === "listening" ? (
                       <Headphones className="h-4 w-4 text-muted-foreground" />
+                    ) : a.kind === "quiz" ? (
+                      <PenLine className="h-4 w-4 text-muted-foreground" />
                     ) : (
                       <Link2 className="h-4 w-4 text-muted-foreground" />
                     )}

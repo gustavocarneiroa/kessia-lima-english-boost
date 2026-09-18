@@ -84,7 +84,7 @@ sqlite.exec(`
   CREATE TABLE IF NOT EXISTS activities (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
-    kind TEXT NOT NULL DEFAULT 'embed' CHECK (kind IN ('embed', 'listening')),
+    kind TEXT NOT NULL DEFAULT 'embed' CHECK (kind IN ('embed', 'listening', 'quiz')),
     embed_src TEXT,
     embed_height INTEGER NOT NULL DEFAULT 500,
     youtube_video_id TEXT,
@@ -105,6 +105,7 @@ sqlite.exec(`
     answers TEXT NOT NULL,
     score INTEGER NOT NULL,
     total INTEGER NOT NULL,
+    manual_grades TEXT,
     submitted_at TEXT NOT NULL,
     UNIQUE (activity_id, student_id)
   );
@@ -148,27 +149,34 @@ try {
   // já existe
 }
 
-// activities: a tabela já existia em produção com CHECK (kind IN ('embed')) e
-// embed_src NOT NULL — SQLite não permite alterar CHECK/NOT NULL com ALTER TABLE,
-// então reconstruímos a tabela (idempotente: só roda se ainda estiver no formato antigo).
+try {
+  sqlite.exec(`ALTER TABLE activity_answers ADD COLUMN manual_grades TEXT`);
+} catch {
+  // já existe
+}
+
+// activities: a tabela já existia em produção com CHECK mais restritivo (sem
+// "listening" antes, sem "quiz" agora) — SQLite não permite alterar CHECK com
+// ALTER TABLE, então reconstruímos a tabela (idempotente: só roda se o CHECK
+// salvo ainda não incluir o valor mais novo).
 const activitiesTable = sqlite
   .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'activities'`)
   .get() as { sql: string } | undefined;
-if (activitiesTable && !activitiesTable.sql.includes("listening")) {
+if (activitiesTable && !activitiesTable.sql.includes("quiz")) {
   sqlite.exec(`
     PRAGMA foreign_keys = OFF;
     CREATE TABLE activities_new (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,
-      kind TEXT NOT NULL DEFAULT 'embed' CHECK (kind IN ('embed', 'listening')),
+      kind TEXT NOT NULL DEFAULT 'embed' CHECK (kind IN ('embed', 'listening', 'quiz')),
       embed_src TEXT,
       embed_height INTEGER NOT NULL DEFAULT 500,
       youtube_video_id TEXT,
       questions TEXT,
       created_at TEXT NOT NULL
     );
-    INSERT INTO activities_new (id, title, kind, embed_src, embed_height, created_at)
-      SELECT id, title, kind, embed_src, embed_height, created_at FROM activities;
+    INSERT INTO activities_new (id, title, kind, embed_src, embed_height, youtube_video_id, questions, created_at)
+      SELECT id, title, kind, embed_src, embed_height, youtube_video_id, questions, created_at FROM activities;
     DROP TABLE activities;
     ALTER TABLE activities_new RENAME TO activities;
     PRAGMA foreign_keys = ON;

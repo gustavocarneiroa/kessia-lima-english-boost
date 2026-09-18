@@ -41,12 +41,51 @@ const listeningUpdateBody = z.object({
   questions: z.array(questionSchema).min(1).max(20),
 });
 
+// "quiz": atividade feita pela própria professora, sem vídeo — mistura perguntas de
+// múltipla escolha (corrigidas na hora) com perguntas de completar/resposta aberta
+// (a professora corrige depois, manualmente).
+const quizChoiceItemSchema = z
+  .object({
+    type: z.literal("choice"),
+    prompt: z.string().trim().min(1).max(500),
+    options: z.array(z.string().trim().min(1).max(200)).min(2).max(6),
+    correctIndex: z.number().int().min(0),
+  })
+  .refine((q) => q.correctIndex < q.options.length, { message: "correctIndex fora do intervalo" });
+
+const quizBlankItemSchema = z.object({
+  type: z.literal("blank"),
+  prompt: z.string().trim().min(1).max(500),
+});
+
+const quizItemSchema = z.union([quizChoiceItemSchema, quizBlankItemSchema]);
+
+const quizCreateBody = z.object({
+  kind: z.literal("quiz"),
+  title: z.string().trim().min(1).max(200),
+  questions: z.array(quizItemSchema).min(1).max(30),
+});
+
+const quizUpdateBody = z.object({
+  title: z.string().trim().min(1).max(200),
+  questions: z.array(quizItemSchema).min(1).max(30),
+});
+
 const studentsBody = z.object({
   studentIds: z.array(z.string().uuid()),
 });
 
 const submitBody = z.object({
   answers: z.array(z.number().int().min(0)).max(20),
+});
+
+const quizSubmitBody = z.object({
+  answers: z.array(z.union([z.number().int().min(0), z.string().trim().max(1000)])).max(30),
+});
+
+const gradeBody = z.object({
+  index: z.number().int().min(0),
+  correct: z.boolean(),
 });
 
 const generateQuestionsBody = z.object({
@@ -73,6 +112,7 @@ function studentAssigned(activityId: string, studentId: string) {
 }
 
 type Question = z.infer<typeof questionSchema>;
+type QuizItem = z.infer<typeof quizItemSchema>;
 
 function parseQuestions(raw: string | null): Question[] {
   if (!raw) return [];
@@ -83,9 +123,42 @@ function parseQuestions(raw: string | null): Question[] {
   }
 }
 
+function parseQuizItems(raw: string | null): QuizItem[] {
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw) as QuizItem[];
+  } catch {
+    return [];
+  }
+}
+
 // Nunca devolvemos correctIndex pro aluno antes de ele responder.
 function questionsForStudent(questions: Question[]) {
   return questions.map((q) => ({ prompt: q.prompt, options: q.options }));
+}
+
+function quizItemsForStudent(items: QuizItem[]) {
+  return items.map((q) =>
+    q.type === "choice" ? { type: q.type, prompt: q.prompt, options: q.options } : { type: q.type, prompt: q.prompt },
+  );
+}
+
+function parseAnswers(raw: string | null): (number | string)[] {
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw) as (number | string)[];
+  } catch {
+    return [];
+  }
+}
+
+function parseManualGrades(raw: string | null): Record<string, boolean> {
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw) as Record<string, boolean>;
+  } catch {
+    return {};
+  }
 }
 
 export async function activitiesRoutes(app: FastifyInstance) {
@@ -166,6 +239,28 @@ export async function activitiesRoutes(app: FastifyInstance) {
       return reply.code(201).send(row);
     }
 
+    if (body?.kind === "quiz") {
+      const parsed = quizCreateBody.safeParse(req.body);
+      if (!parsed.success) {
+        return reply.code(400).send({
+          error: "invalid_body",
+          message: "Informe um título e pelo menos uma pergunta (múltipla escolha ou completar).",
+        });
+      }
+      const row = {
+        id: randomUUID(),
+        title: parsed.data.title,
+        kind: "quiz" as const,
+        embedSrc: null,
+        embedHeight: 500,
+        youtubeVideoId: null,
+        questions: JSON.stringify(parsed.data.questions),
+        createdAt: new Date().toISOString(),
+      };
+      db.insert(schema.activities).values(row).run();
+      return reply.code(201).send(row);
+    }
+
     const parsed = embedCreateBody.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ error: "invalid_body", message: "Informe um título e o código de incorporação." });
@@ -224,6 +319,23 @@ export async function activitiesRoutes(app: FastifyInstance) {
       return activityOr404(id);
     }
 
+    if (activity.kind === "quiz") {
+      const parsed = quizUpdateBody.safeParse(req.body);
+      if (!parsed.success) {
+        return reply.code(400).send({
+          error: "invalid_body",
+          message: "Informe um título e pelo menos uma pergunta (múltipla escolha ou completar).",
+        });
+      }
+      db.update(schema.activities)
+        .set({ title: parsed.data.title, questions: JSON.stringify(parsed.data.questions) })
+        .where(eq(schema.activities.id, id))
+        .run();
+      // As perguntas podem ter mudado — respostas antigas não fariam mais sentido comparadas a elas.
+      db.delete(schema.activityAnswers).where(eq(schema.activityAnswers.activityId, id)).run();
+      return activityOr404(id);
+    }
+
     const parsed = embedUpdateBody.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ error: "invalid_body", message: "Informe um título e o código de incorporação." });
@@ -249,6 +361,54 @@ export async function activitiesRoutes(app: FastifyInstance) {
     const session = req.session!;
     if (session.role !== "teacher" && !studentAssigned(id, session.userId)) {
       return reply.code(404).send({ error: "not_found", message: "Atividade não encontrada." });
+    }
+
+    if (activity.kind === "quiz") {
+      const items = parseQuizItems(activity.questions);
+
+      if (session.role === "teacher") {
+        const studentIds = assignedStudentIds(id);
+        const rows = db
+          .select({
+            studentId: schema.activityAnswers.studentId,
+            answers: schema.activityAnswers.answers,
+            score: schema.activityAnswers.score,
+            total: schema.activityAnswers.total,
+            manualGrades: schema.activityAnswers.manualGrades,
+            submittedAt: schema.activityAnswers.submittedAt,
+            email: schema.users.email,
+          })
+          .from(schema.activityAnswers)
+          .innerJoin(schema.users, eq(schema.users.id, schema.activityAnswers.studentId))
+          .where(eq(schema.activityAnswers.activityId, id))
+          .all();
+        const results = rows.map((r) => ({
+          ...r,
+          answers: parseAnswers(r.answers),
+          manualGrades: parseManualGrades(r.manualGrades),
+        }));
+        return { ...activity, questions: items, studentIds, results };
+      }
+
+      const mine = db
+        .select()
+        .from(schema.activityAnswers)
+        .where(and(eq(schema.activityAnswers.activityId, id), eq(schema.activityAnswers.studentId, session.userId)))
+        .get();
+
+      return {
+        ...activity,
+        questions: quizItemsForStudent(items),
+        mySubmission: mine
+          ? {
+              answers: parseAnswers(mine.answers),
+              score: mine.score,
+              total: mine.total,
+              manualGrades: parseManualGrades(mine.manualGrades),
+              correctAnswers: items.map((q) => (q.type === "choice" ? q.correctIndex : null)),
+            }
+          : null,
+      };
     }
 
     if (activity.kind !== "listening") {
@@ -302,9 +462,65 @@ export async function activitiesRoutes(app: FastifyInstance) {
       return reply.code(403).send({ error: "forbidden", message: "Só alunos respondem atividades." });
     }
     const activity = activityOr404(id);
-    if (!activity || activity.kind !== "listening" || !studentAssigned(id, session.userId)) {
+    if (!activity || (activity.kind !== "listening" && activity.kind !== "quiz") || !studentAssigned(id, session.userId)) {
       return reply.code(404).send({ error: "not_found", message: "Atividade não encontrada." });
     }
+
+    if (activity.kind === "quiz") {
+      const parsedQuiz = quizSubmitBody.safeParse(req.body);
+      if (!parsedQuiz.success) {
+        return reply.code(400).send({ error: "invalid_body", message: "Respostas inválidas." });
+      }
+      const items = parseQuizItems(activity.questions);
+      if (parsedQuiz.data.answers.length !== items.length) {
+        return reply.code(400).send({ error: "invalid_body", message: "Responda todas as perguntas." });
+      }
+      const choiceCount = items.filter((q) => q.type === "choice").length;
+      const score = items.reduce(
+        (acc, q, i) => acc + (q.type === "choice" && q.correctIndex === parsedQuiz.data.answers[i] ? 1 : 0),
+        0,
+      );
+      const now = new Date().toISOString();
+      const existing = db
+        .select()
+        .from(schema.activityAnswers)
+        .where(and(eq(schema.activityAnswers.activityId, id), eq(schema.activityAnswers.studentId, session.userId)))
+        .get();
+
+      // Uma nova tentativa invalida as correções manuais anteriores das respostas abertas.
+      if (existing) {
+        db.update(schema.activityAnswers)
+          .set({
+            answers: JSON.stringify(parsedQuiz.data.answers),
+            score,
+            total: choiceCount,
+            manualGrades: null,
+            submittedAt: now,
+          })
+          .where(eq(schema.activityAnswers.id, existing.id))
+          .run();
+      } else {
+        db.insert(schema.activityAnswers)
+          .values({
+            id: randomUUID(),
+            activityId: id,
+            studentId: session.userId,
+            answers: JSON.stringify(parsedQuiz.data.answers),
+            score,
+            total: choiceCount,
+            manualGrades: null,
+            submittedAt: now,
+          })
+          .run();
+      }
+
+      return {
+        score,
+        total: choiceCount,
+        correctAnswers: items.map((q) => (q.type === "choice" ? q.correctIndex : null)),
+      };
+    }
+
     const parsed = submitBody.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ error: "invalid_body", message: "Respostas inválidas." });
@@ -343,6 +559,34 @@ export async function activitiesRoutes(app: FastifyInstance) {
     }
 
     return { score, total: questions.length, correctAnswers: questions.map((q) => q.correctIndex) };
+  });
+
+  // Professora corrige manualmente uma resposta aberta ("completar") de um aluno.
+  app.put("/api/activities/:id/answers/:studentId/grade", { preHandler: requireTeacher }, async (req, reply) => {
+    const { id, studentId } = req.params as { id: string; studentId: string };
+    const activity = activityOr404(id);
+    if (!activity || activity.kind !== "quiz") {
+      return reply.code(404).send({ error: "not_found", message: "Atividade não encontrada." });
+    }
+    const parsed = gradeBody.safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", message: "Correção inválida." });
+    }
+    const existing = db
+      .select()
+      .from(schema.activityAnswers)
+      .where(and(eq(schema.activityAnswers.activityId, id), eq(schema.activityAnswers.studentId, studentId)))
+      .get();
+    if (!existing) {
+      return reply.code(404).send({ error: "not_found", message: "O aluno ainda não respondeu essa atividade." });
+    }
+    const grades = parseManualGrades(existing.manualGrades);
+    grades[String(parsed.data.index)] = parsed.data.correct;
+    db.update(schema.activityAnswers)
+      .set({ manualGrades: JSON.stringify(grades) })
+      .where(eq(schema.activityAnswers.id, existing.id))
+      .run();
+    return { manualGrades: grades };
   });
 
   app.delete("/api/activities/:id", { preHandler: requireTeacher }, async (req, reply) => {

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Plus, Trash2, Headphones, Link2, Sparkles } from "lucide-react";
+import { Loader2, Plus, Trash2, Headphones, Link2, Sparkles, PenLine } from "lucide-react";
 
 export interface QuestionDraft {
   prompt: string;
@@ -21,6 +21,10 @@ interface GeneratedQuestion {
   correctIndex: number;
 }
 
+export type QuizItemDraft =
+  | { type: "choice"; prompt: string; options: string[]; correctIndex: number }
+  | { type: "blank"; prompt: string };
+
 type StudentLevel = "beginner" | "intermediate" | "advanced";
 
 const LEVEL_OPTIONS: { value: StudentLevel; label: string }[] = [
@@ -33,17 +37,27 @@ export function emptyQuestion(): QuestionDraft {
   return { prompt: "", options: ["", ""], correctIndex: 0 };
 }
 
+export function emptyQuizChoiceItem(): QuizItemDraft {
+  return { type: "choice", prompt: "", options: ["", ""], correctIndex: 0 };
+}
+
+export function emptyQuizBlankItem(): QuizItemDraft {
+  return { type: "blank", prompt: "" };
+}
+
 export type ActivityFormPayload =
   | { kind: "embed"; title: string; embedCode: string }
-  | { kind: "listening"; title: string; youtubeUrl: string; questions: QuestionDraft[] };
+  | { kind: "listening"; title: string; youtubeUrl: string; questions: QuestionDraft[] }
+  | { kind: "quiz"; title: string; questions: QuizItemDraft[] };
 
 interface ActivityFormProps {
-  lockKind?: "embed" | "listening";
+  lockKind?: "embed" | "listening" | "quiz";
   initial?: {
     title: string;
     embedCode?: string;
     youtubeUrl?: string;
     questions?: QuestionDraft[];
+    quizItems?: QuizItemDraft[];
   };
   submitLabel: string;
   onSubmit: (payload: ActivityFormPayload) => Promise<void>;
@@ -51,13 +65,14 @@ interface ActivityFormProps {
 }
 
 export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit, onCancel }: ActivityFormProps) {
-  const [activityKind, setActivityKind] = useState<"embed" | "listening">(lockKind ?? "listening");
+  const [activityKind, setActivityKind] = useState<"embed" | "listening" | "quiz">(lockKind ?? "listening");
 
   const [title, setTitle] = useState(initial?.title ?? "");
   const [embedCode, setEmbedCode] = useState(initial?.embedCode ?? "");
 
   const [youtubeUrl, setYoutubeUrl] = useState(initial?.youtubeUrl ?? "");
   const [questions, setQuestions] = useState<QuestionDraft[]>(initial?.questions ?? [emptyQuestion()]);
+  const [quizItems, setQuizItems] = useState<QuizItemDraft[]>(initial?.quizItems ?? [emptyQuizChoiceItem()]);
   const [transcript, setTranscript] = useState("");
   const [level, setLevel] = useState<StudentLevel>("intermediate");
   const [generating, setGenerating] = useState(false);
@@ -99,6 +114,41 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
     setQuestions((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== qi)));
   }
 
+  function updateQuizItem(qi: number, patch: Partial<QuizItemDraft>) {
+    setQuizItems((prev) => prev.map((q, i) => (i === qi ? ({ ...q, ...patch } as QuizItemDraft) : q)));
+  }
+
+  function updateQuizOption(qi: number, oi: number, value: string) {
+    setQuizItems((prev) =>
+      prev.map((q, i) => (i === qi && q.type === "choice" ? { ...q, options: q.options.map((o, j) => (j === oi ? value : o)) } : q)),
+    );
+  }
+
+  function addQuizOption(qi: number) {
+    setQuizItems((prev) =>
+      prev.map((q, i) => (i === qi && q.type === "choice" && q.options.length < 6 ? { ...q, options: [...q.options, ""] } : q)),
+    );
+  }
+
+  function removeQuizOption(qi: number, oi: number) {
+    setQuizItems((prev) =>
+      prev.map((q, i) => {
+        if (i !== qi || q.type !== "choice" || q.options.length <= 2) return q;
+        const options = q.options.filter((_, j) => j !== oi);
+        const correctIndex = q.correctIndex >= options.length ? 0 : q.correctIndex === oi ? 0 : q.correctIndex > oi ? q.correctIndex - 1 : q.correctIndex;
+        return { ...q, options, correctIndex };
+      }),
+    );
+  }
+
+  function addQuizItem(type: "choice" | "blank") {
+    setQuizItems((prev) => [...prev, type === "choice" ? emptyQuizChoiceItem() : emptyQuizBlankItem()]);
+  }
+
+  function removeQuizItem(qi: number) {
+    setQuizItems((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== qi)));
+  }
+
   async function generateQuestions() {
     setGenerateError(null);
     setGenerating(true);
@@ -128,6 +178,8 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
           youtubeUrl,
           questions: questions.map((q) => ({ prompt: q.prompt, options: q.options, correctIndex: q.correctIndex })),
         });
+      } else if (activityKind === "quiz") {
+        await onSubmit({ kind: "quiz", title, questions: quizItems });
       } else {
         await onSubmit({ kind: "embed", title, embedCode });
       }
@@ -151,6 +203,16 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
           >
             <Headphones className="h-4 w-4" />
             Listening (vídeo + perguntas)
+          </Button>
+          <Button
+            type="button"
+            variant={activityKind === "quiz" ? "default" : "outline"}
+            size="sm"
+            className="gap-2"
+            onClick={() => setActivityKind("quiz")}
+          >
+            <PenLine className="h-4 w-4" />
+            Feita por você (múltipla escolha / completar)
           </Button>
           <Button
             type="button"
@@ -309,6 +371,109 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
               </Button>
             </div>
           </>
+        ) : activityKind === "quiz" ? (
+          <div className="space-y-3">
+            <Label>Perguntas</Label>
+            {quizItems.map((q, qi) => (
+              <Card key={qi} className="border-dashed">
+                <CardContent className="space-y-3 pt-4">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 space-y-1">
+                      <Label className="text-xs">Pergunta {qi + 1}</Label>
+                      <Textarea
+                        value={q.prompt}
+                        onChange={(e) => updateQuizItem(qi, { prompt: e.target.value })}
+                        placeholder={
+                          q.type === "choice" ? "ex.: What is the past tense of 'go'?" : "ex.: She ___ to school every day. (go)"
+                        }
+                        rows={2}
+                        required
+                      />
+                    </div>
+                    {quizItems.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="mt-6 text-destructive"
+                        onClick={() => removeQuizItem(qi)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={q.type === "choice" ? "default" : "outline"}
+                      onClick={() => updateQuizItem(qi, q.type === "choice" ? q : emptyQuizChoiceItem())}
+                    >
+                      Múltipla escolha
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={q.type === "blank" ? "default" : "outline"}
+                      onClick={() => updateQuizItem(qi, q.type === "blank" ? q : emptyQuizBlankItem())}
+                    >
+                      Completar (resposta escrita)
+                    </Button>
+                  </div>
+
+                  {q.type === "choice" ? (
+                    <div className="space-y-2">
+                      <Label className="text-xs">Opções (marque a correta)</Label>
+                      <RadioGroup
+                        value={String(q.correctIndex)}
+                        onValueChange={(v) => updateQuizItem(qi, { correctIndex: Number(v) })}
+                        className="space-y-2"
+                      >
+                        {q.options.map((opt, oi) => (
+                          <div key={oi} className="flex items-center gap-2">
+                            <RadioGroupItem value={String(oi)} id={`quiz-q${qi}-o${oi}`} />
+                            <Input
+                              value={opt}
+                              onChange={(e) => updateQuizOption(qi, oi, e.target.value)}
+                              placeholder={`Opção ${oi + 1}`}
+                              required
+                            />
+                            {q.options.length > 2 && (
+                              <Button type="button" variant="ghost" size="icon" onClick={() => removeQuizOption(qi, oi)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </RadioGroup>
+                      {q.options.length < 6 && (
+                        <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => addQuizOption(qi)}>
+                          <Plus className="h-3 w-3" />
+                          Adicionar opção
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      O aluno vai digitar a resposta. Não tem correção automática — depois que ele responder, você
+                      corrige essa pergunta como certa ou errada na tela da atividade.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+            <div className="flex flex-wrap gap-2">
+              <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => addQuizItem("choice")}>
+                <Plus className="h-4 w-4" />
+                Adicionar múltipla escolha
+              </Button>
+              <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => addQuizItem("blank")}>
+                <Plus className="h-4 w-4" />
+                Adicionar completar
+              </Button>
+            </div>
+          </div>
         ) : (
           <div className="space-y-1">
             <Label>Código de incorporação</Label>
