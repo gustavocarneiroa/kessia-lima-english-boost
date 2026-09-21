@@ -107,6 +107,17 @@ export const appSettings = sqliteTable("app_settings", {
   updatedAt: text("updated_at").notNull(),
 });
 
+export const wordleGames = sqliteTable("wordle_games", {
+  id: text("id").primaryKey(),
+  studentId: text("student_id").notNull().references(() => users.id),
+  date: text("date").notNull(), // "YYYY-MM-DD"
+  won: integer("won", { mode: "boolean" }).notNull(),
+  guessesUsed: integer("guesses_used").notNull(),
+  hintUsed: integer("hint_used", { mode: "boolean" }).notNull().default(false),
+  points: integer("points").notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
 export const credentials = sqliteTable("credentials", {
   // credential ID do WebAuthn (base64url), gerado pelo autenticador/dispositivo
   id: text("id").primaryKey(),

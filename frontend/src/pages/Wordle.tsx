@@ -1,185 +1,106 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Lightbulb, RotateCcw, CheckCircle, XCircle, BarChart3 } from 'lucide-react';
+import { Lightbulb, CheckCircle, XCircle, Trophy, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWordle } from '@/hooks/useWordle';
-import { useDictionary } from '@/hooks/useDictionary';
-import { Modal, ModalTrigger, ModalBody, ModalContent } from '@/components/ui/animated-modal';
-
-interface GuessResult {
-  letter: string;
-  status: 'correct' | 'present' | 'absent';
-}
+import { useWordle, useWordleLeaderboard, type LetterStatus } from '@/hooks/useWordle';
 
 const QWERTY_LAYOUT = [
   ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
   ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-  ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'BACKSPACE']
+  ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'BACKSPACE'],
 ];
 
-const Wordle = () => {
-  const { dailyWord, userStats, todayGame, loading, error, saveGameSession } = useWordle();
-  const { validateWord, isValidating } = useDictionary();
-  
-  const [gameState, setGameState] = useState<'playing' | 'won' | 'lost'>('playing');
+const MAX_GUESSES = 6;
+
+export default function Wordle() {
+  const { user, loading: loadingUser } = useAuth();
+  const navigate = useNavigate();
+  const { today, loading, error, submitGuess, finishGame } = useWordle();
+  const { entries: leaderboard, loading: loadingLeaderboard, refresh: refreshLeaderboard } = useWordleLeaderboard();
+
   const [currentGuess, setCurrentGuess] = useState('');
   const [guesses, setGuesses] = useState<string[]>([]);
-  const [guessResults, setGuessResults] = useState<GuessResult[][]>([]);
-  const [usedLetters, setUsedLetters] = useState<Map<string, 'correct' | 'present' | 'absent'>>(new Map());
+  const [guessStatuses, setGuessStatuses] = useState<LetterStatus[][]>([]);
+  const [usedLetters, setUsedLetters] = useState<Map<string, LetterStatus>>(new Map());
   const [showHint, setShowHint] = useState(false);
-  const [hintsUsed, setHintsUsed] = useState(0);
+  const [hintUsed, setHintUsed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [finalWord, setFinalWord] = useState<string | null>(null);
 
-  const maxGuesses = 6;
+  const finished = !!today?.result;
+  const letterCount = today?.letterCount ?? 5;
 
-  // Initialize game state based on today's game
   useEffect(() => {
-    if (todayGame) {
-      if (todayGame.won) {
-        setGameState('won');
-      } else {
-        setGameState('lost');
-      }
-    }
-  }, [todayGame]);
-
-  const checkGuess = (guess: string): GuessResult[] => {
-    if (!dailyWord) return [];
-    
-    const result: GuessResult[] = [];
-    const targetLetters = dailyWord.word.split('');
-    const guessLetters = guess.split('');
-    
-    // First pass: mark correct positions
-    const targetCounts = new Map<string, number>();
-    targetLetters.forEach(letter => {
-      targetCounts.set(letter, (targetCounts.get(letter) || 0) + 1);
-    });
-
-    // Check exact matches first
-    guessLetters.forEach((letter, i) => {
-      if (letter === targetLetters[i]) {
-        result[i] = { letter, status: 'correct' };
-        targetCounts.set(letter, targetCounts.get(letter)! - 1);
-      } else {
-        result[i] = { letter, status: 'absent' };
-      }
-    });
-
-    // Second pass: mark present letters
-    guessLetters.forEach((letter, i) => {
-      if (result[i].status === 'absent' && targetCounts.get(letter)! > 0) {
-        result[i] = { letter, status: 'present' };
-        targetCounts.set(letter, targetCounts.get(letter)! - 1);
-      }
-    });
-
-    return result;
-  };
+    if (!loadingUser && !user) navigate('/login');
+  }, [loadingUser, user, navigate]);
 
   const handleGuessSubmit = async () => {
-    if (!dailyWord) return;
-    
-    if (currentGuess.length !== dailyWord.letter_count) {
-      toast.error(`Word must be ${dailyWord.letter_count} letters long`, {
-        position: "top-right"
-      });
-      return;
-    }
+    if (!today || currentGuess.length !== letterCount || submitting) return;
+    setSubmitting(true);
+    try {
+      const res = await submitGuess(currentGuess);
+      const newGuesses = [...guesses, currentGuess];
+      const newStatuses = [...guessStatuses, res.statuses];
+      setGuesses(newGuesses);
+      setGuessStatuses(newStatuses);
 
-    // Validate word with dictionary API
-    const validation = await validateWord(currentGuess);
-    if (!validation.valid) {
-      toast.error(validation.message || 'Invalid word', {
-        position: "top-right"
-      });
-      return;
-    }
-
-    const result = checkGuess(currentGuess);
-    const newGuesses = [...guesses, currentGuess];
-    const newResults = [...guessResults, result];
-    
-    setGuesses(newGuesses);
-    setGuessResults(newResults);
-
-    // Update used letters
-    const newUsedLetters = new Map(usedLetters);
-    result.forEach(({ letter, status }) => {
-      const currentStatus = newUsedLetters.get(letter);
-      if (!currentStatus || 
-          (currentStatus === 'absent' && status !== 'absent') ||
-          (currentStatus === 'present' && status === 'correct')) {
-        newUsedLetters.set(letter, status);
-      }
-    });
-    setUsedLetters(newUsedLetters);
-
-    // Check win condition
-    const won = currentGuess === dailyWord.word;
-    const gameFinished = won || newGuesses.length >= maxGuesses;
-    
-    if (gameFinished) {
-      try {
-        await saveGameSession(won, newGuesses.length, hintsUsed);
-        
-        if (won) {
-          setGameState('won');
-          toast.success(`Congratulations! You got it in ${newGuesses.length} ${newGuesses.length === 1 ? 'try' : 'tries'}!`);
-        } else {
-          setGameState('lost');
-          toast.error(`Game over! The word was: ${dailyWord.word}`);
+      const newUsedLetters = new Map(usedLetters);
+      res.statuses.forEach((status, i) => {
+        const letter = currentGuess[i];
+        const current = newUsedLetters.get(letter);
+        if (!current || (current === 'absent' && status !== 'absent') || (current === 'present' && status === 'correct')) {
+          newUsedLetters.set(letter, status);
         }
-      } catch (error) {
-        // Game state still updates even if save fails
-        if (won) {
-          setGameState('won');
-          toast.success(`Congratulations! You got it in ${newGuesses.length} ${newGuesses.length === 1 ? 'try' : 'tries'}!`);
+      });
+      setUsedLetters(newUsedLetters);
+      setCurrentGuess('');
+
+      const gameOver = res.correct || newGuesses.length >= MAX_GUESSES;
+      if (gameOver) {
+        if (res.word) setFinalWord(res.word);
+        await finishGame(res.correct, newGuesses.length, hintUsed);
+        refreshLeaderboard();
+        if (res.correct) {
+          toast.success(`Parabéns! Você acertou em ${newGuesses.length} ${newGuesses.length === 1 ? 'tentativa' : 'tentativas'}!`);
         } else {
-          setGameState('lost');
-          toast.error(`Game over! The word was: ${dailyWord.word}`);
+          toast.error('Fim de jogo! Volte amanhã para uma nova palavra.');
         }
       }
+    } catch (err) {
+      toast.error('Não foi possível enviar o palpite. Tente de novo.');
+    } finally {
+      setSubmitting(false);
     }
-
-    setCurrentGuess('');
   };
 
   const handleKeyPress = (key: string) => {
-    if (gameState !== 'playing' || todayGame || isValidating) return;
-
+    if (finished || submitting) return;
     if (key === 'ENTER') {
+      if (currentGuess.length !== letterCount) {
+        toast.error(`A palavra tem ${letterCount} letras.`);
+        return;
+      }
       handleGuessSubmit();
     } else if (key === 'BACKSPACE') {
-      setCurrentGuess(prev => prev.slice(0, -1));
+      setCurrentGuess((prev) => prev.slice(0, -1));
     } else if (key.length === 1 && /[A-Z]/.test(key)) {
-      if (dailyWord && currentGuess.length < dailyWord.letter_count) {
-        setCurrentGuess(prev => prev + key);
-      }
+      if (currentGuess.length < letterCount) setCurrentGuess((prev) => prev + key);
     }
   };
 
-  const handleHintClick = () => {
-    setShowHint(true);
-    setHintsUsed(prev => prev + 1);
-    toast.info('Hint revealed!');
-  };
-
-  const getKeyStatus = (key: string) => {
+  const getKeyStatus = (key: string): LetterStatus | '' => {
     if (key === 'ENTER' || key === 'BACKSPACE') return '';
     return usedLetters.get(key) || '';
   };
 
   const getKeyClassName = (key: string) => {
-    const baseClass = "min-w-[40px] h-12 text-sm font-semibold rounded";
+    const baseClass = 'min-w-[40px] h-12 text-sm font-semibold rounded';
     const status = getKeyStatus(key);
-    
-    if (key === 'ENTER' || key === 'BACKSPACE') {
-      return `${baseClass} bg-muted hover:bg-muted/80 px-3 text-primary`;
-    }
-    
+    if (key === 'ENTER' || key === 'BACKSPACE') return `${baseClass} bg-muted hover:bg-muted/80 px-3 text-primary`;
     switch (status) {
       case 'correct':
         return `${baseClass} bg-green-500 text-white hover:bg-green-600`;
@@ -193,10 +114,9 @@ const Wordle = () => {
   };
 
   const getCellClassName = (rowIndex: number, colIndex: number) => {
-    const baseClass = "w-12 h-12 border-2 flex items-center justify-center text-lg font-bold rounded border-muted text-background";
-    
-    if (rowIndex < guessResults.length) {
-      const status = guessResults[rowIndex][colIndex].status;
+    const baseClass = 'w-12 h-12 border-2 flex items-center justify-center text-lg font-bold rounded border-muted';
+    if (rowIndex < guessStatuses.length) {
+      const status = guessStatuses[rowIndex][colIndex];
       switch (status) {
         case 'correct':
           return `${baseClass} bg-green-500 text-white border-green-500`;
@@ -205,82 +125,72 @@ const Wordle = () => {
         case 'absent':
           return `${baseClass} bg-muted text-muted-foreground/90 border-muted`;
       }
-    } else if (rowIndex === guesses.length && !todayGame) {
-      return `${baseClass} ${colIndex < currentGuess.length ? 'bg-primary/10' : ''}`;
+    } else if (rowIndex === guesses.length && !finished) {
+      return `${baseClass} ${colIndex < currentGuess.length ? 'bg-primary/10' : ''} text-foreground`;
     }
-    
-    return `${baseClass} border-muted`;
+    return `${baseClass} text-foreground`;
   };
 
-  // Loading state
+  if (loadingUser || !user) return null;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-primary py-8">
-        <div className="container mx-auto px-4 max-w-lg">
-          <div className="text-center mb-8">
-            <Skeleton className="h-10 w-32 mx-auto mb-2" />
-            <Skeleton className="h-4 w-48 mx-auto mb-2" />
-            <Skeleton className="h-6 w-24 mx-auto" />
-          </div>
-          <div className="space-y-4">
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-40 w-full" />
-            <Skeleton className="h-48 w-full" />
-          </div>
+        <div className="container mx-auto px-4 max-w-lg space-y-4">
+          <Skeleton className="h-10 w-32 mx-auto" />
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-48 w-full" />
         </div>
       </div>
     );
   }
 
-  // Error state
-  if (error || !dailyWord) {
+  if (error || !today) {
     return (
       <div className="min-h-screen bg-primary py-8">
-        <div className="container mx-auto px-4 max-w-lg">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-primary mb-4">Wordle</h1>
-            <Card>
-              <CardContent className="pt-6">
-                <XCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
-                <p className="text-lg font-semibold mb-2">Oops!</p>
-                <p className="text-muted-foreground mb-4">
-                  {error || 'No word available for today'}
-                </p>
-                <Button onClick={() => window.location.reload()}>
-                  Try Again
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+        <div className="container mx-auto px-4 max-w-lg text-center">
+          <Card>
+            <CardContent className="pt-6">
+              <XCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+              <p className="text-lg font-semibold mb-2">Ops!</p>
+              <p className="text-muted-foreground mb-4">{error || 'Não há palavra disponível hoje.'}</p>
+              <Button onClick={() => window.location.reload()}>Tentar de novo</Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     );
   }
+
+  const result = today.result;
 
   return (
     <div className="min-h-screen bg-primary py-8">
       <div className="container mx-auto px-4 max-w-lg">
-        {/* Header */}
+        <Link to="/portal" className="inline-flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground mb-4">
+          <ArrowLeft className="w-4 h-4" /> Voltar ao portal
+        </Link>
+
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-primary-foreground mb-2">TKL Wordle</h1>
-          <p className="text-primary-foreground/80">Guess the {dailyWord.letter_count}-letter word and learn about it!</p>
-          
-          {/* Game Status */}
-          {todayGame && (
+          <p className="text-primary-foreground/80">Adivinhe a palavra de {letterCount} letras e aprenda com ela!</p>
+
+          {result && (
             <div className="mt-4 p-4 rounded-lg bg-background/20 backdrop-blur-sm">
               <div className="flex items-center justify-center gap-2">
-                {todayGame.won ? (
+                {result.won ? (
                   <>
                     <CheckCircle className="w-5 h-5 text-green-400" />
-                    <span className="text-green-200 font-semibold">
-                      You solved today's puzzle ({dailyWord.word}) in {todayGame.guesses_count} tries!
+                    <span className="text-green-100 font-semibold">
+                      Você acertou{finalWord ? ` (${finalWord})` : ''} em {result.guessesUsed}{' '}
+                      {result.guessesUsed === 1 ? 'tentativa' : 'tentativas'}! +{result.points} pontos
                     </span>
                   </>
                 ) : (
                   <>
                     <XCircle className="w-5 h-5 text-red-400" />
-                    <span className="text-red-200 font-semibold">
-                      You didn't solve today's puzzle. Come back tomorrow!
+                    <span className="text-red-100 font-semibold">
+                      Você não acertou hoje{finalWord ? ` (era ${finalWord})` : ''}. Volte amanhã!
                     </span>
                   </>
                 )}
@@ -289,89 +199,41 @@ const Wordle = () => {
           )}
         </div>
 
-        {/* Stats Modal */}
-        <div className="mb-6">
-          <Modal>
-            <ModalTrigger className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 rounded-lg py-3 px-4">
-              <div className="flex items-center justify-center gap-2">
-                <BarChart3 className="w-4 h-4" />
-                View Stats
-              </div>
-            </ModalTrigger>
-            <ModalBody>
-              <ModalContent>
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold mb-2">Your Statistics</h2>
-                  <div className="text-muted-foreground">Track your Wordle progress</div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-6 mb-6">
-                  <div className="text-center p-4 rounded-lg bg-muted/50">
-                    <div className="text-3xl font-bold text-primary">{userStats?.current_streak || 0}</div>
-                    <div className="text-sm text-muted-foreground">Current Streak</div>
-                  </div>
-                  <div className="text-center p-4 rounded-lg bg-muted/50">
-                    <div className="text-3xl font-bold text-primary">{userStats?.best_streak || 0}</div>
-                    <div className="text-sm text-muted-foreground">Best Streak</div>
-                  </div>
-                  <div className="text-center p-4 rounded-lg bg-muted/50">
-                    <div className="text-3xl font-bold text-primary">{userStats?.games_played || 0}</div>
-                    <div className="text-sm text-muted-foreground">Games Played</div>
-                  </div>
-                  <div className="text-center p-4 rounded-lg bg-muted/50">
-                    <div className="text-3xl font-bold text-primary">{userStats?.total_wins || 0}</div>
-                    <div className="text-sm text-muted-foreground">Total Wins</div>
-                  </div>
-                </div>
-                
-                <div className="text-center space-y-2 p-4 rounded-lg bg-muted/30">
-                  <div className="text-lg font-semibold">
-                    Win Rate: {userStats?.games_played ? Math.round((userStats.total_wins / userStats.games_played) * 100) : 0}%
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Total Hints Used: {userStats?.hints_used_total || 0}
-                  </div>
-                </div>
-              </ModalContent>
-            </ModalBody>
-          </Modal>
-        </div>
-
-        {/* Hint Section */}
-        {!todayGame && (
+        {!finished && (
           <div className="mb-6">
-              <Button
-                onClick={handleHintClick}
-                disabled={showHint}
-                variant="outline"
-                className="w-full bg-background border-primary-foreground/20 text-primary hover:bg-primary-foreground hover:text-primary"
-              >
+            <Button
+              onClick={() => {
+                setShowHint(true);
+                setHintUsed(true);
+              }}
+              disabled={showHint}
+              variant="outline"
+              className="w-full bg-background border-primary-foreground/20 text-primary hover:bg-primary-foreground hover:text-primary"
+            >
               <Lightbulb className="w-4 h-4 mr-2" />
-              {showHint ? 'Hint Used' : 'Show Hint'}
+              {showHint ? 'Dica usada' : 'Ver dica'}
             </Button>
-              {showHint && (
-                <Card className="mt-2 bg-background/80 backdrop-blur-sm border-primary-foreground/20">
-                  <CardContent className="pt-4">
-                    <p className="text-sm text-primary">{dailyWord.hint}</p>
-                  </CardContent>
-                </Card>
-              )}
+            {showHint && (
+              <Card className="mt-2 bg-background/80 backdrop-blur-sm border-primary-foreground/20">
+                <CardContent className="pt-4">
+                  <p className="text-sm text-primary">{today.hint}</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
 
-        {/* Game Grid */}
         <div className="mb-6">
-          <div className="grid gap-2 mb-4" style={{ gridTemplateRows: `repeat(${maxGuesses}, minmax(0, 1fr))` }}>
-            {Array.from({ length: maxGuesses }, (_, rowIndex) => (
+          <div className="grid gap-2 mb-4">
+            {Array.from({ length: MAX_GUESSES }, (_, rowIndex) => (
               <div key={rowIndex} className="flex gap-2 justify-center">
-                {Array.from({ length: dailyWord.letter_count }, (_, colIndex) => (
+                {Array.from({ length: letterCount }, (_, colIndex) => (
                   <div key={colIndex} className={getCellClassName(rowIndex, colIndex)}>
-                    {rowIndex < guesses.length 
-                      ? guesses[rowIndex][colIndex] 
-                      : rowIndex === guesses.length && colIndex < currentGuess.length && !todayGame
-                      ? currentGuess[colIndex]
-                      : ''
-                    }
+                    {rowIndex < guesses.length
+                      ? guesses[rowIndex][colIndex]
+                      : rowIndex === guesses.length && colIndex < currentGuess.length && !finished
+                        ? currentGuess[colIndex]
+                        : ''}
                   </div>
                 ))}
               </div>
@@ -379,8 +241,7 @@ const Wordle = () => {
           </div>
         </div>
 
-        {/* Keyboard */}
-        <div className="mb-6">
+        <div className="mb-8">
           {QWERTY_LAYOUT.map((row, rowIndex) => (
             <div key={rowIndex} className="flex gap-1 justify-center mb-2">
               {row.map((key) => (
@@ -388,27 +249,47 @@ const Wordle = () => {
                   key={key}
                   onClick={() => handleKeyPress(key)}
                   className={getKeyClassName(key)}
-                  disabled={gameState !== 'playing' || !!todayGame || (key === 'ENTER' && isValidating)}
+                  disabled={finished || submitting}
                 >
-                  {key === 'BACKSPACE' ? '⌫' : key === 'ENTER' && isValidating ? '...' : key}
+                  {key === 'BACKSPACE' ? '⌫' : key}
                 </Button>
               ))}
             </div>
           ))}
         </div>
 
-        {/* Game Over Actions */}
-        {(gameState !== 'playing' || todayGame) && (
-          <div className="text-center">
-            <Button onClick={() => window.location.reload()} className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90">
-              <RotateCcw className="w-4 h-4 mr-2" />
-              {todayGame ? 'Check Tomorrow for New Word' : 'Play Again Tomorrow'}
-            </Button>
-          </div>
-        )}
+        <Card className="bg-background/95">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Trophy className="w-4 h-4 text-primary" /> Ranking de hoje
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingLeaderboard ? (
+              <Skeleton className="h-16 w-full" />
+            ) : leaderboard.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Ninguém jogou hoje ainda.</p>
+            ) : (
+              <ul className="divide-y">
+                {leaderboard.map((entry, i) => (
+                  <li
+                    key={entry.studentId}
+                    className={`flex items-center justify-between py-2 text-sm ${entry.isYou ? 'font-semibold text-primary' : ''}`}
+                  >
+                    <span>
+                      {i + 1}º {entry.isYou ? 'Você' : entry.firstName}
+                      {entry.won && !entry.hintUsed && ' 🌟'}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {entry.won ? `${entry.guessesUsed} tentativas` : 'não acertou'} · {entry.points} pts
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
-};
-
-export default Wordle;
+}

@@ -1,182 +1,92 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useEffect, useState, useCallback } from 'react';
+import { api } from '@/lib/api';
 
-interface DailyWord {
-  date: string;
-  word: string;
-  hint: string;
-  letter_count: number;
-}
+export type LetterStatus = 'correct' | 'present' | 'absent';
 
-interface UserStats {
-  browser_id: string;
-  current_streak: number;
-  best_streak: number;
-  games_played: number;
-  total_wins: number;
-  hints_used_total: number;
-}
-
-interface GameSession {
-  browser_id: string;
-  date: string;
+interface GameResult {
   won: boolean;
-  guesses_count: number;
-  hints_used: number;
+  guessesUsed: number;
+  hintUsed: boolean;
+  points: number;
 }
 
-// Generate a persistent browser ID
-const getBrowserId = (): string => {
-  let browserId = localStorage.getItem('wordle_browser_id');
-  if (!browserId) {
-    browserId = 'browser_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
-    localStorage.setItem('wordle_browser_id', browserId);
-  }
-  return browserId;
-};
+interface TodayInfo {
+  date: string;
+  hint: string;
+  letterCount: number;
+  result: GameResult | null;
+}
 
-// Get today's date in YYYY-MM-DD format
-const getTodayDate = (): string => {
-  return new Date().toISOString().split('T')[0].replace(/-/g, '_');
-};
+export interface LeaderboardEntry {
+  studentId: string;
+  isYou: boolean;
+  firstName: string;
+  won: boolean;
+  guessesUsed: number;
+  hintUsed: boolean;
+  points: number;
+}
 
 export const useWordle = () => {
-  const [dailyWord, setDailyWord] = useState<DailyWord | null>(null);
-  const [userStats, setUserStats] = useState<UserStats | null>(null);
-  const [todayGame, setTodayGame] = useState<GameSession | null>(null);
+  const [today, setToday] = useState<TodayInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const browserId = getBrowserId();
-  const todayDate = getTodayDate();
-
-  // Fetch today's word
-  const fetchDailyWord = async () => {
+  const fetchToday = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const { data, error } = await (supabase as any)
-        .from('daily_words')
-        .select('*')
-        .eq('date', todayDate)
-        .maybeSingle();
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          setError('No word available for today');
-        } else {
-          throw error;
-        }
-        return;
-      }
-
-      setDailyWord(data as DailyWord);
+      const data = await api.get<TodayInfo>('/api/wordle/today');
+      setToday(data);
     } catch (err) {
-      console.error('Error fetching daily word:', err);
-      setError('Failed to load today\'s word');
-    }
-  };
-
-  // Fetch user stats
-  const fetchUserStats = async () => {
-    try {
-      const { data, error } = await (supabase as any)
-        .from('user_stats')
-        .select('*')
-        .eq('browser_id', browserId)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-
-      setUserStats((data as UserStats) || {
-        browser_id: browserId,
-        current_streak: 0,
-        best_streak: 0,
-        games_played: 0,
-        total_wins: 0,
-        hints_used_total: 0
-      } as UserStats);
-    } catch (err) {
-      console.error('Error fetching user stats:', err);
-    }
-  };
-
-  // Check if user already played today
-  const checkTodayGame = async () => {
-    try {
-      const { data, error } = await (supabase as any)
-        .from('game_sessions')
-        .select('*')
-        .eq('browser_id', browserId)
-        .eq('date', todayDate)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        throw error;
-      }
-
-      setTodayGame(data as GameSession);
-    } catch (err) {
-      console.error('Error checking today\'s game:', err);
-    }
-  };
-
-  // Save game session
-  const saveGameSession = async (won: boolean, guessesCount: number, hintsUsed: number) => {
-    try {
-      const { data, error } = await (supabase as any)
-        .from('game_sessions')
-        .insert({
-          browser_id: browserId,
-          date: todayDate,
-          won,
-          guesses_count: guessesCount,
-          hints_used: hintsUsed
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setTodayGame(data as GameSession);
-      
-      // Refresh user stats after saving game
-      await fetchUserStats();
-      
-      return data as GameSession;
-    } catch (err) {
-      console.error('Error saving game session:', err);
-      toast.error('Failed to save game progress');
-      throw err;
-    }
-  };
-
-  // Initialize data
-  useEffect(() => {
-    const initializeData = async () => {
-      setLoading(true);
-      setError(null);
-      
-      await Promise.all([
-        fetchDailyWord(),
-        fetchUserStats(),
-        checkTodayGame()
-      ]);
-      
+      console.error('Error fetching today\'s word:', err);
+      setError("Não foi possível carregar o jogo de hoje.");
+    } finally {
       setLoading(false);
-    };
-
-    initializeData();
+    }
   }, []);
 
-  return {
-    dailyWord,
-    userStats,
-    todayGame,
-    loading,
-    error,
-    saveGameSession,
-    browserId
-  };
+  useEffect(() => {
+    fetchToday();
+  }, [fetchToday]);
+
+  const submitGuess = useCallback(async (guess: string) => {
+    return api.post<{ statuses: LetterStatus[]; correct: boolean; word?: string }>('/api/wordle/guess', { guess });
+  }, []);
+
+  const finishGame = useCallback(
+    async (won: boolean, guessesUsed: number, hintUsed: boolean) => {
+      const result = await api.post<GameResult>('/api/wordle/finish', { won, guessesUsed, hintUsed });
+      setToday((prev) => (prev ? { ...prev, result } : prev));
+      return result;
+    },
+    [],
+  );
+
+  return { today, loading, error, submitGuess, finishGame, refresh: fetchToday };
+};
+
+export const useWordleLeaderboard = (date?: string) => {
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchLeaderboard = useCallback(async () => {
+    setLoading(true);
+    try {
+      const qs = date ? `?date=${encodeURIComponent(date)}` : '';
+      const data = await api.get<{ items: LeaderboardEntry[] }>(`/api/wordle/leaderboard${qs}`);
+      setEntries(data.items);
+    } catch (err) {
+      console.error('Error fetching leaderboard:', err);
+      setEntries([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [date]);
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, [fetchLeaderboard]);
+
+  return { entries, loading, refresh: fetchLeaderboard };
 };
