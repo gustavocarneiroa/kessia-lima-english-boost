@@ -91,6 +91,7 @@ export const lessons = sqliteTable("lessons", {
   classLink: text("class_link"), // link da videochamada
   activityLink: text("activity_link"), // link da atividade/exercício
   attended: integer("attended", { mode: "boolean" }), // null = aula ainda não ocorreu
+  makeupScheduled: integer("makeup_scheduled", { mode: "boolean" }).notNull().default(false), // reposição já marcada pra essa falta
   createdAt: text("created_at").notNull(),
 });
 

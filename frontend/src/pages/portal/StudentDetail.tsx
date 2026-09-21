@@ -39,6 +39,7 @@ interface Lesson {
   classLink: string | null;
   activityLink: string | null;
   attended: boolean | null;
+  makeupScheduled: boolean;
 }
 
 const WEEKDAYS: { value: string; label: string }[] = [
@@ -300,6 +301,7 @@ export default function StudentDetail() {
                     {lesson.attended === true && <Badge>Compareceu</Badge>}
                     {lesson.attended === false && <Badge variant="destructive">Faltou</Badge>}
                     {lesson.attended === null && <Badge variant="secondary">Aguardando</Badge>}
+                    {lesson.makeupScheduled && <Badge variant="outline">Reposição marcada</Badge>}
                   </div>
                   <p className="text-xs text-muted-foreground">{formatDateTime(lesson.scheduledAt)}</p>
                   <div className="flex flex-wrap gap-3 text-xs">

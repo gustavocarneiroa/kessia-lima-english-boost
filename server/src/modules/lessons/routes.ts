@@ -12,6 +12,7 @@ const lessonQuery = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
   attended: z.enum(["yes", "no", "pending"]).optional(),
+  makeupScheduled: z.enum(["yes", "no"]).optional(),
 });
 
 const lessonBody = z.object({
@@ -21,6 +22,7 @@ const lessonBody = z.object({
   classLink: z.string().trim().max(2000).optional().nullable(),
   activityLink: z.string().trim().max(2000).optional().nullable(),
   attended: z.boolean().optional().nullable(),
+  makeupScheduled: z.boolean().optional(),
 });
 
 const lessonUpdateBody = lessonBody.partial().extend({
@@ -36,6 +38,7 @@ function serialize(lesson: typeof schema.lessons.$inferSelect) {
     classLink: lesson.classLink,
     activityLink: lesson.activityLink,
     attended: lesson.attended,
+    makeupScheduled: lesson.makeupScheduled,
     createdAt: lesson.createdAt,
   };
 }
@@ -58,6 +61,8 @@ export async function lessonRoutes(app: FastifyInstance) {
     if (q.attended === "yes") conditions.push(eq(schema.lessons.attended, true));
     else if (q.attended === "no") conditions.push(eq(schema.lessons.attended, false));
     else if (q.attended === "pending") conditions.push(isNull(schema.lessons.attended));
+    if (q.makeupScheduled === "yes") conditions.push(eq(schema.lessons.makeupScheduled, true));
+    else if (q.makeupScheduled === "no") conditions.push(eq(schema.lessons.makeupScheduled, false));
 
     const where = conditions.length ? and(...conditions) : undefined;
 
@@ -100,6 +105,7 @@ export async function lessonRoutes(app: FastifyInstance) {
       classLink: parsed.data.classLink || null,
       activityLink: parsed.data.activityLink || null,
       attended: parsed.data.attended ?? null,
+      makeupScheduled: parsed.data.makeupScheduled ?? false,
       createdAt: new Date().toISOString(),
     };
     db.insert(schema.lessons).values(lesson).run();
@@ -134,6 +140,8 @@ export async function lessonRoutes(app: FastifyInstance) {
       activityLink:
         parsed.data.activityLink !== undefined ? parsed.data.activityLink || null : existing.activityLink,
       attended: parsed.data.attended !== undefined ? parsed.data.attended : existing.attended,
+      makeupScheduled:
+        parsed.data.makeupScheduled !== undefined ? parsed.data.makeupScheduled : existing.makeupScheduled,
     };
 
     db.update(schema.lessons).set(values).where(eq(schema.lessons.id, id)).run();

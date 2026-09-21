@@ -118,6 +118,7 @@ sqlite.exec(`
     class_link TEXT,
     activity_link TEXT,
     attended INTEGER,
+    makeup_scheduled INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL
   );
 
@@ -151,6 +152,12 @@ try {
 
 try {
   sqlite.exec(`ALTER TABLE activity_answers ADD COLUMN manual_grades TEXT`);
+} catch {
+  // já existe
+}
+
+try {
+  sqlite.exec(`ALTER TABLE lessons ADD COLUMN makeup_scheduled INTEGER NOT NULL DEFAULT 0`);
 } catch {
   // já existe
 }

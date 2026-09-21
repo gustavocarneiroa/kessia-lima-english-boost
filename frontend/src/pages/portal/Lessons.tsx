@@ -45,6 +45,7 @@ interface Lesson {
   classLink: string | null;
   activityLink: string | null;
   attended: boolean | null;
+  makeupScheduled: boolean;
 }
 
 interface Student {
@@ -95,6 +96,7 @@ export default function Lessons() {
   const [filterFrom, setFilterFrom] = useState("");
   const [filterTo, setFilterTo] = useState("");
   const [filterAttended, setFilterAttended] = useState("");
+  const [filterMakeup, setFilterMakeup] = useState("");
 
   const [editing, setEditing] = useState<Lesson | null>(null);
   const [editForm, setEditForm] = useState(emptyForm);
@@ -114,6 +116,7 @@ export default function Lessons() {
       if (filterFrom) params.set("from", new Date(`${filterFrom}T00:00`).toISOString());
       if (filterTo) params.set("to", new Date(`${filterTo}T23:59:59`).toISOString());
       if (filterAttended) params.set("attended", filterAttended);
+      if (filterMakeup) params.set("makeupScheduled", filterMakeup);
       const res = await api.get<{ items: Lesson[]; total: number }>(`/api/lessons?${params.toString()}`);
       setLessons(res.items);
       setTotal(res.total);
@@ -125,7 +128,7 @@ export default function Lessons() {
   useEffect(() => {
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, filterStudentId, filterFrom, filterTo, filterAttended]);
+  }, [page, filterStudentId, filterFrom, filterTo, filterAttended, filterMakeup]);
 
   useEffect(() => {
     if (isTeacher) {
@@ -138,10 +141,11 @@ export default function Lessons() {
     setFilterFrom("");
     setFilterTo("");
     setFilterAttended("");
+    setFilterMakeup("");
     setPage(1);
   }
 
-  const hasFilters = filterStudentId || filterFrom || filterTo || filterAttended;
+  const hasFilters = filterStudentId || filterFrom || filterTo || filterAttended || filterMakeup;
 
   const studentEmailById = useMemo(() => {
     const map = new Map<string, string>();
@@ -179,6 +183,15 @@ export default function Lessons() {
     setLessons((prev) => prev.map((l) => (l.id === lesson.id ? { ...l, attended } : l)));
     try {
       await api.put(`/api/lessons/${lesson.id}`, { attended });
+    } catch {
+      await load();
+    }
+  }
+
+  async function toggleMakeupScheduled(lesson: Lesson, makeupScheduled: boolean) {
+    setLessons((prev) => prev.map((l) => (l.id === lesson.id ? { ...l, makeupScheduled } : l)));
+    try {
+      await api.put(`/api/lessons/${lesson.id}`, { makeupScheduled });
     } catch {
       await load();
     }
@@ -410,6 +423,25 @@ export default function Lessons() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-1.5">
+              <Label>Reposição</Label>
+              <Select
+                value={filterMakeup || "all"}
+                onValueChange={(v) => {
+                  setFilterMakeup(v === "all" ? "" : v);
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas</SelectItem>
+                  <SelectItem value="yes">Reposição marcada</SelectItem>
+                  <SelectItem value="no">Sem reposição</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           {hasFilters ? (
             <Button variant="ghost" size="sm" onClick={clearFilters} className="mb-4 gap-1 text-muted-foreground">
@@ -436,6 +468,7 @@ export default function Lessons() {
                       {lesson.attended === true && <Badge>Compareceu</Badge>}
                       {lesson.attended === false && <Badge variant="destructive">Faltou</Badge>}
                       {lesson.attended === null && <Badge variant="secondary">Aguardando</Badge>}
+                      {lesson.makeupScheduled && <Badge variant="outline">Reposição marcada</Badge>}
                     </div>
                     <p className="text-sm text-muted-foreground">
                       {formatDateTime(lesson.scheduledAt)}
@@ -477,6 +510,13 @@ export default function Lessons() {
                           onCheckedChange={(checked) => toggleAttended(lesson, checked === true)}
                         />
                         Aluno veio
+                      </label>
+                      <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Checkbox
+                          checked={lesson.makeupScheduled}
+                          onCheckedChange={(checked) => toggleMakeupScheduled(lesson, checked === true)}
+                        />
+                        Reposição marcada
                       </label>
                       <Button variant="ghost" size="icon" onClick={() => openEdit(lesson)} aria-label="Editar aula">
                         <Pencil className="h-4 w-4 text-muted-foreground" />
