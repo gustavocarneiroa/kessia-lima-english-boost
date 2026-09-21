@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { desc, eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
 import { requireTeacher } from "../../auth/guards.ts";
@@ -42,7 +42,8 @@ export async function studentRoutes(app: FastifyInstance) {
       })
       .from(schema.users)
       .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.users.id))
-      .where(eq(schema.users.role, "student"));
+      .where(eq(schema.users.role, "student"))
+      .orderBy(sql`coalesce(${schema.studentProfiles.fullName}, ${schema.users.email}) collate nocase`);
 
     const toPublic = (s: {
       id: string;
@@ -62,12 +63,12 @@ export async function studentRoutes(app: FastifyInstance) {
     // aulas/atividades/vocabulário). Com "page": pagina, usado pela tela de listagem.
     const query = req.query as Record<string, unknown>;
     if (query.page === undefined) {
-      return base.orderBy(desc(schema.users.createdAt)).all().map(toPublic);
+      return base.all().map(toPublic);
     }
 
     const { page, pageSize, offset } = parsePagination(query);
     const total = await db.$count(schema.users, eq(schema.users.role, "student"));
-    const items = base.orderBy(desc(schema.users.createdAt)).limit(pageSize).offset(offset).all().map(toPublic);
+    const items = base.limit(pageSize).offset(offset).all().map(toPublic);
     return { items, total, page, pageSize };
   });
 
