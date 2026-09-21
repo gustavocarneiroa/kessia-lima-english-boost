@@ -138,6 +138,20 @@ sqlite.exec(`
 
   CREATE INDEX IF NOT EXISTS wordle_games_date_idx ON wordle_games(date);
 
+  CREATE TABLE IF NOT EXISTS wordle_guesses (
+    id TEXT PRIMARY KEY,
+    student_id TEXT NOT NULL REFERENCES users(id),
+    date TEXT NOT NULL,
+    guess_index INTEGER NOT NULL,
+    word TEXT NOT NULL,
+    statuses TEXT NOT NULL,
+    phonetic TEXT,
+    audio_url TEXT,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS wordle_guesses_student_date_idx ON wordle_guesses(student_id, date);
+
   CREATE TABLE IF NOT EXISTS app_settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL,

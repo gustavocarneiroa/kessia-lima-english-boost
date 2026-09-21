@@ -118,6 +118,20 @@ export const wordleGames = sqliteTable("wordle_games", {
   createdAt: text("created_at").notNull(),
 });
 
+// Cada tentativa (linha) que o aluno digitou no jogo do dia — guardado pra ele
+// poder revisitar a tentativa de hoje depois (com fonética/áudio da palavra).
+export const wordleGuesses = sqliteTable("wordle_guesses", {
+  id: text("id").primaryKey(),
+  studentId: text("student_id").notNull().references(() => users.id),
+  date: text("date").notNull(), // "YYYY-MM-DD"
+  guessIndex: integer("guess_index").notNull(), // 0-based, ordem da tentativa no dia
+  word: text("word").notNull(),
+  statuses: text("statuses").notNull(), // JSON: ("correct" | "present" | "absent")[]
+  phonetic: text("phonetic"),
+  audioUrl: text("audio_url"),
+  createdAt: text("created_at").notNull(),
+});
+
 export const credentials = sqliteTable("credentials", {
   // credential ID do WebAuthn (base64url), gerado pelo autenticador/dispositivo
   id: text("id").primaryKey(),

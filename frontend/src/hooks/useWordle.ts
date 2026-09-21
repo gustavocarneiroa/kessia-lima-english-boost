@@ -10,10 +10,25 @@ interface GameResult {
   points: number;
 }
 
+export interface GuessRecord {
+  word: string;
+  statuses: LetterStatus[];
+  phonetic: string | null;
+  audioUrl: string | null;
+}
+
 interface TodayInfo {
   date: string;
   letterCount: number;
+  guesses: GuessRecord[];
   result: GameResult | null;
+}
+
+export interface WordleStats {
+  distribution: number[];
+  lost: number;
+  gamesPlayed: number;
+  totalPoints: number;
 }
 
 export interface LeaderboardEntry {
@@ -55,7 +70,10 @@ export const useWordle = () => {
   }, []);
 
   const submitGuess = useCallback(async (guess: string) => {
-    return api.post<{ statuses: LetterStatus[]; correct: boolean; word?: string }>('/api/wordle/guess', { guess });
+    return api.post<{ statuses: LetterStatus[]; correct: boolean; word?: string; phonetic: string | null; audioUrl: string | null }>(
+      '/api/wordle/guess',
+      { guess },
+    );
   }, []);
 
   const finishGame = useCallback(
@@ -93,4 +111,28 @@ export const useWordleLeaderboard = (date?: string) => {
   }, [fetchLeaderboard]);
 
   return { entries, loading, refresh: fetchLeaderboard };
+};
+
+export const useWordleStats = () => {
+  const [stats, setStats] = useState<WordleStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchStats = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await api.get<WordleStats>('/api/wordle/stats');
+      setStats(data);
+    } catch (err) {
+      console.error('Error fetching wordle stats:', err);
+      setStats(null);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  return { stats, loading, refresh: fetchStats };
 };
