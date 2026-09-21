@@ -149,6 +149,26 @@ try {
 } catch {
   // já existe
 }
+try {
+  sqlite.exec(`ALTER TABLE student_profiles ADD COLUMN installment_value TEXT`);
+} catch {
+  // já existe
+}
+try {
+  sqlite.exec(`ALTER TABLE student_profiles ADD COLUMN payment_due_day TEXT`);
+} catch {
+  // já existe
+}
+try {
+  sqlite.exec(`ALTER TABLE student_profiles ADD COLUMN contract_start TEXT`);
+} catch {
+  // já existe
+}
+try {
+  sqlite.exec(`ALTER TABLE student_profiles ADD COLUMN contract_end TEXT`);
+} catch {
+  // já existe
+}
 
 try {
   sqlite.exec(`ALTER TABLE activity_answers ADD COLUMN manual_grades TEXT`);

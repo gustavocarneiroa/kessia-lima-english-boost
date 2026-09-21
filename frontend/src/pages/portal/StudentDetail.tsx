@@ -28,6 +28,10 @@ interface StudentProfile {
   learningGoals?: string | null;
   classWeekday?: string | null;
   classTime?: string | null;
+  installmentValue?: string | null;
+  paymentDueDay?: string | null;
+  contractStart?: string | null;
+  contractEnd?: string | null;
   notes?: string | null;
   updatedAt?: string;
 }
@@ -65,6 +69,10 @@ const emptyProfile: StudentProfile = {
   learningGoals: "",
   classWeekday: "",
   classTime: "",
+  installmentValue: "",
+  paymentDueDay: "",
+  contractStart: "",
+  contractEnd: "",
   notes: "",
 };
 
@@ -257,6 +265,48 @@ export default function StudentDetail() {
                     type="time"
                     value={profile.classTime ?? ""}
                     onChange={(e) => setProfile({ ...profile, classTime: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="installmentValue">Valor da parcela</Label>
+                  <Input
+                    id="installmentValue"
+                    placeholder="ex: R$ 280,00"
+                    value={profile.installmentValue ?? ""}
+                    onChange={(e) => setProfile({ ...profile, installmentValue: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="paymentDueDay">Dia de vencimento</Label>
+                  <Input
+                    id="paymentDueDay"
+                    type="number"
+                    min={1}
+                    max={31}
+                    placeholder="ex: 10"
+                    value={profile.paymentDueDay ?? ""}
+                    onChange={(e) => setProfile({ ...profile, paymentDueDay: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="contractStart">Início do contrato</Label>
+                  <Input
+                    id="contractStart"
+                    type="date"
+                    value={profile.contractStart ?? ""}
+                    onChange={(e) => setProfile({ ...profile, contractStart: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="contractEnd">Fim do contrato</Label>
+                  <Input
+                    id="contractEnd"
+                    type="date"
+                    value={profile.contractEnd ?? ""}
+                    onChange={(e) => setProfile({ ...profile, contractEnd: e.target.value })}
                   />
                 </div>
               </div>

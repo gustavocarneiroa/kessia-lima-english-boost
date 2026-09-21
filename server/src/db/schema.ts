@@ -18,6 +18,10 @@ export const studentProfiles = sqliteTable("student_profiles", {
   learningGoals: text("learning_goals"), // metas de estudo
   classWeekday: text("class_weekday"), // dia da semana da aula fixa (ex.: "tuesday")
   classTime: text("class_time"), // horário da aula fixa, "HH:MM"
+  installmentValue: text("installment_value"), // valor da parcela mensal (texto livre, ex.: "R$ 280,00")
+  paymentDueDay: text("payment_due_day"), // dia do mês do vencimento (ex.: "10")
+  contractStart: text("contract_start"), // início do contrato, "YYYY-MM-DD"
+  contractEnd: text("contract_end"), // fim do contrato, "YYYY-MM-DD" — null se em andamento
   notes: text("notes"), // observações gerais
   updatedAt: text("updated_at").notNull(),
 });

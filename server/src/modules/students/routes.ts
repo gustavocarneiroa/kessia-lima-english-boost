@@ -27,6 +27,28 @@ const profileBody = z.object({
     .or(z.literal(""))
     .optional()
     .nullable(),
+  installmentValue: z.string().trim().max(50).optional().nullable(),
+  paymentDueDay: z
+    .string()
+    .trim()
+    .regex(/^([1-9]|[12]\d|3[01])$/)
+    .or(z.literal(""))
+    .optional()
+    .nullable(),
+  contractStart: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .or(z.literal(""))
+    .optional()
+    .nullable(),
+  contractEnd: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .or(z.literal(""))
+    .optional()
+    .nullable(),
   notes: z.string().trim().max(2000).optional().nullable(),
 });
 
@@ -175,6 +197,10 @@ export async function studentRoutes(app: FastifyInstance) {
       learningGoals: parsed.data.learningGoals || null,
       classWeekday: parsed.data.classWeekday || null,
       classTime: parsed.data.classTime || null,
+      installmentValue: parsed.data.installmentValue || null,
+      paymentDueDay: parsed.data.paymentDueDay || null,
+      contractStart: parsed.data.contractStart || null,
+      contractEnd: parsed.data.contractEnd || null,
       notes: parsed.data.notes || null,
       updatedAt: new Date().toISOString(),
     };
