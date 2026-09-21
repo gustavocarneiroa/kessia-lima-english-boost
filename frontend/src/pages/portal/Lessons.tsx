@@ -192,7 +192,8 @@ export default function Lessons() {
     }
   }
 
-  async function toggleAttended(lesson: Lesson, attended: boolean) {
+  async function setAttendance(lesson: Lesson, status: "pending" | "yes" | "no") {
+    const attended = status === "pending" ? null : status === "yes";
     setLessons((prev) => prev.map((l) => (l.id === lesson.id ? { ...l, attended } : l)));
     try {
       await api.put(`/api/lessons/${lesson.id}`, { attended });
@@ -516,14 +517,20 @@ export default function Lessons() {
                   </div>
 
                   {isTeacher && (
-                    <div className="flex items-center gap-4">
-                      <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Checkbox
-                          checked={lesson.attended === true}
-                          onCheckedChange={(checked) => toggleAttended(lesson, checked === true)}
-                        />
-                        Aluno veio
-                      </label>
+                    <div className="flex flex-wrap items-center gap-4">
+                      <Select
+                        value={lesson.attended === true ? "yes" : lesson.attended === false ? "no" : "pending"}
+                        onValueChange={(v) => setAttendance(lesson, v as "pending" | "yes" | "no")}
+                      >
+                        <SelectTrigger className="w-[150px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Aguardando</SelectItem>
+                          <SelectItem value="yes">Compareceu</SelectItem>
+                          <SelectItem value="no">Faltou</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <label className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Checkbox
                           checked={lesson.makeupScheduled}
