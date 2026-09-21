@@ -19,6 +19,7 @@ import VocabLists from "./pages/portal/VocabLists";
 import VocabListDetail from "./pages/portal/VocabListDetail";
 import Lessons from "./pages/portal/Lessons";
 import Activities from "./pages/portal/Activities";
+import LearningPath from "./pages/portal/LearningPath";
 import ActivityDetail from "./pages/portal/ActivityDetail";
 import Settings from "./pages/portal/Settings";
 
@@ -47,6 +48,7 @@ const App = () => (
               <Route path="aulas" element={<Lessons />} />
               <Route path="atividades" element={<Activities />} />
               <Route path="atividades/:id" element={<ActivityDetail />} />
+              <Route path="trilha" element={<LearningPath />} />
               <Route path="configuracoes" element={<Settings />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

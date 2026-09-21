@@ -87,6 +87,26 @@ export const activityAnswers = sqliteTable("activity_answers", {
   submittedAt: text("submitted_at").notNull(),
 });
 
+// Trilha de aprendizagem: uma lista única de tópicos (gramática, vocabulário,
+// comunicação) que vale pra todos os alunos, na mesma ordem. O progresso de quem
+// já estudou cada tópico é individual — ver learningTopicCompletions.
+export const learningTopics = sqliteTable("learning_topics", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  level: text("level"), // ex.: "A1" ou "B2, C1" (mais de um nível)
+  area: text("area", { enum: ["grammar", "vocabulary", "communication"] }),
+  exerciseUrl: text("exercise_url"),
+  videoUrl: text("video_url"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: text("created_at").notNull(),
+});
+
+export const learningTopicCompletions = sqliteTable("learning_topic_completions", {
+  topicId: text("topic_id").notNull().references(() => learningTopics.id),
+  studentId: text("student_id").notNull().references(() => users.id),
+  completedAt: text("completed_at").notNull(),
+});
+
 export const lessons = sqliteTable("lessons", {
   id: text("id").primaryKey(),
   studentId: text("student_id").notNull().references(() => users.id),

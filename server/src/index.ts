@@ -10,6 +10,7 @@ import { webauthnRoutes } from "./modules/webauthn/routes.ts";
 import { vocabRoutes } from "./modules/vocab/routes.ts";
 import { lessonRoutes } from "./modules/lessons/routes.ts";
 import { activitiesRoutes } from "./modules/activities/routes.ts";
+import { learningPathRoutes } from "./modules/learningPath/routes.ts";
 import { settingsRoutes } from "./modules/settings/routes.ts";
 import { wordleRoutes } from "./modules/wordle/routes.ts";
 
@@ -35,6 +36,7 @@ await app.register(webauthnRoutes);
 await app.register(vocabRoutes);
 await app.register(lessonRoutes);
 await app.register(activitiesRoutes);
+await app.register(learningPathRoutes);
 await app.register(settingsRoutes);
 await app.register(wordleRoutes);
 

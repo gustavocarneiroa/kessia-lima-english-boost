@@ -110,6 +110,24 @@ sqlite.exec(`
     UNIQUE (activity_id, student_id)
   );
 
+  CREATE TABLE IF NOT EXISTS learning_topics (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    level TEXT,
+    area TEXT CHECK (area IN ('grammar', 'vocabulary', 'communication')),
+    exercise_url TEXT,
+    video_url TEXT,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS learning_topic_completions (
+    topic_id TEXT NOT NULL REFERENCES learning_topics(id),
+    student_id TEXT NOT NULL REFERENCES users(id),
+    completed_at TEXT NOT NULL,
+    PRIMARY KEY (topic_id, student_id)
+  );
+
   CREATE TABLE IF NOT EXISTS lessons (
     id TEXT PRIMARY KEY,
     student_id TEXT NOT NULL REFERENCES users(id),

@@ -18,7 +18,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, GraduationCap, LayoutDashboard, Layers, LogOut, Puzzle, Settings, Smartphone, User, Users } from "lucide-react";
+import { CalendarDays, GraduationCap, LayoutDashboard, Layers, LogOut, Map, Puzzle, Settings, Smartphone, User, Users } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
 
@@ -83,6 +83,19 @@ function PortalSidebar({ user, onLogout }: { user: { email: string; role: string
                   >
                     <Layers />
                     <span>Vocabulário</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Trilha de aprendizagem">
+                  <NavLink
+                    to="/portal/trilha"
+                    onClick={closeMobileMenu}
+                    className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
+                  >
+                    <Map />
+                    <span>Trilha</span>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>

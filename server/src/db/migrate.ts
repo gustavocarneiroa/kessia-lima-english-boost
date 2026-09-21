@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { db, sqlite, schema } from "./client.ts";
 import { env } from "../env.ts";
 import { importNotionLessons } from "./import-notion-lessons.ts";
+import { importLearningTopics } from "./import-learning-topics.ts";
 import { importNotionStudents } from "./import-notion-students.ts";
 
 /**
@@ -25,6 +26,7 @@ if (!existing) {
 
 importNotionLessons();
 importNotionStudents();
+importLearningTopics();
 
 sqlite.close();
 console.log("[db] schema ok");
