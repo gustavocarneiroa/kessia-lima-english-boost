@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
-import { requireTeacher } from "../../auth/guards.ts";
+import { requireAuth, requireTeacher } from "../../auth/guards.ts";
 import { parsePagination } from "../../lib/pagination.ts";
 
 const addStudentBody = z.object({
@@ -157,6 +157,34 @@ export async function studentRoutes(app: FastifyInstance) {
     db.delete(schema.lessons).where(eq(schema.lessons.studentId, id)).run();
     db.delete(schema.users).where(eq(schema.users.id, id)).run();
     return reply.code(204).send();
+  });
+
+  app.get("/api/me/profile", { preHandler: requireAuth }, async (req, reply) => {
+    const session = req.session!;
+    if (session.role !== "student") {
+      return reply.code(404).send({ error: "not_found", message: "Sem perfil de aluno." });
+    }
+
+    const profile = db
+      .select({
+        fullName: schema.studentProfiles.fullName,
+        phone: schema.studentProfiles.phone,
+        occupation: schema.studentProfiles.occupation,
+        englishLevel: schema.studentProfiles.englishLevel,
+        interests: schema.studentProfiles.interests,
+        learningGoals: schema.studentProfiles.learningGoals,
+        classWeekday: schema.studentProfiles.classWeekday,
+        classTime: schema.studentProfiles.classTime,
+        installmentValue: schema.studentProfiles.installmentValue,
+        paymentDueDay: schema.studentProfiles.paymentDueDay,
+        contractStart: schema.studentProfiles.contractStart,
+        contractEnd: schema.studentProfiles.contractEnd,
+      })
+      .from(schema.studentProfiles)
+      .where(eq(schema.studentProfiles.userId, session.userId))
+      .get();
+
+    return profile ?? {};
   });
 
   app.get("/api/students/:id/profile", { preHandler: requireTeacher }, async (req, reply) => {

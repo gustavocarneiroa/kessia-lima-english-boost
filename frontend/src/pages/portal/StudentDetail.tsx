@@ -219,26 +219,6 @@ export default function StudentDetail() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="interests">O que gosta de aprender / interesses</Label>
-                <Textarea
-                  id="interests"
-                  rows={2}
-                  value={profile.interests ?? ""}
-                  onChange={(e) => setProfile({ ...profile, interests: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="learningGoals">Metas de estudo</Label>
-                <Textarea
-                  id="learningGoals"
-                  rows={2}
-                  value={profile.learningGoals ?? ""}
-                  onChange={(e) => setProfile({ ...profile, learningGoals: e.target.value })}
-                />
-              </div>
-
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="classWeekday">Dia da aula</Label>
@@ -309,6 +289,26 @@ export default function StudentDetail() {
                     onChange={(e) => setProfile({ ...profile, contractEnd: e.target.value })}
                   />
                 </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="interests">O que gosta de aprender / interesses</Label>
+                <Textarea
+                  id="interests"
+                  rows={2}
+                  value={profile.interests ?? ""}
+                  onChange={(e) => setProfile({ ...profile, interests: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="learningGoals">Metas de estudo</Label>
+                <Textarea
+                  id="learningGoals"
+                  rows={2}
+                  value={profile.learningGoals ?? ""}
+                  onChange={(e) => setProfile({ ...profile, learningGoals: e.target.value })}
+                />
               </div>
 
               <div className="space-y-1.5">
