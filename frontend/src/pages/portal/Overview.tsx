@@ -169,59 +169,56 @@ export default function Overview() {
       </Card>
 
       <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
             <Puzzle className="h-4 w-4 text-primary" /> Jogo do dia · Wordle
           </CardTitle>
-          <CardDescription>Adivinhe a palavra em inglês e dispute o ranking do dia</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {loadingWordle ? (
-            <Skeleton className="h-10 w-full" />
-          ) : (
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="text-sm">
+        <CardContent className="grid gap-4 sm:grid-cols-2 sm:divide-x sm:gap-6">
+          <div className="flex items-center justify-between gap-3 sm:flex-col sm:items-start sm:justify-center">
+            {loadingWordle ? (
+              <Skeleton className="h-8 w-full" />
+            ) : (
+              <p className="text-sm text-muted-foreground">
                 {wordleToday?.result ? (
                   wordleToday.result.won ? (
-                    <span>
-                      Você já jogou hoje e acertou em {wordleToday.result.guessesUsed}{" "}
-                      {wordleToday.result.guessesUsed === 1 ? "tentativa" : "tentativas"} (+{wordleToday.result.points} pontos).
-                    </span>
+                    <>
+                      Você acertou em {wordleToday.result.guessesUsed}{" "}
+                      {wordleToday.result.guessesUsed === 1 ? "tentativa" : "tentativas"} hoje (+{wordleToday.result.points} pts).
+                    </>
                   ) : (
-                    <span>Você já jogou hoje. Volte amanhã para uma nova palavra!</span>
+                    "Você já jogou hoje. Volte amanhã!"
                   )
                 ) : (
-                  <span className="text-muted-foreground">Você ainda não jogou hoje.</span>
+                  "Você ainda não jogou hoje."
                 )}
-              </div>
-              <Button asChild size="sm">
-                <Link to="/wordle">{wordleToday?.result ? "Ver ranking" : "Jogar agora"}</Link>
-              </Button>
-            </div>
-          )}
+              </p>
+            )}
+            <Button asChild size="sm" className="shrink-0">
+              <Link to="/wordle">{wordleToday?.result ? "Jogar de novo amanhã" : "Jogar agora"}</Link>
+            </Button>
+          </div>
 
-          <div>
-            <p className="mb-2 flex items-center gap-1 text-sm font-medium">
-              <Trophy className="h-3.5 w-3.5 text-primary" /> Ranking de hoje
+          <div className="sm:pl-6">
+            <p className="mb-1 flex items-center gap-1 text-xs font-medium text-muted-foreground">
+              <Trophy className="h-3.5 w-3.5 text-primary" /> Top 3 de hoje
             </p>
             {loadingLeaderboard ? (
-              <Skeleton className="h-16 w-full" />
+              <Skeleton className="h-12 w-full" />
             ) : leaderboard.length === 0 ? (
               <p className="text-sm text-muted-foreground">Ninguém jogou hoje ainda.</p>
             ) : (
-              <ul className="divide-y">
-                {leaderboard.slice(0, 5).map((entry, i) => (
+              <ul className="space-y-0.5">
+                {leaderboard.slice(0, 3).map((entry, i) => (
                   <li
                     key={entry.studentId}
-                    className={`flex items-center justify-between py-2 text-sm ${entry.isYou ? "font-semibold text-primary" : ""}`}
+                    className={`flex items-center justify-between text-sm ${entry.isYou ? "font-semibold text-primary" : ""}`}
                   >
                     <span>
                       {i + 1}º {entry.isYou ? "Você" : entry.firstName}
                       {entry.won && !entry.hintUsed && " 🌟"}
                     </span>
-                    <span className="text-muted-foreground">
-                      {entry.won ? `${entry.guessesUsed} tentativas` : "não acertou"} · {entry.points} pts
-                    </span>
+                    <span className="text-muted-foreground">{entry.points} pts</span>
                   </li>
                 ))}
               </ul>

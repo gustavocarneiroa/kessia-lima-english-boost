@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Lightbulb, CheckCircle, XCircle, Trophy, ArrowLeft } from 'lucide-react';
+import { Lightbulb, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { useWordle, useWordleLeaderboard, type LetterStatus } from '@/hooks/useWordle';
+import { useWordle, type LetterStatus } from '@/hooks/useWordle';
 
 const QWERTY_LAYOUT = [
   ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
@@ -19,14 +19,14 @@ const MAX_GUESSES = 6;
 export default function Wordle() {
   const { user, loading: loadingUser } = useAuth();
   const navigate = useNavigate();
-  const { today, loading, error, submitGuess, finishGame } = useWordle();
-  const { entries: leaderboard, loading: loadingLeaderboard, refresh: refreshLeaderboard } = useWordleLeaderboard();
+  const { today, loading, error, fetchHint, submitGuess, finishGame } = useWordle();
 
   const [currentGuess, setCurrentGuess] = useState('');
   const [guesses, setGuesses] = useState<string[]>([]);
   const [guessStatuses, setGuessStatuses] = useState<LetterStatus[][]>([]);
   const [usedLetters, setUsedLetters] = useState<Map<string, LetterStatus>>(new Map());
-  const [showHint, setShowHint] = useState(false);
+  const [hint, setHint] = useState<string | null>(null);
+  const [loadingHint, setLoadingHint] = useState(false);
   const [hintUsed, setHintUsed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [finalWord, setFinalWord] = useState<string | null>(null);
@@ -63,7 +63,6 @@ export default function Wordle() {
       if (gameOver) {
         if (res.word) setFinalWord(res.word);
         await finishGame(res.correct, newGuesses.length, hintUsed);
-        refreshLeaderboard();
         if (res.correct) {
           toast.success(`Parabéns! Você acertou em ${newGuesses.length} ${newGuesses.length === 1 ? 'tentativa' : 'tentativas'}!`);
         } else {
@@ -89,6 +88,32 @@ export default function Wordle() {
       setCurrentGuess((prev) => prev.slice(0, -1));
     } else if (key.length === 1 && /[A-Z]/.test(key)) {
       if (currentGuess.length < letterCount) setCurrentGuess((prev) => prev + key);
+    }
+  };
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (finished || submitting) return;
+      const key = e.key.toUpperCase();
+      if (key === 'ENTER' || key === 'BACKSPACE' || /^[A-Z]$/.test(key)) {
+        e.preventDefault();
+        handleKeyPress(key);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  });
+
+  const handleHintClick = async () => {
+    if (hint || loadingHint) return;
+    setLoadingHint(true);
+    try {
+      setHint(await fetchHint());
+      setHintUsed(true);
+    } catch {
+      toast.error('Não foi possível carregar a dica.');
+    } finally {
+      setLoadingHint(false);
     }
   };
 
@@ -126,9 +151,9 @@ export default function Wordle() {
           return `${baseClass} bg-muted text-muted-foreground/90 border-muted`;
       }
     } else if (rowIndex === guesses.length && !finished) {
-      return `${baseClass} ${colIndex < currentGuess.length ? 'bg-primary/10' : ''} text-foreground`;
+      return `${baseClass} ${colIndex < currentGuess.length ? 'bg-primary-foreground/10' : ''} text-primary-foreground`;
     }
-    return `${baseClass} text-foreground`;
+    return `${baseClass} text-primary-foreground`;
   };
 
   if (loadingUser || !user) return null;
@@ -202,21 +227,18 @@ export default function Wordle() {
         {!finished && (
           <div className="mb-6">
             <Button
-              onClick={() => {
-                setShowHint(true);
-                setHintUsed(true);
-              }}
-              disabled={showHint}
+              onClick={handleHintClick}
+              disabled={!!hint || loadingHint}
               variant="outline"
               className="w-full bg-background border-primary-foreground/20 text-primary hover:bg-primary-foreground hover:text-primary"
             >
               <Lightbulb className="w-4 h-4 mr-2" />
-              {showHint ? 'Dica usada' : 'Ver dica'}
+              {hint ? 'Dica usada' : loadingHint ? 'Carregando...' : 'Ver dica'}
             </Button>
-            {showHint && (
+            {hint && (
               <Card className="mt-2 bg-background/80 backdrop-blur-sm border-primary-foreground/20">
                 <CardContent className="pt-4">
-                  <p className="text-sm text-primary">{today.hint}</p>
+                  <p className="text-sm text-primary">{hint}</p>
                 </CardContent>
               </Card>
             )}
@@ -258,37 +280,12 @@ export default function Wordle() {
           ))}
         </div>
 
-        <Card className="bg-background/95">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Trophy className="w-4 h-4 text-primary" /> Ranking de hoje
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loadingLeaderboard ? (
-              <Skeleton className="h-16 w-full" />
-            ) : leaderboard.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Ninguém jogou hoje ainda.</p>
-            ) : (
-              <ul className="divide-y">
-                {leaderboard.map((entry, i) => (
-                  <li
-                    key={entry.studentId}
-                    className={`flex items-center justify-between py-2 text-sm ${entry.isYou ? 'font-semibold text-primary' : ''}`}
-                  >
-                    <span>
-                      {i + 1}º {entry.isYou ? 'Você' : entry.firstName}
-                      {entry.won && !entry.hintUsed && ' 🌟'}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {entry.won ? `${entry.guessesUsed} tentativas` : 'não acertou'} · {entry.points} pts
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+        <Link
+          to="/portal"
+          className="block text-center text-sm text-primary-foreground/80 hover:text-primary-foreground underline"
+        >
+          Ver ranking do dia na página inicial
+        </Link>
       </div>
     </div>
   );

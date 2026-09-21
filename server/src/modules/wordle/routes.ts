@@ -47,7 +47,7 @@ const finishBody = z.object({
 export async function wordleRoutes(app: FastifyInstance) {
   app.get("/api/wordle/today", { preHandler: requireAuth }, async (req) => {
     const date = todayDateKey();
-    const { hint, letterCount } = getWordOfTheDay(date);
+    const { letterCount } = getWordOfTheDay(date);
     const existing = db
       .select()
       .from(schema.wordleGames)
@@ -56,12 +56,18 @@ export async function wordleRoutes(app: FastifyInstance) {
 
     return {
       date,
-      hint,
       letterCount,
       result: existing
         ? { won: existing.won, guessesUsed: existing.guessesUsed, hintUsed: existing.hintUsed, points: existing.points }
         : null,
     };
+  });
+
+  // Dica só é enviada quando o aluno pede — assim não dá pra "descobrir" ela
+  // olhando a resposta de /today antes de clicar em "Ver dica".
+  app.get("/api/wordle/hint", { preHandler: requireAuth }, async () => {
+    const { hint } = getWordOfTheDay(todayDateKey());
+    return { hint };
   });
 
   app.post("/api/wordle/guess", { preHandler: requireAuth }, async (req, reply) => {

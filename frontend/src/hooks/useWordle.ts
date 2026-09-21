@@ -12,7 +12,6 @@ interface GameResult {
 
 interface TodayInfo {
   date: string;
-  hint: string;
   letterCount: number;
   result: GameResult | null;
 }
@@ -50,6 +49,11 @@ export const useWordle = () => {
     fetchToday();
   }, [fetchToday]);
 
+  const fetchHint = useCallback(async () => {
+    const data = await api.get<{ hint: string }>('/api/wordle/hint');
+    return data.hint;
+  }, []);
+
   const submitGuess = useCallback(async (guess: string) => {
     return api.post<{ statuses: LetterStatus[]; correct: boolean; word?: string }>('/api/wordle/guess', { guess });
   }, []);
@@ -63,7 +67,7 @@ export const useWordle = () => {
     [],
   );
 
-  return { today, loading, error, submitGuess, finishGame, refresh: fetchToday };
+  return { today, loading, error, fetchHint, submitGuess, finishGame, refresh: fetchToday };
 };
 
 export const useWordleLeaderboard = (date?: string) => {
