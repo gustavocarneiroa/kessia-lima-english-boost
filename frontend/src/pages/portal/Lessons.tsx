@@ -154,6 +154,18 @@ export default function Lessons() {
     return map;
   }, [students]);
 
+  async function selectStudentForNewLesson(studentId: string) {
+    setForm((prev) => ({ ...prev, studentId }));
+    try {
+      const profile = await api.get<{ classTime?: string | null }>(`/api/students/${studentId}/profile`);
+      if (profile.classTime) {
+        setForm((prev) => (prev.studentId === studentId ? { ...prev, time: profile.classTime! } : prev));
+      }
+    } catch {
+      // sem perfil cadastrado ainda — mantém o horário como está
+    }
+  }
+
   async function create(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -273,7 +285,7 @@ export default function Lessons() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label>Aluno</Label>
-                  <Select value={form.studentId} onValueChange={(v) => setForm({ ...form, studentId: v })}>
+                  <Select value={form.studentId} onValueChange={(v) => void selectStudentForNewLesson(v)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Escolha o aluno" />
                     </SelectTrigger>

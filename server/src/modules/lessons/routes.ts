@@ -69,9 +69,10 @@ export async function lessonRoutes(app: FastifyInstance) {
     const totalRow = db.select({ count: sql<number>`count(*)` }).from(schema.lessons).where(where).get();
 
     const rows = db
-      .select({ lesson: schema.lessons, studentEmail: schema.users.email })
+      .select({ lesson: schema.lessons, studentEmail: schema.users.email, studentName: schema.studentProfiles.fullName })
       .from(schema.lessons)
       .leftJoin(schema.users, eq(schema.users.id, schema.lessons.studentId))
+      .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.lessons.studentId))
       .where(where)
       .orderBy(desc(schema.lessons.scheduledAt))
       .limit(pageSize)
@@ -79,7 +80,7 @@ export async function lessonRoutes(app: FastifyInstance) {
       .all();
 
     return {
-      items: rows.map((r) => ({ ...serialize(r.lesson), studentEmail: r.studentEmail })),
+      items: rows.map((r) => ({ ...serialize(r.lesson), studentEmail: r.studentEmail, studentName: r.studentName })),
       total: totalRow?.count ?? 0,
       page,
       pageSize,

@@ -1,7 +1,20 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, ClipboardList, Layers, Smartphone, Users, type LucideIcon } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  CalendarDays,
+  ClipboardList,
+  Layers,
+  Loader2,
+  Smartphone,
+  Users,
+  Link as LinkIcon,
+  ExternalLink,
+  type LucideIcon,
+} from "lucide-react";
 
 interface ShortcutItem {
   to: string;
@@ -9,6 +22,19 @@ interface ShortcutItem {
   description: string;
   icon: LucideIcon;
   teacherOnly?: boolean;
+}
+
+interface Lesson {
+  id: string;
+  studentId: string;
+  studentEmail?: string | null;
+  studentName?: string | null;
+  scheduledAt: string;
+  subject: string;
+  classLink: string | null;
+  activityLink: string | null;
+  attended: boolean | null;
+  makeupScheduled: boolean;
 }
 
 const shortcuts: ShortcutItem[] = [
@@ -45,8 +71,32 @@ const shortcuts: ShortcutItem[] = [
   },
 ];
 
+function formatTime(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
 export default function Overview() {
   const { user } = useAuth();
+  const [todayLessons, setTodayLessons] = useState<Lesson[]>([]);
+  const [loadingToday, setLoadingToday] = useState(true);
+
+  useEffect(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    const params = new URLSearchParams();
+    params.set("from", start.toISOString());
+    params.set("to", end.toISOString());
+    params.set("pageSize", "100");
+    api
+      .get<{ items: Lesson[] }>(`/api/lessons?${params.toString()}`)
+      .then((res) => setTodayLessons(res.items))
+      .catch(() => setTodayLessons([]))
+      .finally(() => setLoadingToday(false));
+  }, []);
+
   if (!user) return null;
 
   const isTeacher = user.role === "teacher";
@@ -61,13 +111,54 @@ export default function Overview() {
 
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>{isTeacher ? "Bem-vinda ao portal" : "Bem-vindo(a) ao portal"}</CardTitle>
+          <CardTitle>Aulas de hoje</CardTitle>
           <CardDescription>
-            {isTeacher
-              ? "Use os atalhos abaixo (ou o menu ao lado) para gerenciar as aulas, os alunos, o vocabulário e os dispositivos cadastrados."
-              : "Use os atalhos abaixo (ou o menu ao lado) para ver suas aulas, estudar o vocabulário e gerenciar seus dispositivos."}
+            {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}
           </CardDescription>
         </CardHeader>
+        <CardContent>
+          {loadingToday ? (
+            <div className="flex justify-center py-4 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" />
+            </div>
+          ) : todayLessons.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhuma aula marcada para hoje.</p>
+          ) : (
+            <ul className="divide-y">
+              {[...todayLessons]
+                .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
+                .map((lesson) => (
+                  <li key={lesson.id} className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium">{formatTime(lesson.scheduledAt)}</span>
+                        <span className="text-sm text-muted-foreground">{lesson.subject}</span>
+                        {isTeacher && (
+                          <span className="text-sm text-muted-foreground">
+                            · {lesson.studentName || lesson.studentEmail}
+                          </span>
+                        )}
+                        {lesson.attended === true && <Badge>Compareceu</Badge>}
+                        {lesson.attended === false && <Badge variant="destructive">Faltou</Badge>}
+                        {lesson.makeupScheduled && <Badge variant="outline">Reposição marcada</Badge>}
+                      </div>
+                    </div>
+                    {lesson.classLink && (
+                      <a
+                        href={lesson.classLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
+                      >
+                        <LinkIcon className="h-3.5 w-3.5" /> Link da aula
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                  </li>
+                ))}
+            </ul>
+          )}
+        </CardContent>
       </Card>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
