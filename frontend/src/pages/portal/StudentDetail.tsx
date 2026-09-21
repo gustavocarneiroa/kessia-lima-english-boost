@@ -13,6 +13,7 @@ import { Loader2, ArrowLeft, Link as LinkIcon, ClipboardList, ExternalLink } fro
 interface Student {
   id: string;
   email: string;
+  fullName?: string | null;
   createdAt: string;
   hasLoggedIn: boolean;
 }
@@ -126,6 +127,7 @@ export default function StudentDetail() {
     try {
       const { userId, updatedAt, ...body } = profile;
       await api.put(`/api/students/${id}/profile`, body);
+      setStudent((prev) => (prev ? { ...prev, fullName: body.fullName ?? null } : prev));
       setSaved(true);
     } catch (err) {
       setProfileError(err instanceof ApiError ? err.message : "Não foi possível salvar o perfil.");
@@ -152,8 +154,9 @@ export default function StudentDetail() {
           <ArrowLeft className="h-4 w-4" /> Voltar para alunos
         </Link>
         <h1 className="text-2xl font-semibold tracking-tight">
-          {loading ? "Carregando..." : student?.email}
+          {loading ? "Carregando..." : student?.fullName || student?.email}
         </h1>
+        {student?.fullName && <p className="text-sm text-muted-foreground">{student.email}</p>}
         {student && (
           <Badge variant={student.hasLoggedIn ? "default" : "secondary"}>
             {student.hasLoggedIn ? "Já fez login" : "Ainda não fez login"}

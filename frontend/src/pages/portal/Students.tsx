@@ -13,6 +13,7 @@ const PAGE_SIZE = 20;
 interface Student {
   id: string;
   email: string;
+  fullName?: string | null;
   createdAt: string;
   hasLoggedIn: boolean;
 }
@@ -114,7 +115,8 @@ export default function Students() {
               {students.map((s) => (
                 <li key={s.id} className="flex items-center justify-between gap-3 py-3">
                   <Link to={`/portal/alunos/${s.id}`} className="min-w-0 flex-1 hover:underline">
-                    <p className="truncate text-sm font-medium">{s.email}</p>
+                    <p className="truncate text-sm font-medium">{s.fullName || s.email}</p>
+                    {s.fullName && <p className="truncate text-xs text-muted-foreground">{s.email}</p>}
                     <Badge variant={s.hasLoggedIn ? "default" : "secondary"} className="mt-1">
                       {s.hasLoggedIn ? "Já fez login" : "Ainda não fez login"}
                     </Badge>

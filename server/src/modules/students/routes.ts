@@ -38,13 +38,22 @@ export async function studentRoutes(app: FastifyInstance) {
         email: schema.users.email,
         createdAt: schema.users.createdAt,
         passwordHash: schema.users.passwordHash,
+        fullName: schema.studentProfiles.fullName,
       })
       .from(schema.users)
+      .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.users.id))
       .where(eq(schema.users.role, "student"));
 
-    const toPublic = (s: { id: string; email: string; createdAt: string; passwordHash: string | null }) => ({
+    const toPublic = (s: {
+      id: string;
+      email: string;
+      createdAt: string;
+      passwordHash: string | null;
+      fullName: string | null;
+    }) => ({
       id: s.id,
       email: s.email,
+      fullName: s.fullName,
       createdAt: s.createdAt,
       hasLoggedIn: s.passwordHash !== null,
     });
@@ -68,7 +77,18 @@ export async function studentRoutes(app: FastifyInstance) {
     if (!student || student.role !== "student") {
       return reply.code(404).send({ error: "not_found", message: "Aluno não encontrado." });
     }
-    return { id: student.id, email: student.email, createdAt: student.createdAt, hasLoggedIn: student.passwordHash !== null };
+    const profile = db
+      .select({ fullName: schema.studentProfiles.fullName })
+      .from(schema.studentProfiles)
+      .where(eq(schema.studentProfiles.userId, id))
+      .get();
+    return {
+      id: student.id,
+      email: student.email,
+      fullName: profile?.fullName ?? null,
+      createdAt: student.createdAt,
+      hasLoggedIn: student.passwordHash !== null,
+    };
   });
 
   app.post("/api/students", { preHandler: requireTeacher }, async (req, reply) => {
