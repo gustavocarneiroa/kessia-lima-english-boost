@@ -51,6 +51,7 @@ interface Lesson {
 interface Student {
   id: string;
   email: string;
+  fullName?: string | null;
 }
 
 const emptyForm = {
@@ -149,7 +150,7 @@ export default function Lessons() {
 
   const studentEmailById = useMemo(() => {
     const map = new Map<string, string>();
-    students.forEach((s) => map.set(s.id, s.email));
+    students.forEach((s) => map.set(s.id, s.fullName || s.email));
     return map;
   }, [students]);
 
@@ -279,7 +280,7 @@ export default function Lessons() {
                     <SelectContent>
                       {students.map((s) => (
                         <SelectItem key={s.id} value={s.id}>
-                          {s.email}
+                          {s.fullName || s.email}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -372,7 +373,7 @@ export default function Lessons() {
                     <SelectItem value="all">Todos os alunos</SelectItem>
                     {students.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
-                        {s.email}
+                        {s.fullName || s.email}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -472,8 +473,8 @@ export default function Lessons() {
                     </div>
                     <p className="text-sm text-muted-foreground">
                       {formatDateTime(lesson.scheduledAt)}
-                      {isTeacher && (lesson.studentEmail ?? studentEmailById.get(lesson.studentId))
-                        ? ` · ${lesson.studentEmail ?? studentEmailById.get(lesson.studentId)}`
+                      {isTeacher && (studentEmailById.get(lesson.studentId) ?? lesson.studentEmail)
+                        ? ` · ${studentEmailById.get(lesson.studentId) ?? lesson.studentEmail}`
                         : ""}
                     </p>
                     <div className="flex flex-wrap gap-3 text-sm">
@@ -554,7 +555,7 @@ export default function Lessons() {
                   <SelectContent>
                     {students.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
-                        {s.email}
+                        {s.fullName || s.email}
                       </SelectItem>
                     ))}
                   </SelectContent>

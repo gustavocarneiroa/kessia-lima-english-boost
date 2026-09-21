@@ -377,9 +377,11 @@ export async function activitiesRoutes(app: FastifyInstance) {
             manualGrades: schema.activityAnswers.manualGrades,
             submittedAt: schema.activityAnswers.submittedAt,
             email: schema.users.email,
+            fullName: schema.studentProfiles.fullName,
           })
           .from(schema.activityAnswers)
           .innerJoin(schema.users, eq(schema.users.id, schema.activityAnswers.studentId))
+          .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.activityAnswers.studentId))
           .where(eq(schema.activityAnswers.activityId, id))
           .all();
         const results = rows.map((r) => ({
@@ -427,9 +429,11 @@ export async function activitiesRoutes(app: FastifyInstance) {
           total: schema.activityAnswers.total,
           submittedAt: schema.activityAnswers.submittedAt,
           email: schema.users.email,
+          fullName: schema.studentProfiles.fullName,
         })
         .from(schema.activityAnswers)
         .innerJoin(schema.users, eq(schema.users.id, schema.activityAnswers.studentId))
+        .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.activityAnswers.studentId))
         .where(eq(schema.activityAnswers.activityId, id))
         .all();
       return { ...activity, questions, studentIds, results };

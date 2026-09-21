@@ -40,6 +40,7 @@ interface Submission {
 interface StudentResult {
   studentId: string;
   email: string;
+  fullName?: string | null;
   score: number;
   total: number;
   submittedAt: string;
@@ -63,6 +64,7 @@ interface ActivityDetail {
 interface Student {
   id: string;
   email: string;
+  fullName?: string | null;
 }
 
 export default function ActivityDetail() {
@@ -408,7 +410,7 @@ export default function ActivityDetail() {
                 {activity.results!.map((r) => (
                   <div key={r.studentId} className="space-y-2 rounded-md border p-3">
                     <div className="flex justify-between text-sm">
-                      <span className="font-medium">{r.email}</span>
+                      <span className="font-medium">{r.fullName || r.email}</span>
                       <span>{r.score}/{r.total} (múltipla escolha)</span>
                     </div>
                     {(activity.questions as QuizItem[]).map((q, qi) => {
@@ -565,7 +567,7 @@ export default function ActivityDetail() {
                 <ul className="space-y-1 text-sm">
                   {activity.results!.map((r) => (
                     <li key={r.studentId} className="flex justify-between">
-                      <span>{r.email}</span>
+                      <span>{r.fullName || r.email}</span>
                       <span className="font-medium">
                         {r.score}/{r.total}
                       </span>
@@ -599,7 +601,7 @@ export default function ActivityDetail() {
                         setSelected(next);
                       }}
                     />
-                    <span className="text-sm">{s.email}</span>
+                    <span className="text-sm">{s.fullName || s.email}</span>
                   </li>
                 ))}
               </ul>

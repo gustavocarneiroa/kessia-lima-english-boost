@@ -38,6 +38,7 @@ interface ListDetail {
 interface Student {
   id: string;
   email: string;
+  fullName?: string | null;
 }
 
 export default function VocabListDetail() {
@@ -363,7 +364,7 @@ export default function VocabListDetail() {
                           setSelected(next);
                         }}
                       />
-                      <span className="text-sm">{s.email}</span>
+                      <span className="text-sm">{s.fullName || s.email}</span>
                     </li>
                   ))}
                 </ul>
