@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { db, schema } from "./client.ts";
+import { getSetting, setSetting } from "../lib/settings.ts";
 
 type NotionLesson = {
   subject: string;
@@ -12,12 +13,17 @@ type NotionLesson = {
 const dataPath = fileURLToPath(new URL("./seed-data/notion-lessons-import.json", import.meta.url));
 const lessonsByEmail: Record<string, NotionLesson[]> = JSON.parse(readFileSync(dataPath, "utf8"));
 
+const IMPORTED_FLAG = "notion_lessons_imported";
+
 /**
- * Histórico de aulas trazido do Notion (planilha "Aulas TKL"). Roda a cada deploy:
- * quando o e-mail de um aluno bate com um aluno já cadastrado no portal, importa
- * as aulas dele que ainda não estão no banco (idempotente — nada duplica).
+ * Histórico de aulas trazido do Notion (planilha "Aulas TKL"). Roda só uma vez —
+ * depois disso, marca em app_settings que já rodou e nunca mais mexe nas aulas.
+ * Rodar de novo a cada deploy faria uma aula apagada pela professora "voltar"
+ * porque o e-mail/data/assunto dela ainda bate com a planilha antiga.
  */
 export function importNotionLessons() {
+  if (getSetting(IMPORTED_FLAG)) return;
+
   let imported = 0;
 
   for (const [email, lessons] of Object.entries(lessonsByEmail)) {
@@ -61,4 +67,5 @@ export function importNotionLessons() {
   if (imported > 0) {
     console.log(`[db] histórico do Notion: ${imported} aula(s) importada(s)`);
   }
+  setSetting(IMPORTED_FLAG, new Date().toISOString());
 }

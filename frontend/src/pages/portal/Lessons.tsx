@@ -31,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Plus, Trash2, Pencil, Link as LinkIcon, ClipboardList, ExternalLink, X } from "lucide-react";
+import { Loader2, Plus, Trash2, Pencil, Copy, Link as LinkIcon, ClipboardList, ExternalLink, X } from "lucide-react";
 import Pagination from "@/components/Pagination";
 
 const PAGE_SIZE = 20;
@@ -164,6 +164,17 @@ export default function Lessons() {
     } catch {
       // sem perfil cadastrado ainda — mantém o horário como está
     }
+  }
+
+  function duplicateLesson(lesson: Lesson) {
+    setForm({
+      studentId: lesson.studentId,
+      ...splitDateTime(lesson.scheduledAt),
+      subject: lesson.subject,
+      classLink: lesson.classLink ?? "",
+      activityLink: lesson.activityLink ?? "",
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function create(e: React.FormEvent) {
@@ -538,6 +549,9 @@ export default function Lessons() {
                         />
                         Reposição marcada
                       </label>
+                      <Button variant="ghost" size="icon" onClick={() => duplicateLesson(lesson)} aria-label="Duplicar aula">
+                        <Copy className="h-4 w-4 text-muted-foreground" />
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => openEdit(lesson)} aria-label="Editar aula">
                         <Pencil className="h-4 w-4 text-muted-foreground" />
                       </Button>

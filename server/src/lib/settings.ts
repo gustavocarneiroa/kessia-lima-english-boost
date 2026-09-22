@@ -3,11 +3,11 @@ import { db, schema } from "../db/client.ts";
 
 const OPENAI_API_KEY_SETTING = "openai_api_key";
 
-function getSetting(key: string): string | null {
+export function getSetting(key: string): string | null {
   return db.select().from(schema.appSettings).where(eq(schema.appSettings.key, key)).get()?.value ?? null;
 }
 
-function setSetting(key: string, value: string): void {
+export function setSetting(key: string, value: string): void {
   const now = new Date().toISOString();
   db.insert(schema.appSettings)
     .values({ key, value, updatedAt: now })
