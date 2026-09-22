@@ -191,6 +191,11 @@ try {
   // já existe
 }
 try {
+  sqlite.exec(`ALTER TABLE student_profiles ADD COLUMN birth_date TEXT`);
+} catch {
+  // já existe
+}
+try {
   sqlite.exec(`ALTER TABLE student_profiles ADD COLUMN class_time TEXT`);
 } catch {
   // já existe

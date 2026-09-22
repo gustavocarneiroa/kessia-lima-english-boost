@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   CalendarDays,
+  Cake,
   ClipboardList,
   Layers,
   Loader2,
@@ -27,6 +28,13 @@ interface ShortcutItem {
   description: string;
   icon: LucideIcon;
   teacherOnly?: boolean;
+}
+
+interface Birthday {
+  id: string;
+  email: string;
+  fullName?: string | null;
+  birthDate: string;
 }
 
 interface Lesson {
@@ -86,8 +94,12 @@ export default function Overview() {
   const { user } = useAuth();
   const [todayLessons, setTodayLessons] = useState<Lesson[]>([]);
   const [loadingToday, setLoadingToday] = useState(true);
+  const [birthdays, setBirthdays] = useState<Birthday[]>([]);
+  const [loadingBirthdays, setLoadingBirthdays] = useState(true);
   const { today: wordleToday, loading: loadingWordle } = useWordle();
   const { entries: leaderboard, loading: loadingLeaderboard } = useWordleLeaderboard();
+
+  const isTeacher = user?.role === "teacher";
 
   useEffect(() => {
     const now = new Date();
@@ -104,9 +116,19 @@ export default function Overview() {
       .finally(() => setLoadingToday(false));
   }, []);
 
-  if (!user) return null;
+  useEffect(() => {
+    if (!isTeacher) {
+      setLoadingBirthdays(false);
+      return;
+    }
+    api
+      .get<Birthday[]>("/api/birthdays/today")
+      .then(setBirthdays)
+      .catch(() => setBirthdays([]))
+      .finally(() => setLoadingBirthdays(false));
+  }, [isTeacher]);
 
-  const isTeacher = user.role === "teacher";
+  if (!user) return null;
   const visibleShortcuts = shortcuts.filter((s) => !s.teacherOnly || isTeacher);
 
   return (
@@ -115,6 +137,27 @@ export default function Overview() {
         Olá, {isTeacher ? "professora" : "aluno(a)"}!
       </h1>
       <p className="text-muted-foreground">{user.email}</p>
+
+      {isTeacher && !loadingBirthdays && birthdays.length > 0 && (
+        <Card className="mt-6 border-primary/40 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Cake className="h-5 w-5 text-primary" /> Aniversário hoje!
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-1">
+              {birthdays.map((b) => (
+                <li key={b.id}>
+                  <Link to={`/portal/alunos/${b.id}`} className="font-medium hover:underline">
+                    {b.fullName || b.email}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="mt-6">
         <CardHeader>

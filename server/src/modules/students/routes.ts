@@ -11,6 +11,13 @@ const addStudentBody = z.object({
 
 const profileBody = z.object({
   fullName: z.string().trim().max(200).optional().nullable(),
+  birthDate: z
+    .string()
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .or(z.literal(""))
+    .optional()
+    .nullable(),
   phone: z.string().trim().max(50).optional().nullable(),
   occupation: z.string().trim().max(200).optional().nullable(),
   englishLevel: z.string().trim().max(100).optional().nullable(),
@@ -53,6 +60,22 @@ const profileBody = z.object({
 });
 
 export async function studentRoutes(app: FastifyInstance) {
+  app.get("/api/birthdays/today", { preHandler: requireTeacher }, async () => {
+    const rows = db
+      .select({
+        id: schema.users.id,
+        email: schema.users.email,
+        fullName: schema.studentProfiles.fullName,
+        birthDate: schema.studentProfiles.birthDate,
+      })
+      .from(schema.studentProfiles)
+      .innerJoin(schema.users, eq(schema.users.id, schema.studentProfiles.userId))
+      .where(sql`strftime('%m-%d', ${schema.studentProfiles.birthDate}) = strftime('%m-%d', 'now')`)
+      .all();
+
+    return rows.map((r) => ({ id: r.id, email: r.email, fullName: r.fullName, birthDate: r.birthDate }));
+  });
+
   app.get("/api/students", { preHandler: requireTeacher }, async (req) => {
     const base = db
       .select({
@@ -218,6 +241,7 @@ export async function studentRoutes(app: FastifyInstance) {
     const values = {
       userId: id,
       fullName: parsed.data.fullName || null,
+      birthDate: parsed.data.birthDate || null,
       phone: parsed.data.phone || null,
       occupation: parsed.data.occupation || null,
       englishLevel: parsed.data.englishLevel || null,

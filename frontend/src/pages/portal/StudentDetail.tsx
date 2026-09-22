@@ -21,6 +21,7 @@ interface Student {
 interface StudentProfile {
   userId: string;
   fullName?: string | null;
+  birthDate?: string | null;
   phone?: string | null;
   occupation?: string | null;
   englishLevel?: string | null;
@@ -62,6 +63,7 @@ const LESSONS_PREVIEW_SIZE = 50;
 const emptyProfile: StudentProfile = {
   userId: "",
   fullName: "",
+  birthDate: "",
   phone: "",
   occupation: "",
   englishLevel: "",
@@ -190,6 +192,15 @@ export default function StudentDetail() {
                     id="fullName"
                     value={profile.fullName ?? ""}
                     onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="birthDate">Data de nascimento</Label>
+                  <Input
+                    id="birthDate"
+                    type="date"
+                    value={profile.birthDate ?? ""}
+                    onChange={(e) => setProfile({ ...profile, birthDate: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1.5">

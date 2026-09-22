@@ -11,6 +11,7 @@ export const users = sqliteTable("users", {
 export const studentProfiles = sqliteTable("student_profiles", {
   userId: text("user_id").primaryKey().references(() => users.id),
   fullName: text("full_name"),
+  birthDate: text("birth_date"), // data de nascimento, "YYYY-MM-DD"
   phone: text("phone"),
   occupation: text("occupation"), // emprego/profissão
   englishLevel: text("english_level"), // nível atual de inglês
