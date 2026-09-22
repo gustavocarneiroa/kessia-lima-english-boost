@@ -21,7 +21,7 @@ const KEY_CLASS = 'min-w-[26px] h-9 px-1.5 text-xs sm:min-w-[40px] sm:h-12 sm:px
 export default function Wordle() {
   const { user, loading: loadingUser } = useAuth();
   const navigate = useNavigate();
-  const { today, loading, error, fetchHint, submitGuess, finishGame } = useWordle();
+  const { today, loading, error, fetchHint, submitGuess, finishGame, refreshSilent } = useWordle();
   const { stats, loading: loadingStats } = useWordleStats();
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -65,6 +65,20 @@ export default function Wordle() {
     setHydrated(true);
   }, [today, hydrated]);
 
+  // A fonética/áudio de cada tentativa chega em segundo plano (não trava o
+  // palpite) — quando a gente recarrega "today", completa o que já foi buscado.
+  useEffect(() => {
+    if (!today || !hydrated) return;
+    setReviews((prev) =>
+      prev.map((r, i) => {
+        const updated = today.guesses[i];
+        return updated && (updated.phonetic || updated.audioUrl)
+          ? { word: updated.word, phonetic: updated.phonetic, audioUrl: updated.audioUrl }
+          : r;
+      }),
+    );
+  }, [today, hydrated]);
+
   const handleGuessSubmit = async () => {
     if (!today || currentGuess.length !== letterCount || submitting) return;
     setSubmitting(true);
@@ -74,7 +88,8 @@ export default function Wordle() {
       const newStatuses = [...guessStatuses, res.statuses];
       setGuesses(newGuesses);
       setGuessStatuses(newStatuses);
-      setReviews((prev) => [...prev, { word: currentGuess, phonetic: res.phonetic, audioUrl: res.audioUrl }]);
+      setReviews((prev) => [...prev, { word: currentGuess, phonetic: null, audioUrl: null }]);
+      setTimeout(() => refreshSilent(), 1500);
 
       const newUsedLetters = new Map(usedLetters);
       res.statuses.forEach((status, i) => {

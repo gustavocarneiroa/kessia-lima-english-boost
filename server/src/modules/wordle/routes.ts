@@ -123,28 +123,36 @@ export async function wordleRoutes(app: FastifyInstance) {
 
     const statuses = checkGuess(parsed.data.guess, word);
     const correct = parsed.data.guess === word;
-    const { phonetic, audioUrl } = await lookupPronunciation(parsed.data.guess);
+    const guessId = crypto.randomUUID();
 
     db.insert(schema.wordleGuesses)
       .values({
-        id: crypto.randomUUID(),
+        id: guessId,
         studentId,
         date,
         guessIndex: currentIndex,
         word: parsed.data.guess,
         statuses: JSON.stringify(statuses),
-        phonetic,
-        audioUrl,
+        phonetic: null,
+        audioUrl: null,
         createdAt: new Date().toISOString(),
       })
       .run();
+
+    // A fonética/áudio não trava a resposta do palpite — buscamos em segundo
+    // plano e completamos o registro quando (e se) o dicionário responder.
+    lookupPronunciation(parsed.data.guess)
+      .then(({ phonetic, audioUrl }) => {
+        if (phonetic || audioUrl) {
+          db.update(schema.wordleGuesses).set({ phonetic, audioUrl }).where(eq(schema.wordleGuesses.id, guessId)).run();
+        }
+      })
+      .catch(() => {});
 
     return {
       statuses,
       correct,
       word: correct ? word : undefined,
-      phonetic,
-      audioUrl,
     };
   });
 

@@ -46,6 +46,17 @@ export const useWordle = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Recarrega os dados sem acionar o "loading" de tela cheia — usado pra
+  // atualizar a fonética/áudio que chegam em segundo plano após um palpite.
+  const refreshSilent = useCallback(async () => {
+    try {
+      const data = await api.get<TodayInfo>('/api/wordle/today');
+      setToday(data);
+    } catch {
+      // silencioso: só é um refresh em segundo plano
+    }
+  }, []);
+
   const fetchToday = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -70,10 +81,7 @@ export const useWordle = () => {
   }, []);
 
   const submitGuess = useCallback(async (guess: string) => {
-    return api.post<{ statuses: LetterStatus[]; correct: boolean; word?: string; phonetic: string | null; audioUrl: string | null }>(
-      '/api/wordle/guess',
-      { guess },
-    );
+    return api.post<{ statuses: LetterStatus[]; correct: boolean; word?: string }>('/api/wordle/guess', { guess });
   }, []);
 
   const finishGame = useCallback(
@@ -85,7 +93,7 @@ export const useWordle = () => {
     [],
   );
 
-  return { today, loading, error, fetchHint, submitGuess, finishGame, refresh: fetchToday };
+  return { today, loading, error, fetchHint, submitGuess, finishGame, refresh: fetchToday, refreshSilent };
 };
 
 export const useWordleLeaderboard = (date?: string) => {
