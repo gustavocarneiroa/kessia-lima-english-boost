@@ -1,7 +1,8 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, isNull } from "drizzle-orm";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { db, schema } from "./client.ts";
+import { getSetting, setSetting } from "../lib/settings.ts";
 
 type TopicImport = {
   title: string;
@@ -59,4 +60,33 @@ export function importLearningTopics() {
   if (imported > 0) {
     console.log(`[db] trilha de aprendizagem: ${imported} tópico(s) importado(s)`);
   }
+
+  applyNotionOrderOnce();
+}
+
+/**
+ * A primeira importação gravou os tópicos numa ordem diferente da do Notion.
+ * Roda uma vez só: põe os tópicos do Notion na ordem exata do arquivo e os que
+ * a professora criou depois vão pro fim, na ordem em que já estavam. Depois
+ * disso, a ordem manual (arrastar na tela) nunca mais é mexida.
+ */
+const NOTION_ORDER_FLAG = "learning_topics_notion_order_applied";
+
+function applyNotionOrderOnce() {
+  if (getSetting(NOTION_ORDER_FLAG)) return;
+
+  const key = (t: { title: string; level: string | null; area: string | null }) =>
+    [t.level ?? "", t.area ?? "", t.title].join("|");
+  const notionIndex = new Map(topics.map((t, i) => [key(t), i]));
+
+  const rows = db.select().from(schema.learningTopics).orderBy(asc(schema.learningTopics.sortOrder)).all();
+  const inNotion = rows.filter((r) => notionIndex.has(key(r))).sort((a, b) => notionIndex.get(key(a))! - notionIndex.get(key(b))!);
+  const others = rows.filter((r) => !notionIndex.has(key(r)));
+
+  [...inNotion, ...others].forEach((row, i) => {
+    db.update(schema.learningTopics).set({ sortOrder: i }).where(eq(schema.learningTopics.id, row.id)).run();
+  });
+
+  setSetting(NOTION_ORDER_FLAG, new Date().toISOString());
+  console.log("[db] trilha de aprendizagem: ordem do Notion aplicada");
 }
