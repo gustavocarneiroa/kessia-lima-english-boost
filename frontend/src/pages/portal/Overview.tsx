@@ -13,11 +13,13 @@ import {
   Layers,
   Loader2,
   Smartphone,
+  Sparkles,
   Users,
   Link as LinkIcon,
   ExternalLink,
   Puzzle,
   Trophy,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { useWordle, useWordleLeaderboard } from "@/hooks/useWordle";
@@ -35,6 +37,11 @@ interface Birthday {
   email: string;
   fullName?: string | null;
   birthDate: string;
+}
+
+interface NewContent {
+  lessons: { id: string; subject: string; scheduledAt: string }[];
+  activities: { id: string; title: string }[];
 }
 
 interface Lesson {
@@ -96,6 +103,7 @@ export default function Overview() {
   const [loadingToday, setLoadingToday] = useState(true);
   const [birthdays, setBirthdays] = useState<Birthday[]>([]);
   const [loadingBirthdays, setLoadingBirthdays] = useState(true);
+  const [newContent, setNewContent] = useState<NewContent | null>(null);
   const { today: wordleToday, loading: loadingWordle } = useWordle();
   const { entries: leaderboard, loading: loadingLeaderboard } = useWordleLeaderboard();
 
@@ -128,6 +136,19 @@ export default function Overview() {
       .finally(() => setLoadingBirthdays(false));
   }, [isTeacher]);
 
+  useEffect(() => {
+    if (isTeacher) return;
+    api
+      .get<NewContent>("/api/me/new-content")
+      .then((res) => {
+        if (res.lessons.length > 0 || res.activities.length > 0) {
+          setNewContent(res);
+          void api.post("/api/me/new-content/seen");
+        }
+      })
+      .catch(() => {});
+  }, [isTeacher]);
+
   if (!user) return null;
   const visibleShortcuts = shortcuts.filter((s) => !s.teacherOnly || isTeacher);
 
@@ -137,6 +158,40 @@ export default function Overview() {
         Olá, {isTeacher ? "professora" : "aluno(a)"}!
       </h1>
       <p className="text-muted-foreground">{user.email}</p>
+
+      {!isTeacher && newContent && (newContent.lessons.length > 0 || newContent.activities.length > 0) && (
+        <Card className="mt-6 border-primary/40 bg-primary/5">
+          <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" /> Novidades pra você!
+            </CardTitle>
+            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => setNewContent(null)} aria-label="Fechar aviso">
+              <X className="h-4 w-4" />
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {newContent.lessons.length > 0 && (
+              <p className="text-sm">
+                {newContent.lessons.length === 1 ? "1 aula nova foi marcada" : `${newContent.lessons.length} aulas novas foram marcadas`} —{" "}
+                <Link to="/portal/aulas" className="text-primary hover:underline">
+                  ver aulas
+                </Link>
+              </p>
+            )}
+            {newContent.activities.length > 0 && (
+              <p className="text-sm">
+                {newContent.activities.length === 1
+                  ? "1 atividade nova foi adicionada"
+                  : `${newContent.activities.length} atividades novas foram adicionadas`}{" "}
+                —{" "}
+                <Link to="/portal/atividades" className="text-primary hover:underline">
+                  ver atividades
+                </Link>
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {isTeacher && !loadingBirthdays && birthdays.length > 0 && (
         <Card className="mt-6 border-primary/40 bg-primary/5">

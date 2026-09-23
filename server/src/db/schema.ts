@@ -6,6 +6,7 @@ export const users = sqliteTable("users", {
   passwordHash: text("password_hash"), // null até o primeiro login (senha ainda não definida)
   role: text("role", { enum: ["teacher", "student"] }).notNull(),
   createdAt: text("created_at").notNull(),
+  newContentSeenAt: text("new_content_seen_at"), // último momento em que o aluno viu o aviso de novidades na tela inicial
 });
 
 export const studentProfiles = sqliteTable("student_profiles", {

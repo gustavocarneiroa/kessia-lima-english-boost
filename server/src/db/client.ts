@@ -233,6 +233,12 @@ try {
   // já existe
 }
 
+try {
+  sqlite.exec(`ALTER TABLE users ADD COLUMN new_content_seen_at TEXT`);
+} catch {
+  // já existe
+}
+
 // activities: a tabela já existia em produção com CHECK mais restritivo (sem
 // "listening" antes, sem "quiz" agora) — SQLite não permite alterar CHECK com
 // ALTER TABLE, então reconstruímos a tabela (idempotente: só roda se o CHECK

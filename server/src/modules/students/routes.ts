@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
 import { requireAuth, requireTeacher } from "../../auth/guards.ts";
@@ -208,6 +208,43 @@ export async function studentRoutes(app: FastifyInstance) {
       .get();
 
     return profile ?? {};
+  });
+
+  app.get("/api/me/new-content", { preHandler: requireAuth }, async (req, reply) => {
+    const session = req.session!;
+    if (session.role !== "student") {
+      return reply.code(404).send({ error: "not_found", message: "Sem novidades." });
+    }
+
+    const student = db.select().from(schema.users).where(eq(schema.users.id, session.userId)).get();
+    const since = student?.newContentSeenAt ?? "1970-01-01T00:00:00.000Z";
+
+    const lessons = db
+      .select({ id: schema.lessons.id, subject: schema.lessons.subject, scheduledAt: schema.lessons.scheduledAt })
+      .from(schema.lessons)
+      .where(and(eq(schema.lessons.studentId, session.userId), gt(schema.lessons.createdAt, since)))
+      .all();
+
+    const activities = db
+      .select({ id: schema.activities.id, title: schema.activities.title })
+      .from(schema.activityStudents)
+      .innerJoin(schema.activities, eq(schema.activities.id, schema.activityStudents.activityId))
+      .where(and(eq(schema.activityStudents.studentId, session.userId), gt(schema.activities.createdAt, since)))
+      .all();
+
+    return { lessons, activities };
+  });
+
+  app.post("/api/me/new-content/seen", { preHandler: requireAuth }, async (req, reply) => {
+    const session = req.session!;
+    if (session.role !== "student") {
+      return reply.code(404).send({ error: "not_found", message: "Sem novidades." });
+    }
+    db.update(schema.users)
+      .set({ newContentSeenAt: new Date().toISOString() })
+      .where(eq(schema.users.id, session.userId))
+      .run();
+    return reply.code(204).send();
   });
 
   app.get("/api/students/:id/profile", { preHandler: requireTeacher }, async (req, reply) => {
