@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import AceternityDemo from "./pages/AceternityDemo";
 import Wordle from "./pages/Wordle";
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
 import PortalLayout from "./pages/PortalLayout";
 import PortalOverview from "./pages/portal/Overview";
 import PortalStudents from "./pages/portal/Students";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/aceternity" element={<AceternityDemo />} />
             <Route path="/wordle" element={<Wordle />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/redefinir-senha" element={<ResetPassword />} />
             <Route path="/portal" element={<PortalLayout />}>
               <Route index element={<PortalOverview />} />
               <Route path="alunos" element={<PortalStudents />} />

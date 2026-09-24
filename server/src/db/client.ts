@@ -35,6 +35,15 @@ sqlite.exec(`
     created_at TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    token_hash TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    expires_at TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS password_reset_tokens_user_id_idx ON password_reset_tokens(user_id);
+
   CREATE INDEX IF NOT EXISTS credentials_user_id_idx ON credentials(user_id);
 
   CREATE TABLE IF NOT EXISTS student_profiles (

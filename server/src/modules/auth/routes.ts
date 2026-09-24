@@ -1,4 +1,5 @@
 import type { FastifyInstance } from "fastify";
+import { createHash } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
@@ -8,6 +9,11 @@ import { requireAuth } from "../../auth/guards.ts";
 
 const loginBody = z.object({
   email: z.string().email(),
+  password: z.string().min(6, "A senha precisa ter pelo menos 6 caracteres."),
+});
+
+const resetPasswordBody = z.object({
+  token: z.string().min(1),
   password: z.string().min(6, "A senha precisa ter pelo menos 6 caracteres."),
 });
 
@@ -48,6 +54,37 @@ export async function authRoutes(app: FastifyInstance) {
     const token = await signSession({ userId: user.id, email: user.email, role: user.role });
     reply.setCookie(SESSION_COOKIE, token, sessionCookieOptions);
     return { email: user.email, role: user.role, firstLogin };
+  });
+
+  app.post("/api/auth/reset-password", async (req, reply) => {
+    const parsed = resetPasswordBody.safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({
+        error: "invalid_body",
+        message: parsed.error.issues[0]?.message ?? "Dados inválidos.",
+      });
+    }
+
+    const tokenHash = createHash("sha256").update(parsed.data.token).digest("hex");
+    const record = db
+      .select()
+      .from(schema.passwordResetTokens)
+      .where(eq(schema.passwordResetTokens.tokenHash, tokenHash))
+      .get();
+
+    if (!record || record.expiresAt < new Date().toISOString()) {
+      if (record) db.delete(schema.passwordResetTokens).where(eq(schema.passwordResetTokens.tokenHash, tokenHash)).run();
+      return reply.code(400).send({
+        error: "invalid_token",
+        message: "Esse link expirou ou já foi usado. Peça um novo link para a professora.",
+      });
+    }
+
+    const passwordHash = await hashPassword(parsed.data.password);
+    db.update(schema.users).set({ passwordHash }).where(eq(schema.users.id, record.userId)).run();
+    db.delete(schema.passwordResetTokens).where(eq(schema.passwordResetTokens.tokenHash, tokenHash)).run();
+
+    return { ok: true };
   });
 
   app.post("/api/auth/logout", async (req, reply) => {

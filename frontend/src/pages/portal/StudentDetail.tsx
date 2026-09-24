@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ArrowLeft, Link as LinkIcon, ClipboardList, ExternalLink } from "lucide-react";
+import { Loader2, ArrowLeft, Link as LinkIcon, ClipboardList, ExternalLink, KeyRound, Copy, Check } from "lucide-react";
 
 interface Student {
   id: string;
@@ -91,6 +91,11 @@ export default function StudentDetail() {
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const [resetLink, setResetLink] = useState<string | null>(null);
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetCopied, setResetCopied] = useState(false);
+
   const [profile, setProfile] = useState<StudentProfile>(emptyProfile);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
@@ -127,6 +132,31 @@ export default function StudentDetail() {
       })
       .finally(() => setLessonsLoading(false));
   }, [id]);
+
+  async function generateResetLink() {
+    if (!id) return;
+    setResetLoading(true);
+    setResetError(null);
+    setResetCopied(false);
+    try {
+      const res = await api.post<{ link: string }>(`/api/students/${id}/reset-link`);
+      setResetLink(res.link);
+    } catch (err) {
+      setResetError(err instanceof ApiError ? err.message : "Não foi possível gerar o link.");
+    } finally {
+      setResetLoading(false);
+    }
+  }
+
+  async function copyResetLink() {
+    if (!resetLink) return;
+    try {
+      await navigator.clipboard.writeText(resetLink);
+      setResetCopied(true);
+    } catch {
+      // clipboard indisponível — o link continua selecionável no campo
+    }
+  }
 
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -168,9 +198,29 @@ export default function StudentDetail() {
         </h1>
         {student?.fullName && <p className="text-sm text-muted-foreground">{student.email}</p>}
         {student && (
-          <Badge variant={student.hasLoggedIn ? "default" : "secondary"}>
-            {student.hasLoggedIn ? "Já fez login" : "Ainda não fez login"}
-          </Badge>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <Badge variant={student.hasLoggedIn ? "default" : "secondary"}>
+              {student.hasLoggedIn ? "Já fez login" : "Ainda não fez login"}
+            </Badge>
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={generateResetLink} disabled={resetLoading}>
+              {resetLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <KeyRound className="h-3.5 w-3.5" />}
+              Gerar link de redefinição de senha
+            </Button>
+          </div>
+        )}
+        {resetError && <p className="text-sm text-destructive">{resetError}</p>}
+        {resetLink && (
+          <div className="mt-2 max-w-lg space-y-1.5 rounded-md border bg-muted/40 p-3">
+            <p className="text-xs text-muted-foreground">
+              Envie este link pro aluno (WhatsApp, por exemplo). Ele vale por 48 horas e só funciona uma vez.
+            </p>
+            <div className="flex items-center gap-2">
+              <Input readOnly value={resetLink} onFocus={(e) => e.target.select()} className="text-xs" />
+              <Button type="button" variant="secondary" size="icon" onClick={copyResetLink} aria-label="Copiar link">
+                {resetCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              </Button>
+            </div>
+          </div>
         )}
       </div>
 

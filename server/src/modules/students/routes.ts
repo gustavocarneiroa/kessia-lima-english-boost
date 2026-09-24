@@ -1,9 +1,11 @@
 import type { FastifyInstance } from "fastify";
+import { createHash, randomBytes } from "node:crypto";
 import { and, eq, gt, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
 import { requireAuth, requireTeacher } from "../../auth/guards.ts";
 import { parsePagination } from "../../lib/pagination.ts";
+import { env } from "../../env.ts";
 
 const addStudentBody = z.object({
   email: z.string().email(),
@@ -175,11 +177,33 @@ export async function studentRoutes(app: FastifyInstance) {
     }
 
     db.delete(schema.credentials).where(eq(schema.credentials.userId, id)).run();
+    db.delete(schema.passwordResetTokens).where(eq(schema.passwordResetTokens.userId, id)).run();
     db.delete(schema.studentProfiles).where(eq(schema.studentProfiles.userId, id)).run();
     db.delete(schema.vocabListStudents).where(eq(schema.vocabListStudents.studentId, id)).run();
     db.delete(schema.lessons).where(eq(schema.lessons.studentId, id)).run();
     db.delete(schema.users).where(eq(schema.users.id, id)).run();
     return reply.code(204).send();
+  });
+
+  app.post("/api/students/:id/reset-link", { preHandler: requireTeacher }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const student = db.select().from(schema.users).where(eq(schema.users.id, id)).get();
+    if (!student || student.role !== "student") {
+      return reply.code(404).send({ error: "not_found", message: "Aluno não encontrado." });
+    }
+
+    // limpa links antigos ainda não usados desse aluno — só o mais recente vale
+    db.delete(schema.passwordResetTokens).where(eq(schema.passwordResetTokens.userId, id)).run();
+
+    const token = randomBytes(32).toString("hex");
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+    const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+    db.insert(schema.passwordResetTokens)
+      .values({ tokenHash, userId: id, expiresAt, createdAt: new Date().toISOString() })
+      .run();
+
+    const link = `${env.PUBLIC_WEB_ORIGIN}/redefinir-senha?token=${token}`;
+    return { link, expiresAt };
   });
 
   app.get("/api/me/profile", { preHandler: requireAuth }, async (req, reply) => {

@@ -154,6 +154,14 @@ export const wordleGuesses = sqliteTable("wordle_guesses", {
   createdAt: text("created_at").notNull(),
 });
 
+export const passwordResetTokens = sqliteTable("password_reset_tokens", {
+  // hash (sha-256) do token — o token em si só existe no link, nunca é salvo em texto puro
+  tokenHash: text("token_hash").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id),
+  expiresAt: text("expires_at").notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
 export const credentials = sqliteTable("credentials", {
   // credential ID do WebAuthn (base64url), gerado pelo autenticador/dispositivo
   id: text("id").primaryKey(),

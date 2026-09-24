@@ -120,6 +120,10 @@ export default function Login() {
                 </div>
               </div>
 
+              <p className="text-xs text-white/50">
+                Esqueceu a senha? Peça um link de redefinição para a professora.
+              </p>
+
               {error && (
                 <p className="rounded-lg bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>
               )}
