@@ -150,9 +150,10 @@ export default function Overview() {
     api
       .get<NewContent>("/api/me/new-content")
       .then((res) => {
+        // Só marca como visto quando o aluno fecha o aviso ou clica num link dele —
+        // abrir a tela de relance (ou o app carregar em segundo plano) não conta.
         if (res.lessons.length > 0 || res.activities.length > 0 || res.forumPosts.length > 0) {
           setNewContent(res);
-          void api.post("/api/me/new-content/seen");
         }
       })
       .catch(() => {});
@@ -165,6 +166,11 @@ export default function Overview() {
       .then((res) => setPendingForumCount(res.length))
       .catch(() => {});
   }, [isTeacher]);
+
+  function dismissNewContent() {
+    setNewContent(null);
+    void api.post("/api/me/new-content/seen").catch(() => {});
+  }
 
   if (!user) return null;
   const visibleShortcuts = shortcuts.filter((s) => !s.teacherOnly || isTeacher);
@@ -184,7 +190,7 @@ export default function Overview() {
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" /> Novidades pra você!
             </CardTitle>
-            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => setNewContent(null)} aria-label="Fechar aviso">
+            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={dismissNewContent} aria-label="Fechar aviso">
               <X className="h-4 w-4" />
             </Button>
           </CardHeader>
@@ -192,7 +198,7 @@ export default function Overview() {
             {newContent.lessons.length > 0 && (
               <p className="text-sm">
                 {newContent.lessons.length === 1 ? "1 aula nova foi marcada" : `${newContent.lessons.length} aulas novas foram marcadas`} —{" "}
-                <Link to="/portal/aulas" className="text-primary hover:underline">
+                <Link to="/portal/aulas" onClick={dismissNewContent} className="text-primary hover:underline">
                   ver aulas
                 </Link>
               </p>
@@ -203,7 +209,7 @@ export default function Overview() {
                   ? "1 atividade nova foi adicionada"
                   : `${newContent.activities.length} atividades novas foram adicionadas`}{" "}
                 —{" "}
-                <Link to="/portal/atividades" className="text-primary hover:underline">
+                <Link to="/portal/atividades" onClick={dismissNewContent} className="text-primary hover:underline">
                   ver atividades
                 </Link>
               </p>
@@ -214,7 +220,7 @@ export default function Overview() {
                   ? "1 publicação nova no fórum"
                   : `${newContent.forumPosts.length} publicações novas no fórum`}{" "}
                 —{" "}
-                <Link to="/portal/forum" className="text-primary hover:underline">
+                <Link to="/portal/forum" onClick={dismissNewContent} className="text-primary hover:underline">
                   ver fórum
                 </Link>
               </p>

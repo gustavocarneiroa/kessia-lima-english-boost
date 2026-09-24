@@ -265,7 +265,13 @@ export async function studentRoutes(app: FastifyInstance) {
       .select({ id: schema.activities.id, title: schema.activities.title })
       .from(schema.activityStudents)
       .innerJoin(schema.activities, eq(schema.activities.id, schema.activityStudents.activityId))
-      .where(and(eq(schema.activityStudents.studentId, session.userId), gt(schema.activities.createdAt, since)))
+      .where(
+        and(
+          eq(schema.activityStudents.studentId, session.userId),
+          // envios antigos (antes de existir assigned_at) caem na data de criação
+          gt(sql`coalesce(${schema.activityStudents.assignedAt}, ${schema.activities.createdAt})`, since),
+        ),
+      )
       .all();
 
     const forumPosts = db

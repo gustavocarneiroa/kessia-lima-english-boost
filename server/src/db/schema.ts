@@ -72,6 +72,9 @@ export const activities = sqliteTable("activities", {
 export const activityStudents = sqliteTable("activity_students", {
   activityId: text("activity_id").notNull().references(() => activities.id),
   studentId: text("student_id").notNull().references(() => users.id),
+  // quando a atividade foi enviada pra esse aluno — é isso que conta como "novidade"
+  // pra ele, não a data em que a atividade foi criada. Null em envios antigos.
+  assignedAt: text("assigned_at"),
 });
 
 export const activityAnswers = sqliteTable("activity_answers", {

@@ -609,11 +609,23 @@ export async function activitiesRoutes(app: FastifyInstance) {
     if (!parsed.success) {
       return reply.code(400).send({ error: "invalid_body", message: "Lista de alunos inválida." });
     }
+    // Quem já tinha a atividade mantém a data de envio original; só quem entrou agora
+    // ganha a data de hoje (e por isso recebe o aviso de novidade).
+    const previousAssignedAt = new Map(
+      db
+        .select({ studentId: schema.activityStudents.studentId, assignedAt: schema.activityStudents.assignedAt })
+        .from(schema.activityStudents)
+        .where(eq(schema.activityStudents.activityId, id))
+        .all()
+        .map((r) => [r.studentId, r.assignedAt]),
+    );
+    const now = new Date().toISOString();
     db.delete(schema.activityStudents).where(eq(schema.activityStudents.activityId, id)).run();
     for (const studentId of parsed.data.studentIds) {
       const u = db.select().from(schema.users).where(eq(schema.users.id, studentId)).get();
       if (!u || u.role !== "student") continue;
-      db.insert(schema.activityStudents).values({ activityId: id, studentId }).run();
+      const assignedAt = previousAssignedAt.has(studentId) ? previousAssignedAt.get(studentId)! : now;
+      db.insert(schema.activityStudents).values({ activityId: id, studentId, assignedAt }).run();
     }
     return { ok: true };
   });
