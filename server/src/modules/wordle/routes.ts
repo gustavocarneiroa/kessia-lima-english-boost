@@ -5,6 +5,7 @@ import { db, schema } from "../../db/client.ts";
 import { requireAuth } from "../../auth/guards.ts";
 import { getWordOfTheDay, todayDateKey } from "../../lib/wordleWords.ts";
 import { lookupPronunciation } from "../../lib/freeDictionary.ts";
+import { firstDisplayName } from "../../lib/displayName.ts";
 
 type LetterStatus = "correct" | "present" | "absent";
 
@@ -205,6 +206,7 @@ export async function wordleRoutes(app: FastifyInstance) {
         createdAt: schema.wordleGames.createdAt,
         fullName: schema.studentProfiles.fullName,
         email: schema.users.email,
+        role: schema.users.role,
       })
       .from(schema.wordleGames)
       .innerJoin(schema.users, eq(schema.users.id, schema.wordleGames.studentId))
@@ -219,7 +221,7 @@ export async function wordleRoutes(app: FastifyInstance) {
       items: rows.map((r) => ({
         studentId: r.studentId,
         isYou: r.studentId === userId,
-        firstName: (r.fullName || r.email).trim().split(/\s+/)[0],
+        firstName: firstDisplayName(r),
         won: r.won,
         guessesUsed: r.guessesUsed,
         hintUsed: r.hintUsed,

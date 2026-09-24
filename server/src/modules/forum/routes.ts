@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
 import { requireAuth, requireTeacher } from "../../auth/guards.ts";
 import { parsePagination } from "../../lib/pagination.ts";
+import { displayName } from "../../lib/displayName.ts";
 
 const httpUrl = z
   .string()
@@ -22,15 +23,7 @@ const commentBody = z.object({
   body: z.string().trim().min(1).max(2000),
 });
 
-type Author = { authorId: string; role: string | null; email: string | null; fullName: string | null };
-
-// Aluno vê o nome (ou o começo do e-mail, se ainda não tem nome no perfil) — nunca
-// o e-mail completo dos colegas.
-function authorName(a: Author) {
-  if (a.role === "teacher") return "Teacher Kessia";
-  if (a.fullName?.trim()) return a.fullName.trim();
-  return a.email?.split("@")[0] ?? "Aluno(a)";
-}
+type Author = { role: string | null; email: string | null; fullName: string | null };
 
 const authorColumns = {
   role: schema.users.role,
@@ -50,7 +43,7 @@ function selectPosts(where: SQL | undefined) {
 }
 
 function serializePost(
-  r: { post: typeof schema.forumPosts.$inferSelect; commentCount?: number } & Omit<Author, "authorId">,
+  r: { post: typeof schema.forumPosts.$inferSelect; commentCount?: number } & Author,
   userId: string,
 ) {
   return {
@@ -60,7 +53,7 @@ function serializePost(
     linkUrl: r.post.linkUrl,
     publishedAt: r.post.publishedAt,
     createdAt: r.post.createdAt,
-    authorName: authorName({ authorId: r.post.authorId, role: r.role, email: r.email, fullName: r.fullName }),
+    authorName: displayName(r),
     isMine: r.post.authorId === userId,
     commentCount: r.commentCount ?? 0,
   };
@@ -141,7 +134,7 @@ export async function forumRoutes(app: FastifyInstance) {
         id: c.comment.id,
         body: c.comment.body,
         createdAt: c.comment.createdAt,
-        authorName: authorName({ authorId: c.comment.authorId, role: c.role, email: c.email, fullName: c.fullName }),
+        authorName: displayName(c),
         isMine: c.comment.authorId === userId,
       })),
     };
