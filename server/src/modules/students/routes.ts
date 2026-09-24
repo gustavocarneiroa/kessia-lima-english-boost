@@ -177,13 +177,23 @@ export async function studentRoutes(app: FastifyInstance) {
       return reply.code(404).send({ error: "not_found", message: "Aluno não encontrado." });
     }
 
-    db.delete(schema.credentials).where(eq(schema.credentials.userId, id)).run();
-    db.delete(schema.passwordResetTokens).where(eq(schema.passwordResetTokens.userId, id)).run();
-    db.delete(schema.studentProfiles).where(eq(schema.studentProfiles.userId, id)).run();
-    db.delete(schema.vocabListStudents).where(eq(schema.vocabListStudents.studentId, id)).run();
-    db.delete(schema.lessons).where(eq(schema.lessons.studentId, id)).run();
-    deleteForumContentByAuthor(id);
-    db.delete(schema.users).where(eq(schema.users.id, id)).run();
+    // Tudo que referencia users(id) precisa sair antes (foreign_keys = ON) — numa
+    // transação só, pra não deixar o aluno pela metade se algo falhar.
+    db.transaction((tx) => {
+      tx.delete(schema.credentials).where(eq(schema.credentials.userId, id)).run();
+      tx.delete(schema.passwordResetTokens).where(eq(schema.passwordResetTokens.userId, id)).run();
+      tx.delete(schema.studentProfiles).where(eq(schema.studentProfiles.userId, id)).run();
+      tx.delete(schema.vocabListStudents).where(eq(schema.vocabListStudents.studentId, id)).run();
+      tx.delete(schema.activityStudents).where(eq(schema.activityStudents.studentId, id)).run();
+      tx.delete(schema.activityAnswers).where(eq(schema.activityAnswers.studentId, id)).run();
+      tx.delete(schema.learningTopicCompletions).where(eq(schema.learningTopicCompletions.studentId, id)).run();
+      tx.delete(schema.wordleGames).where(eq(schema.wordleGames.studentId, id)).run();
+      tx.delete(schema.wordleGuesses).where(eq(schema.wordleGuesses.studentId, id)).run();
+      tx.delete(schema.lessons).where(eq(schema.lessons.studentId, id)).run();
+      // usa a mesma conexão SQLite, então também roda dentro desta transação
+      deleteForumContentByAuthor(id);
+      tx.delete(schema.users).where(eq(schema.users.id, id)).run();
+    });
     return reply.code(204).send();
   });
 
