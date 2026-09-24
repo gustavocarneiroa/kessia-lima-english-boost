@@ -17,6 +17,7 @@ import {
   Users,
   Link as LinkIcon,
   ExternalLink,
+  MessagesSquare,
   Puzzle,
   Trophy,
   X,
@@ -42,6 +43,7 @@ interface Birthday {
 interface NewContent {
   lessons: { id: string; subject: string; scheduledAt: string }[];
   activities: { id: string; title: string }[];
+  forumPosts: { id: string; title: string }[];
 }
 
 interface Lesson {
@@ -77,6 +79,12 @@ const shortcuts: ShortcutItem[] = [
     icon: Layers,
   },
   {
+    to: "/portal/forum",
+    label: "Fórum",
+    description: "Artigos, links e conversas com a turma",
+    icon: MessagesSquare,
+  },
+  {
     to: "/portal/alunos",
     label: "Alunos",
     description: "Cadastro e perfil de cada aluno",
@@ -104,6 +112,7 @@ export default function Overview() {
   const [birthdays, setBirthdays] = useState<Birthday[]>([]);
   const [loadingBirthdays, setLoadingBirthdays] = useState(true);
   const [newContent, setNewContent] = useState<NewContent | null>(null);
+  const [pendingForumCount, setPendingForumCount] = useState(0);
   const { today: wordleToday, loading: loadingWordle } = useWordle();
   const { entries: leaderboard, loading: loadingLeaderboard } = useWordleLeaderboard();
 
@@ -141,11 +150,19 @@ export default function Overview() {
     api
       .get<NewContent>("/api/me/new-content")
       .then((res) => {
-        if (res.lessons.length > 0 || res.activities.length > 0) {
+        if (res.lessons.length > 0 || res.activities.length > 0 || res.forumPosts.length > 0) {
           setNewContent(res);
           void api.post("/api/me/new-content/seen");
         }
       })
+      .catch(() => {});
+  }, [isTeacher]);
+
+  useEffect(() => {
+    if (!isTeacher) return;
+    api
+      .get<unknown[]>("/api/forum/pending")
+      .then((res) => setPendingForumCount(res.length))
       .catch(() => {});
   }, [isTeacher]);
 
@@ -159,7 +176,9 @@ export default function Overview() {
       </h1>
       <p className="text-muted-foreground">{user.email}</p>
 
-      {!isTeacher && newContent && (newContent.lessons.length > 0 || newContent.activities.length > 0) && (
+      {!isTeacher &&
+        newContent &&
+        (newContent.lessons.length > 0 || newContent.activities.length > 0 || newContent.forumPosts.length > 0) && (
         <Card className="mt-6 border-primary/40 bg-primary/5">
           <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
             <CardTitle className="flex items-center gap-2">
@@ -189,6 +208,33 @@ export default function Overview() {
                 </Link>
               </p>
             )}
+            {newContent.forumPosts.length > 0 && (
+              <p className="text-sm">
+                {newContent.forumPosts.length === 1
+                  ? "1 publicação nova no fórum"
+                  : `${newContent.forumPosts.length} publicações novas no fórum`}{" "}
+                —{" "}
+                <Link to="/portal/forum" className="text-primary hover:underline">
+                  ver fórum
+                </Link>
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {isTeacher && pendingForumCount > 0 && (
+        <Card className="mt-6 border-primary/40 bg-primary/5">
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-6">
+            <p className="flex items-center gap-2 text-sm">
+              <MessagesSquare className="h-5 w-5 text-primary" />
+              {pendingForumCount === 1
+                ? "1 publicação de aluno aguardando sua aprovação no fórum"
+                : `${pendingForumCount} publicações de alunos aguardando sua aprovação no fórum`}
+            </p>
+            <Button asChild size="sm">
+              <Link to="/portal/forum">Revisar</Link>
+            </Button>
           </CardContent>
         </Card>
       )}

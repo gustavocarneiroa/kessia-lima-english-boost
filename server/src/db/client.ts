@@ -179,6 +179,28 @@ sqlite.exec(`
 
   CREATE INDEX IF NOT EXISTS wordle_guesses_student_date_idx ON wordle_guesses(student_id, date);
 
+  CREATE TABLE IF NOT EXISTS forum_posts (
+    id TEXT PRIMARY KEY,
+    author_id TEXT NOT NULL REFERENCES users(id),
+    title TEXT NOT NULL,
+    body TEXT,
+    link_url TEXT,
+    published_at TEXT,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS forum_posts_published_at_idx ON forum_posts(published_at);
+
+  CREATE TABLE IF NOT EXISTS forum_comments (
+    id TEXT PRIMARY KEY,
+    post_id TEXT NOT NULL REFERENCES forum_posts(id),
+    author_id TEXT NOT NULL REFERENCES users(id),
+    body TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS forum_comments_post_id_idx ON forum_comments(post_id);
+
   CREATE TABLE IF NOT EXISTS app_settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL,

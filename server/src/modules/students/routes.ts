@@ -1,10 +1,11 @@
 import type { FastifyInstance } from "fastify";
 import { createHash, randomBytes } from "node:crypto";
-import { and, eq, gt, sql } from "drizzle-orm";
+import { and, eq, gt, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
 import { requireAuth, requireTeacher } from "../../auth/guards.ts";
 import { parsePagination } from "../../lib/pagination.ts";
+import { deleteForumContentByAuthor } from "../forum/routes.ts";
 import { env } from "../../env.ts";
 
 const addStudentBody = z.object({
@@ -181,6 +182,7 @@ export async function studentRoutes(app: FastifyInstance) {
     db.delete(schema.studentProfiles).where(eq(schema.studentProfiles.userId, id)).run();
     db.delete(schema.vocabListStudents).where(eq(schema.vocabListStudents.studentId, id)).run();
     db.delete(schema.lessons).where(eq(schema.lessons.studentId, id)).run();
+    deleteForumContentByAuthor(id);
     db.delete(schema.users).where(eq(schema.users.id, id)).run();
     return reply.code(204).send();
   });
@@ -256,7 +258,13 @@ export async function studentRoutes(app: FastifyInstance) {
       .where(and(eq(schema.activityStudents.studentId, session.userId), gt(schema.activities.createdAt, since)))
       .all();
 
-    return { lessons, activities };
+    const forumPosts = db
+      .select({ id: schema.forumPosts.id, title: schema.forumPosts.title })
+      .from(schema.forumPosts)
+      .where(and(gt(schema.forumPosts.publishedAt, since), ne(schema.forumPosts.authorId, session.userId)))
+      .all();
+
+    return { lessons, activities, forumPosts };
   });
 
   app.post("/api/me/new-content/seen", { preHandler: requireAuth }, async (req, reply) => {

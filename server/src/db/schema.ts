@@ -154,6 +154,28 @@ export const wordleGuesses = sqliteTable("wordle_guesses", {
   createdAt: text("created_at").notNull(),
 });
 
+// Fórum: publicações curtas (texto + link opcional) que toda a turma vê.
+// As da professora já saem publicadas; as dos alunos ficam aguardando aprovação
+// (publishedAt null) até a professora aprovar.
+export const forumPosts = sqliteTable("forum_posts", {
+  id: text("id").primaryKey(),
+  authorId: text("author_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  body: text("body"),
+  linkUrl: text("link_url"),
+  publishedAt: text("published_at"), // null = aguardando aprovação da professora
+  createdAt: text("created_at").notNull(),
+});
+
+// Comentários aparecem na hora, sem aprovação — a professora pode apagar qualquer um.
+export const forumComments = sqliteTable("forum_comments", {
+  id: text("id").primaryKey(),
+  postId: text("post_id").notNull().references(() => forumPosts.id),
+  authorId: text("author_id").notNull().references(() => users.id),
+  body: text("body").notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
 export const passwordResetTokens = sqliteTable("password_reset_tokens", {
   // hash (sha-256) do token — o token em si só existe no link, nunca é salvo em texto puro
   tokenHash: text("token_hash").primaryKey(),
