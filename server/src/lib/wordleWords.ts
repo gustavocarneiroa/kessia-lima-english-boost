@@ -91,6 +91,10 @@ export function getWordOfTheDay(date: string): { word: string; hint: string; let
   return { word: entry.word, hint: entry.hint, letterCount: entry.word.length };
 }
 
+// O servidor roda num fuso diferente do Brasil — calcula a data sempre pelo
+// horário de Brasília, senão a palavra do dia troca no horário errado.
+const BRAZIL_TZ = "America/Sao_Paulo";
+
 export function todayDateKey(): string {
-  return new Date().toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", { timeZone: BRAZIL_TZ }).format(new Date());
 }
