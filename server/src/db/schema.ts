@@ -179,6 +179,19 @@ export const forumComments = sqliteTable("forum_comments", {
   createdAt: text("created_at").notNull(),
 });
 
+// Financeiro: uma cobrança (mensalidade) por aluno. Os boletos/Pix continuam sendo
+// gerados no app do banco (Cora) — aqui a professora só registra e marca como paga.
+// O status "atrasada" não é salvo: sai de dueDate < hoje (horário de Brasília) sem paidAt.
+export const payments = sqliteTable("payments", {
+  id: text("id").primaryKey(),
+  studentId: text("student_id").notNull().references(() => users.id),
+  description: text("description").notNull(), // ex.: "Mensalidade outubro/2026"
+  amountCents: integer("amount_cents").notNull(),
+  dueDate: text("due_date").notNull(), // "YYYY-MM-DD"
+  paidAt: text("paid_at"), // "YYYY-MM-DD" — null = ainda não paga
+  createdAt: text("created_at").notNull(),
+});
+
 export const passwordResetTokens = sqliteTable("password_reset_tokens", {
   // hash (sha-256) do token — o token em si só existe no link, nunca é salvo em texto puro
   tokenHash: text("token_hash").primaryKey(),

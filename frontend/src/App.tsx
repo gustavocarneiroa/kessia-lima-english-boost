@@ -25,6 +25,7 @@ import ActivityDetail from "./pages/portal/ActivityDetail";
 import Settings from "./pages/portal/Settings";
 import Forum from "./pages/portal/Forum";
 import ForumPost from "./pages/portal/ForumPost";
+import Finance from "./pages/portal/Finance";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
               <Route path="trilha" element={<LearningPath />} />
               <Route path="forum" element={<Forum />} />
               <Route path="forum/:id" element={<ForumPost />} />
+              <Route path="financeiro" element={<Finance />} />
               <Route path="configuracoes" element={<Settings />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

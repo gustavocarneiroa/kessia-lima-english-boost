@@ -13,6 +13,7 @@ import { activitiesRoutes } from "./modules/activities/routes.ts";
 import { learningPathRoutes } from "./modules/learningPath/routes.ts";
 import { settingsRoutes } from "./modules/settings/routes.ts";
 import { wordleRoutes } from "./modules/wordle/routes.ts";
+import { paymentRoutes } from "./modules/payments/routes.ts";
 import { forumRoutes } from "./modules/forum/routes.ts";
 
 const app = Fastify({
@@ -41,6 +42,7 @@ await app.register(learningPathRoutes);
 await app.register(settingsRoutes);
 await app.register(wordleRoutes);
 await app.register(forumRoutes);
+await app.register(paymentRoutes);
 
 app.setErrorHandler((err: unknown, req, reply) => {
   req.log.error({ err }, "erro não tratado");

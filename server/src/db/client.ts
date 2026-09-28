@@ -201,6 +201,19 @@ sqlite.exec(`
 
   CREATE INDEX IF NOT EXISTS forum_comments_post_id_idx ON forum_comments(post_id);
 
+  CREATE TABLE IF NOT EXISTS payments (
+    id TEXT PRIMARY KEY,
+    student_id TEXT NOT NULL REFERENCES users(id),
+    description TEXT NOT NULL,
+    amount_cents INTEGER NOT NULL,
+    due_date TEXT NOT NULL,
+    paid_at TEXT,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS payments_student_id_idx ON payments(student_id);
+  CREATE INDEX IF NOT EXISTS payments_due_date_idx ON payments(due_date);
+
   CREATE TABLE IF NOT EXISTS app_settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL,

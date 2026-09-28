@@ -18,7 +18,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, GraduationCap, LayoutDashboard, Layers, LogOut, Map, MessagesSquare, Puzzle, Settings, Smartphone, User, Users } from "lucide-react";
+import { CalendarDays, GraduationCap, Wallet, LayoutDashboard, Layers, LogOut, Map, MessagesSquare, Puzzle, Settings, Smartphone, User, Users } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
 
@@ -122,6 +122,19 @@ function PortalSidebar({ user, onLogout }: { user: { email: string; role: string
                   >
                     <MessagesSquare />
                     <span>Fórum</span>
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Financeiro">
+                  <NavLink
+                    to="/portal/financeiro"
+                    onClick={closeMobileMenu}
+                    className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
+                  >
+                    <Wallet />
+                    <span>Financeiro</span>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
