@@ -4,6 +4,7 @@ import { env } from "../env.ts";
 import { importNotionLessons } from "./import-notion-lessons.ts";
 import { importLearningTopics } from "./import-learning-topics.ts";
 import { importNotionStudents } from "./import-notion-students.ts";
+import { importVocabLists } from "./import-vocab-lists.ts";
 import { getSetting, setSetting } from "../lib/settings.ts";
 
 /**
@@ -28,6 +29,7 @@ if (!existing) {
 importNotionLessons();
 importNotionStudents();
 importLearningTopics();
+importVocabLists();
 
 // Aviso de "novidade" (aula/atividade nova) na tela inicial do aluno: sem isso,
 // quem já tinha conta veria um aviso gigante com tudo que já existia antes desse

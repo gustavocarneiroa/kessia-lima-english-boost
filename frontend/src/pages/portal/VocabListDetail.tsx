@@ -62,6 +62,15 @@ export default function VocabListDetail() {
     image: string | null;
   } | null>(null);
   const [savingManual, setSavingManual] = useState(false);
+  const [mode, setMode] = useState<"word" | "phrase">("word");
+  const [phrase, setPhrase] = useState<{
+    phrase: string;
+    meaning: string;
+    phraseAudio: string | null;
+    meaningAudio: string | null;
+    image: string | null;
+  }>({ phrase: "", meaning: "", phraseAudio: null, meaningAudio: null, image: null });
+  const [savingPhrase, setSavingPhrase] = useState(false);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
@@ -134,6 +143,22 @@ export default function VocabListDetail() {
       setError(err instanceof ApiError ? err.message : "Não foi possível salvar o card.");
     } finally {
       setSavingManual(false);
+    }
+  }
+
+  async function savePhrase(e: React.FormEvent) {
+    e.preventDefault();
+    if (!id) return;
+    setSavingPhrase(true);
+    setError(null);
+    try {
+      await api.post(`/api/vocab/lists/${id}/cards/phrase`, phrase);
+      setPhrase({ phrase: "", meaning: "", phraseAudio: null, meaningAudio: null, image: null });
+      await load();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Não foi possível salvar a frase.");
+    } finally {
+      setSavingPhrase(false);
     }
   }
 
@@ -249,14 +274,16 @@ export default function VocabListDetail() {
                   style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
                 >
                   <div className="flex items-center gap-2">
-                    <p className="text-3xl font-semibold">{card.word}</p>
+                    <p className={card.word.includes(" ") ? "text-2xl font-semibold" : "text-3xl font-semibold"}>
+                      {card.word}
+                    </p>
                     {card.hasWordAudio && (
                       <span onClick={(e) => e.stopPropagation()}>
                         <VocabAudioButton cardId={card.id} kind="word" label="Ouvir" />
                       </span>
                     )}
                   </div>
-                  <p className="text-muted-foreground">{card.phonetic}</p>
+                  {card.phonetic && <p className="text-muted-foreground">{card.phonetic}</p>}
                 </div>
               </div>
             </div>
@@ -285,17 +312,85 @@ export default function VocabListDetail() {
         <>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Adicionar palavra</CardTitle>
-              <CardDescription>Digite só a palavra. O dicionário preenche o resto quando encontrar.</CardDescription>
+              <CardTitle className="text-base">{mode === "word" ? "Adicionar palavra" : "Adicionar frase"}</CardTitle>
+              <CardDescription>
+                {mode === "word"
+                  ? "Digite só a palavra. O dicionário preenche o resto quando encontrar."
+                  : "Uma frase ou expressão inteira. O áudio da frase é gerado sozinho se você não gravar."}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <form onSubmit={addWord} className="flex flex-col gap-3 sm:flex-row">
-                <Input value={word} onChange={(e) => setWord(e.target.value)} placeholder="ex.: apple" required />
-                <Button type="submit" disabled={adding}>
-                  {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buscar"}
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={mode === "word" ? "default" : "outline"}
+                  onClick={() => setMode("word")}
+                >
+                  Palavra
                 </Button>
-              </form>
-              {manual && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={mode === "phrase" ? "default" : "outline"}
+                  onClick={() => {
+                    setMode("phrase");
+                    setManual(null);
+                  }}
+                >
+                  Frase
+                </Button>
+              </div>
+              {mode === "phrase" && (
+                <form onSubmit={savePhrase} className="space-y-3">
+                  <div className="space-y-1">
+                    <Label>Frase em inglês</Label>
+                    <Textarea
+                      value={phrase.phrase}
+                      onChange={(e) => setPhrase({ ...phrase, phrase: e.target.value })}
+                      placeholder="ex.: How are you doing?"
+                      maxLength={300}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Significado</Label>
+                    <Textarea
+                      value={phrase.meaning}
+                      onChange={(e) => setPhrase({ ...phrase, meaning: e.target.value })}
+                      placeholder="ex.: Como você está? (jeito informal de cumprimentar)"
+                      required
+                    />
+                  </div>
+                  <VocabImageField
+                    label="Imagem (opcional)"
+                    value={phrase.image}
+                    onChange={(v) => setPhrase({ ...phrase, image: v })}
+                  />
+                  <VocabAudioField
+                    label="Áudio da frase (opcional — se não gravar, é gerado sozinho)"
+                    value={phrase.phraseAudio}
+                    onChange={(v) => setPhrase({ ...phrase, phraseAudio: v })}
+                  />
+                  <VocabAudioField
+                    label="Áudio do significado (opcional)"
+                    value={phrase.meaningAudio}
+                    onChange={(v) => setPhrase({ ...phrase, meaningAudio: v })}
+                  />
+                  <Button type="submit" disabled={savingPhrase}>
+                    {savingPhrase ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar frase"}
+                  </Button>
+                </form>
+              )}
+              {mode === "word" && (
+                <form onSubmit={addWord} className="flex flex-col gap-3 sm:flex-row">
+                  <Input value={word} onChange={(e) => setWord(e.target.value)} placeholder="ex.: apple" required />
+                  <Button type="submit" disabled={adding}>
+                    {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buscar"}
+                  </Button>
+                </form>
+              )}
+              {mode === "word" && manual && (
                 <form onSubmit={saveManual} className="space-y-3 rounded-md border p-3">
                   <p className="text-sm">Essa palavra não está no dicionário. Preencha tudo abaixo.</p>
                   <div className="space-y-1">
@@ -377,11 +472,11 @@ export default function VocabListDetail() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Palavras desta lista</CardTitle>
+              <CardTitle className="text-base">Palavras e frases desta lista</CardTitle>
             </CardHeader>
             <CardContent>
               {cards.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma palavra ainda.</p>
+                <p className="text-sm text-muted-foreground">Nenhuma palavra ou frase ainda.</p>
               ) : (
                 <ul className="space-y-2">
                   {cards.map((c) => (

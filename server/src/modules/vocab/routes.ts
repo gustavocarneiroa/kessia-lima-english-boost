@@ -30,6 +30,17 @@ const manualBody = z.object({
   image: z.string().min(1).max(8_000_000).optional().nullable(),
 });
 
+// Card de frase/expressão inteira (ex.: "How are you doing?"): não passa pelo
+// dicionário, não tem fonética. Se a professora não gravar o áudio da frase, ele é
+// gerado automaticamente; o áudio do significado é opcional.
+const phraseBody = z.object({
+  phrase: z.string().trim().min(1).max(300),
+  meaning: z.string().trim().min(1).max(4000),
+  phraseAudio: z.string().min(1).max(4_000_000).optional().nullable(),
+  meaningAudio: z.string().min(1).max(4_000_000).optional().nullable(),
+  image: z.string().min(1).max(8_000_000).optional().nullable(),
+});
+
 const imageBody = z.object({
   image: z.string().min(1).max(8_000_000),
 });
@@ -126,7 +137,8 @@ function cardPublic(c: typeof schema.vocabCards.$inferSelect) {
     phonetic: c.phonetic,
     sourceUrl: c.sourceUrl,
     origin: c.origin,
-    hasWordAudio: !!c.wordAudioPath,
+    // sem áudio gravado, ele é gerado na hora em que alguém clica em "Ouvir"
+    hasWordAudio: true,
     hasMeaningAudio: !!c.meaningAudioPath,
     hasImage: !!c.imagePath,
     sortOrder: c.sortOrder,
@@ -344,6 +356,36 @@ export async function vocabRoutes(app: FastifyInstance) {
     return reply.code(201).send(cardPublic(row));
   });
 
+  app.post("/api/vocab/lists/:id/cards/phrase", { preHandler: requireTeacher }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    if (!listOr404(id)) return reply.code(404).send({ error: "not_found", message: "Lista não encontrada." });
+    const parsed = phraseBody.safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({
+        error: "invalid_body",
+        message: "Preencha a frase (até 300 letras) e o significado.",
+      });
+    }
+    const { phrase, meaning, phraseAudio, meaningAudio, image } = parsed.data;
+
+    const row = {
+      id: randomUUID(),
+      listId: id,
+      word: phrase,
+      meaning,
+      phonetic: "",
+      sourceUrl: null,
+      origin: "teacher" as const,
+      wordAudioPath: phraseAudio ? saveTeacherAudio(phraseAudio) : await saveTts(phrase),
+      meaningAudioPath: meaningAudio ? saveTeacherAudio(meaningAudio) : null,
+      imagePath: image ? saveTeacherImage(image) : null,
+      sortOrder: nextOrder(id),
+      createdAt: new Date().toISOString(),
+    };
+    db.insert(schema.vocabCards).values(row).run();
+    return reply.code(201).send(cardPublic(row));
+  });
+
   app.put("/api/vocab/lists/:id/cards/:cardId/image", { preHandler: requireTeacher }, async (req, reply) => {
     const { id, cardId } = req.params as { id: string; cardId: string };
     const card = db
@@ -383,7 +425,12 @@ export async function vocabRoutes(app: FastifyInstance) {
     if (!card || !canReadList(card.listId, req.session!)) {
       return reply.code(404).send({ error: "not_found", message: "Áudio não encontrado." });
     }
-    const rel = kind === "word" ? card.wordAudioPath : card.meaningAudioPath;
+    let rel = kind === "word" ? card.wordAudioPath : card.meaningAudioPath;
+    if (!rel && kind === "word") {
+      // cards importados em lote entram sem áudio; gera uma vez e guarda
+      rel = await saveTts(card.word.replace(/\s*\/\s*/g, ", "));
+      db.update(schema.vocabCards).set({ wordAudioPath: rel }).where(eq(schema.vocabCards.id, cardId)).run();
+    }
     if (!rel) return reply.code(404).send({ error: "not_found", message: "Áudio não encontrado." });
     const buf = readFileSync(audioFilePath(rel));
     const ext = extname(rel).toLowerCase();
