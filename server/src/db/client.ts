@@ -208,6 +208,7 @@ sqlite.exec(`
     amount_cents INTEGER NOT NULL,
     due_date TEXT NOT NULL,
     paid_at TEXT,
+    boleto_path TEXT,
     created_at TEXT NOT NULL
   );
 
@@ -285,6 +286,12 @@ try {
 
 try {
   sqlite.exec(`ALTER TABLE activity_students ADD COLUMN assigned_at TEXT`);
+} catch {
+  // já existe
+}
+
+try {
+  sqlite.exec(`ALTER TABLE payments ADD COLUMN boleto_path TEXT`);
 } catch {
   // já existe
 }

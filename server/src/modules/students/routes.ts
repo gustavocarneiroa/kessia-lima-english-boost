@@ -6,6 +6,7 @@ import { db, schema } from "../../db/client.ts";
 import { requireAuth, requireTeacher } from "../../auth/guards.ts";
 import { parsePagination } from "../../lib/pagination.ts";
 import { deleteForumContentByAuthor } from "../forum/routes.ts";
+import { removeBoletoPdf } from "../../lib/boleto.ts";
 import { env } from "../../env.ts";
 
 const addStudentBody = z.object({
@@ -177,6 +178,12 @@ export async function studentRoutes(app: FastifyInstance) {
       return reply.code(404).send({ error: "not_found", message: "Aluno não encontrado." });
     }
 
+    const boletoPaths = db
+      .select({ path: schema.payments.boletoPath })
+      .from(schema.payments)
+      .where(eq(schema.payments.studentId, id))
+      .all();
+
     // Tudo que referencia users(id) precisa sair antes (foreign_keys = ON) — numa
     // transação só, pra não deixar o aluno pela metade se algo falhar.
     db.transaction((tx) => {
@@ -195,6 +202,8 @@ export async function studentRoutes(app: FastifyInstance) {
       deleteForumContentByAuthor(id);
       tx.delete(schema.users).where(eq(schema.users.id, id)).run();
     });
+    // PDFs só saem depois que o banco confirmou — se a transação falhar, os boletos continuam lá.
+    boletoPaths.forEach((b) => removeBoletoPdf(b.path));
     return reply.code(204).send();
   });
 

@@ -180,7 +180,8 @@ export const forumComments = sqliteTable("forum_comments", {
 });
 
 // Financeiro: uma cobrança (mensalidade) por aluno. Os boletos/Pix continuam sendo
-// gerados no app do banco (Cora) — aqui a professora só registra e marca como paga.
+// gerados no app do banco (Cora) — aqui a professora registra, anexa o PDF do boleto
+// (o aluno baixa pelo portal) e marca como paga.
 // O status "atrasada" não é salvo: sai de dueDate < hoje (horário de Brasília) sem paidAt.
 export const payments = sqliteTable("payments", {
   id: text("id").primaryKey(),
@@ -189,6 +190,7 @@ export const payments = sqliteTable("payments", {
   amountCents: integer("amount_cents").notNull(),
   dueDate: text("due_date").notNull(), // "YYYY-MM-DD"
   paidAt: text("paid_at"), // "YYYY-MM-DD" — null = ainda não paga
+  boletoPath: text("boleto_path"), // nome do PDF em data/boletos — null = sem boleto anexado
   createdAt: text("created_at").notNull(),
 });
 

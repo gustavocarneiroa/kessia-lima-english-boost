@@ -1,10 +1,12 @@
 import type { FastifyInstance } from "fastify";
+import { readFileSync } from "node:fs";
 import { and, asc, eq, gte, isNotNull, isNull, like, lt, sql, type SQL } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
 import { requireAuth, requireTeacher } from "../../auth/guards.ts";
 import { parsePagination } from "../../lib/pagination.ts";
 import { todayDateKey } from "../../lib/wordleWords.ts";
+import { boletoFilePath, removeBoletoPdf, saveBoletoPdf } from "../../lib/boleto.ts";
 
 const MONTH_NAMES = [
   "janeiro", "fevereiro", "março", "abril", "maio", "junho",
@@ -32,6 +34,10 @@ const paymentBody = z.object({
 
 const paymentUpdateBody = paymentBody.partial();
 
+const boletoBody = z.object({
+  file: z.string().min(1).max(8_000_000), // data URL do PDF
+});
+
 type PaymentRow = typeof schema.payments.$inferSelect;
 
 function statusOf(payment: PaymentRow, today: string) {
@@ -47,6 +53,7 @@ function serialize(payment: PaymentRow, today = todayDateKey()) {
     amountCents: payment.amountCents,
     dueDate: payment.dueDate,
     paidAt: payment.paidAt,
+    hasBoleto: !!payment.boletoPath,
     status: statusOf(payment, today),
     createdAt: payment.createdAt,
   };
@@ -152,6 +159,7 @@ export async function paymentRoutes(app: FastifyInstance) {
       amountCents: parsed.data.amountCents,
       dueDate: parsed.data.dueDate,
       paidAt: parsed.data.paidAt ?? null,
+      boletoPath: null,
       createdAt: new Date().toISOString(),
     };
     db.insert(schema.payments).values(payment).run();
@@ -267,6 +275,64 @@ export async function paymentRoutes(app: FastifyInstance) {
     }
 
     db.delete(schema.payments).where(eq(schema.payments.id, id)).run();
+    removeBoletoPdf(existing.boletoPath);
     return reply.code(204).send();
+  });
+
+  // Anexa (ou troca) o PDF do boleto gerado na Cora.
+  app.put("/api/payments/:id/boleto", { preHandler: requireTeacher }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const existing = db.select().from(schema.payments).where(eq(schema.payments.id, id)).get();
+    if (!existing) {
+      return reply.code(404).send({ error: "not_found", message: "Cobrança não encontrada." });
+    }
+
+    const parsed = boletoBody.safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", message: "Arquivo inválido ou grande demais." });
+    }
+
+    const boletoPath = saveBoletoPdf(parsed.data.file);
+    db.update(schema.payments).set({ boletoPath }).where(eq(schema.payments.id, id)).run();
+    removeBoletoPdf(existing.boletoPath);
+
+    return serialize({ ...existing, boletoPath });
+  });
+
+  app.delete("/api/payments/:id/boleto", { preHandler: requireTeacher }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const existing = db.select().from(schema.payments).where(eq(schema.payments.id, id)).get();
+    if (!existing) {
+      return reply.code(404).send({ error: "not_found", message: "Cobrança não encontrada." });
+    }
+
+    db.update(schema.payments).set({ boletoPath: null }).where(eq(schema.payments.id, id)).run();
+    removeBoletoPdf(existing.boletoPath);
+
+    return serialize({ ...existing, boletoPath: null });
+  });
+
+  // A professora baixa qualquer boleto; o aluno só os das próprias cobranças.
+  app.get("/api/payments/:id/boleto", { preHandler: requireAuth }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const { userId, role } = req.session!;
+    const payment = db.select().from(schema.payments).where(eq(schema.payments.id, id)).get();
+    if (!payment || !payment.boletoPath || (role !== "teacher" && payment.studentId !== userId)) {
+      return reply.code(404).send({ error: "not_found", message: "Boleto não encontrado." });
+    }
+
+    let buf: Buffer;
+    try {
+      buf = readFileSync(boletoFilePath(payment.boletoPath));
+    } catch {
+      return reply.code(404).send({ error: "not_found", message: "Boleto não encontrado." });
+    }
+
+    const fileName = `boleto-${payment.dueDate}.pdf`;
+    return reply
+      .header("Content-Type", "application/pdf")
+      .header("Content-Disposition", `attachment; filename="${fileName}"`)
+      .header("Cache-Control", "private, no-store")
+      .send(buf);
   });
 }

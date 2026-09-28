@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { api, ApiError } from "@/lib/api";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { api, ApiError, fetchBoletoBlob } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CalendarPlus, Check, Loader2, Pencil, Plus, Trash2, Undo2, X } from "lucide-react";
+import { CalendarPlus, Check, Download, FileUp, Loader2, Pencil, Plus, Trash2, Undo2, X } from "lucide-react";
 import Pagination from "@/components/Pagination";
 
 const PAGE_SIZE = 20;
@@ -46,7 +46,19 @@ interface Payment {
   amountCents: number;
   dueDate: string;
   paidAt: string | null;
+  hasBoleto: boolean;
   status: PaymentStatus;
+}
+
+const MAX_BOLETO_BYTES = 5 * 1024 * 1024;
+
+function readAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
 }
 
 interface Summary {
@@ -148,6 +160,10 @@ export default function Finance() {
 
   const [deleting, setDeleting] = useState<Payment | null>(null);
   const [deleteSaving, setDeleteSaving] = useState(false);
+
+  const boletoInputRef = useRef<HTMLInputElement>(null);
+  const [uploadTarget, setUploadTarget] = useState<Payment | null>(null);
+  const [boletoBusyId, setBoletoBusyId] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -269,6 +285,71 @@ export default function Finance() {
     }
   }
 
+  function chooseBoleto(payment: Payment) {
+    setUploadTarget(payment);
+    boletoInputRef.current?.click();
+  }
+
+  async function uploadBoleto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    const payment = uploadTarget;
+    if (!file || !payment) return;
+    setListError(null);
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+      setListError("O boleto precisa ser um arquivo PDF.");
+      return;
+    }
+    if (file.size > MAX_BOLETO_BYTES) {
+      setListError("Esse PDF é grande demais (máximo 5 MB).");
+      return;
+    }
+    setBoletoBusyId(payment.id);
+    try {
+      const dataUrl = (await readAsDataUrl(file)).replace(/^data:[^;]*;/, "data:application/pdf;");
+      await api.put(`/api/payments/${payment.id}/boleto`, { file: dataUrl });
+      await load();
+    } catch (err) {
+      setListError(err instanceof ApiError ? err.message : "Não foi possível anexar o boleto.");
+    } finally {
+      setBoletoBusyId(null);
+      setUploadTarget(null);
+    }
+  }
+
+  async function removeBoleto(payment: Payment) {
+    setListError(null);
+    setBoletoBusyId(payment.id);
+    try {
+      await api.delete(`/api/payments/${payment.id}/boleto`);
+      await load();
+    } catch (err) {
+      setListError(err instanceof ApiError ? err.message : "Não foi possível remover o boleto.");
+    } finally {
+      setBoletoBusyId(null);
+    }
+  }
+
+  async function downloadBoleto(payment: Payment) {
+    setListError(null);
+    setBoletoBusyId(payment.id);
+    try {
+      const blob = await fetchBoletoBlob(payment.id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `boleto-${payment.dueDate}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    } catch (err) {
+      setListError(err instanceof ApiError ? err.message : "Não foi possível baixar o boleto.");
+    } finally {
+      setBoletoBusyId(null);
+    }
+  }
+
   function openEdit(payment: Payment) {
     setEditing(payment);
     setEditError(null);
@@ -338,8 +419,8 @@ export default function Finance() {
         <h1 className="text-2xl font-semibold tracking-tight">Financeiro</h1>
         <p className="text-muted-foreground">
           {isTeacher
-            ? "Registre as mensalidades de cada aluno e marque quando forem pagas. Os boletos e Pix continuam sendo gerados no app da Cora."
-            : "Veja suas mensalidades e se estão pagas, pendentes ou atrasadas."}
+            ? "Registre as mensalidades de cada aluno, anexe o boleto gerado no app da Cora e marque quando forem pagas."
+            : "Veja suas mensalidades, baixe o boleto e acompanhe se estão pagas, pendentes ou atrasadas."}
         </p>
       </div>
 
@@ -583,8 +664,76 @@ export default function Finance() {
                     </p>
                   </div>
 
+                  {!isTeacher && payment.hasBoleto && !payment.paidAt && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1 self-start sm:self-auto"
+                      disabled={boletoBusyId === payment.id}
+                      onClick={() => downloadBoleto(payment)}
+                    >
+                      {boletoBusyId === payment.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Download className="h-4 w-4" />
+                      )}
+                      Baixar boleto
+                    </Button>
+                  )}
+
                   {isTeacher && (
                     <div className="flex flex-wrap items-center gap-2">
+                      {payment.hasBoleto ? (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1"
+                            disabled={boletoBusyId === payment.id}
+                            onClick={() => downloadBoleto(payment)}
+                          >
+                            {boletoBusyId === payment.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Download className="h-4 w-4" />
+                            )}
+                            Boleto
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground"
+                            disabled={boletoBusyId === payment.id}
+                            onClick={() => chooseBoleto(payment)}
+                          >
+                            Trocar
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-muted-foreground"
+                            disabled={boletoBusyId === payment.id}
+                            onClick={() => removeBoleto(payment)}
+                          >
+                            Remover
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-1"
+                          disabled={boletoBusyId === payment.id}
+                          onClick={() => chooseBoleto(payment)}
+                        >
+                          {boletoBusyId === payment.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <FileUp className="h-4 w-4" />
+                          )}
+                          Anexar boleto
+                        </Button>
+                      )}
                       {payment.paidAt ? (
                         <Button variant="outline" size="sm" className="gap-1" onClick={() => setPaid(payment, false)}>
                           <Undo2 className="h-4 w-4" /> Desfazer pagamento
@@ -612,6 +761,15 @@ export default function Finance() {
             </ul>
           )}
           <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
+          {isTeacher && (
+            <input
+              ref={boletoInputRef}
+              type="file"
+              accept="application/pdf,.pdf"
+              className="hidden"
+              onChange={uploadBoleto}
+            />
+          )}
         </CardContent>
       </Card>
 

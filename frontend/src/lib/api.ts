@@ -57,3 +57,9 @@ export async function fetchImageBlob(path: string): Promise<Blob> {
   if (!res.ok) throw new ApiError(res.status, "image_error", "Não foi possível carregar a imagem.");
   return res.blob();
 }
+
+export async function fetchBoletoBlob(paymentId: string): Promise<Blob> {
+  const res = await fetch(`${API_URL}/api/payments/${paymentId}/boleto`, { credentials: "include" });
+  if (!res.ok) throw new ApiError(res.status, "boleto_error", "Não foi possível baixar o boleto.");
+  return res.blob();
+}
