@@ -41,6 +41,14 @@ interface Student {
   fullName?: string | null;
 }
 
+// Mesmo estilo nos dois lados do card; textos longos (frases, definições do
+// dicionário) diminuem pra caber.
+function cardTextClass(text: string) {
+  if (text.length <= 20) return "text-3xl font-semibold";
+  if (text.length <= 60) return "text-2xl font-semibold";
+  return "text-lg font-semibold leading-relaxed";
+}
+
 export default function VocabListDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
@@ -253,30 +261,13 @@ export default function VocabListDetail() {
                   transform: flipped ? "rotateY(180deg)" : "rotateY(0deg)",
                 }}
               >
-                {/* Frente: imagem + significado, sem mostrar a palavra */}
-                <div
-                  className="absolute inset-0 flex flex-col gap-3 rounded-xl border bg-muted/30 p-4"
-                  style={{ backfaceVisibility: "hidden" }}
-                >
-                  {card.hasImage && <VocabCardImage cardId={card.id} />}
-                  <div className="flex flex-1 items-center gap-2">
-                    <p className="flex-1 text-lg leading-relaxed">{card.meaning}</p>
-                    {card.hasMeaningAudio && (
-                      <span onClick={(e) => e.stopPropagation()}>
-                        <VocabAudioButton cardId={card.id} kind="meaning" label="Ouvir" />
-                      </span>
-                    )}
-                  </div>
-                </div>
-                {/* Verso: a palavra */}
+                {/* Frente: a palavra/frase em inglês */}
                 <div
                   className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-xl border bg-muted/30 p-4 text-center"
-                  style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+                  style={{ backfaceVisibility: "hidden" }}
                 >
                   <div className="flex items-center gap-2">
-                    <p className={card.word.includes(" ") ? "text-2xl font-semibold" : "text-3xl font-semibold"}>
-                      {card.word}
-                    </p>
+                    <p className={cardTextClass(card.word)}>{card.word}</p>
                     {card.hasWordAudio && (
                       <span onClick={(e) => e.stopPropagation()}>
                         <VocabAudioButton cardId={card.id} kind="word" label="Ouvir" />
@@ -284,6 +275,21 @@ export default function VocabListDetail() {
                     )}
                   </div>
                   {card.phonetic && <p className="text-muted-foreground">{card.phonetic}</p>}
+                </div>
+                {/* Verso: imagem + significado, no mesmo formato da frente */}
+                <div
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-xl border bg-muted/30 p-4 text-center"
+                  style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+                >
+                  {card.hasImage && <VocabCardImage cardId={card.id} />}
+                  <div className="flex items-center gap-2">
+                    <p className={cardTextClass(card.meaning)}>{card.meaning}</p>
+                    {card.hasMeaningAudio && (
+                      <span onClick={(e) => e.stopPropagation()}>
+                        <VocabAudioButton cardId={card.id} kind="meaning" label="Ouvir" />
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
