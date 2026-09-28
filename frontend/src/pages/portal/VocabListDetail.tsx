@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Copy, Loader2, Trash2 } from "lucide-react";
+import { Copy, Loader2, Pencil, Trash2 } from "lucide-react";
 import { VocabAudioButton } from "./VocabAudioButton";
 import { VocabAudioField } from "./VocabAudioField";
 import { VocabCardImage } from "./VocabCardImage";
@@ -79,6 +79,8 @@ export default function VocabListDetail() {
     image: string | null;
   }>({ phrase: "", meaning: "", phraseAudio: null, meaningAudio: null, image: null });
   const [savingPhrase, setSavingPhrase] = useState(false);
+  const [editingTitle, setEditingTitle] = useState<string | null>(null);
+  const [savingTitle, setSavingTitle] = useState(false);
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
 
@@ -170,6 +172,22 @@ export default function VocabListDetail() {
     }
   }
 
+  async function saveTitle(e: React.FormEvent) {
+    e.preventDefault();
+    if (!id || editingTitle === null) return;
+    setSavingTitle(true);
+    setError(null);
+    try {
+      await api.patch(`/api/vocab/lists/${id}`, { title: editingTitle });
+      setList((l) => (l ? { ...l, title: editingTitle.trim() } : l));
+      setEditingTitle(null);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Não foi possível mudar o nome da lista.");
+    } finally {
+      setSavingTitle(false);
+    }
+  }
+
   async function duplicate() {
     if (!id) return;
     const copy = await api.post<{ id: string }>(`/api/vocab/lists/${id}/duplicate`);
@@ -224,7 +242,39 @@ export default function VocabListDetail() {
           <Link to="/portal/vocabulario" className="text-sm text-muted-foreground hover:underline">
             ← Todas as listas
           </Link>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{list.title}</h1>
+          {editingTitle !== null ? (
+            <form onSubmit={saveTitle} className="mt-1 flex flex-wrap items-center gap-2">
+              <Input
+                value={editingTitle}
+                onChange={(e) => setEditingTitle(e.target.value)}
+                maxLength={200}
+                className="w-80 max-w-full"
+                autoFocus
+                required
+              />
+              <Button type="submit" size="sm" disabled={savingTitle || !editingTitle.trim()}>
+                {savingTitle ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar"}
+              </Button>
+              <Button type="button" size="sm" variant="ghost" onClick={() => setEditingTitle(null)}>
+                Cancelar
+              </Button>
+            </form>
+          ) : (
+            <div className="mt-1 flex items-center gap-2">
+              <h1 className="text-2xl font-semibold tracking-tight">{list.title}</h1>
+              {isTeacher && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Editar nome da lista"
+                  title="Editar nome da lista"
+                  onClick={() => setEditingTitle(list.title)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
         </div>
         {isTeacher && (
           <div className="flex gap-2">
