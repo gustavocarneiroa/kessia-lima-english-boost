@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Loader2, Maximize2, Minimize2, Pencil, Trash2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import ActivityForm, { type ActivityFormPayload, type QuizItemDraft } from "./ActivityForm";
 
 interface Question {
@@ -23,6 +23,25 @@ interface QuizItem {
   prompt: string;
   options?: string[];
   correctIndex?: number;
+}
+
+// Enunciados do quiz podem ter várias linhas (texto de leitura + pergunta) e links
+// de vídeo — mostra as quebras de linha e deixa os links clicáveis.
+function PromptText({ text }: { text: string }) {
+  const parts = text.split(/(https?:\/\/\S+)/g);
+  return (
+    <span className="whitespace-pre-line">
+      {parts.map((part, i) =>
+        /^https?:\/\//.test(part) ? (
+          <a key={i} href={part} target="_blank" rel="noreferrer" className="break-all text-primary underline">
+            {part}
+          </a>
+        ) : (
+          part
+        ),
+      )}
+    </span>
+  );
 }
 
 function reconstructEmbedCode(src: string, height: number) {
@@ -301,7 +320,7 @@ export default function ActivityDetail() {
                     return (
                       <div key={qi} className="space-y-2">
                         <Label className="text-sm font-medium">
-                          {qi + 1}. {q.prompt}
+                          {qi + 1}. <PromptText text={q.prompt} />
                         </Label>
                         <RadioGroup
                           value={answers[qi] !== undefined ? String(answers[qi]) : undefined}
@@ -339,13 +358,15 @@ export default function ActivityDetail() {
                   return (
                     <div key={qi} className="space-y-2">
                       <Label className="text-sm font-medium">
-                        {qi + 1}. {q.prompt}
+                        {qi + 1}. <PromptText text={q.prompt} />
                       </Label>
-                      <Input
+                      <Textarea
                         value={(answers[qi] as string) ?? ""}
                         onChange={(e) => setAnswers((prev) => ({ ...prev, [qi]: e.target.value }))}
                         disabled={!!result}
                         placeholder="Sua resposta"
+                        rows={1}
+                        className="min-h-10"
                       />
                       {result &&
                         (grade === undefined ? (
@@ -388,7 +409,7 @@ export default function ActivityDetail() {
                 {(activity.questions as QuizItem[] | undefined)?.map((q, qi) => (
                   <div key={qi} className="text-sm">
                     <p className="font-medium">
-                      {qi + 1}. {q.prompt}
+                      {qi + 1}. <PromptText text={q.prompt} />
                     </p>
                     <p className="text-muted-foreground">
                       {q.type === "choice"
@@ -421,9 +442,9 @@ export default function ActivityDetail() {
                       return (
                         <div key={qi} className="rounded-md bg-muted/30 p-2 text-sm">
                           <p className="text-xs text-muted-foreground">
-                            {qi + 1}. {q.prompt}
+                            {qi + 1}. <PromptText text={q.prompt} />
                           </p>
-                          <p>{ans || <span className="italic text-muted-foreground">(sem resposta)</span>}</p>
+                          <p className="whitespace-pre-line">{ans || <span className="italic text-muted-foreground">(sem resposta)</span>}</p>
                           <div className="mt-1 flex items-center gap-2">
                             <Button
                               type="button"

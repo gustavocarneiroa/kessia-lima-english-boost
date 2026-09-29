@@ -44,10 +44,15 @@ const listeningUpdateBody = z.object({
 // "quiz": atividade feita pela própria professora, sem vídeo — mistura perguntas de
 // múltipla escolha (corrigidas na hora) com perguntas de completar/resposta aberta
 // (a professora corrige depois, manualmente).
+// O enunciado pode trazer um texto de leitura inteiro antes da pergunta, e uma aula
+// do caderno pode ter várias dezenas de exercícios — daí os limites maiores.
+const QUIZ_PROMPT_MAX = 2000;
+const QUIZ_ITEMS_MAX = 60;
+
 const quizChoiceItemSchema = z
   .object({
     type: z.literal("choice"),
-    prompt: z.string().trim().min(1).max(500),
+    prompt: z.string().trim().min(1).max(QUIZ_PROMPT_MAX),
     options: z.array(z.string().trim().min(1).max(200)).min(2).max(6),
     correctIndex: z.number().int().min(0),
   })
@@ -55,7 +60,7 @@ const quizChoiceItemSchema = z
 
 const quizBlankItemSchema = z.object({
   type: z.literal("blank"),
-  prompt: z.string().trim().min(1).max(500),
+  prompt: z.string().trim().min(1).max(QUIZ_PROMPT_MAX),
 });
 
 const quizItemSchema = z.union([quizChoiceItemSchema, quizBlankItemSchema]);
@@ -63,12 +68,12 @@ const quizItemSchema = z.union([quizChoiceItemSchema, quizBlankItemSchema]);
 const quizCreateBody = z.object({
   kind: z.literal("quiz"),
   title: z.string().trim().min(1).max(200),
-  questions: z.array(quizItemSchema).min(1).max(30),
+  questions: z.array(quizItemSchema).min(1).max(QUIZ_ITEMS_MAX),
 });
 
 const quizUpdateBody = z.object({
   title: z.string().trim().min(1).max(200),
-  questions: z.array(quizItemSchema).min(1).max(30),
+  questions: z.array(quizItemSchema).min(1).max(QUIZ_ITEMS_MAX),
 });
 
 const studentsBody = z.object({
@@ -80,7 +85,7 @@ const submitBody = z.object({
 });
 
 const quizSubmitBody = z.object({
-  answers: z.array(z.union([z.number().int().min(0), z.string().trim().max(1000)])).max(30),
+  answers: z.array(z.union([z.number().int().min(0), z.string().trim().max(1000)])).max(QUIZ_ITEMS_MAX),
 });
 
 const gradeBody = z.object({
