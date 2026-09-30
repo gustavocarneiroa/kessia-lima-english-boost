@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Headphones, Link2, PenLine } from "lucide-react";
 import ActivityForm, { type ActivityFormPayload } from "./ActivityForm";
@@ -18,6 +19,7 @@ interface Activity {
 
 export default function Activities() {
   const { user } = useAuth();
+  const { t } = usePortalPrefs();
   const isTeacher = user?.role === "teacher";
   const [activities, setActivities] = useState<Activity[]>([]);
   const [total, setTotal] = useState(0);
@@ -53,30 +55,33 @@ export default function Activities() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Atividades</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("Atividades", "Activities")}</h1>
         <p className="text-muted-foreground">
           {isTeacher
-            ? "Crie um exercício de listening com um vídeo do YouTube, uma atividade sua com múltipla escolha e completar, ou cole o código de um site (ex.: Quizlet)."
-            : "Atividades que a professora enviou para você."}
+            ? t(
+                "Crie um exercício de listening com um vídeo do YouTube, uma atividade sua com múltipla escolha e completar, ou cole o código de um site (ex.: Quizlet).",
+                "Create a listening exercise from a YouTube video, your own multiple-choice and fill-in-the-blank activity, or paste the embed code from a website (e.g. Quizlet).",
+              )
+            : t("Atividades que a professora enviou para você.", "Activities your teacher sent you.")}
         </p>
       </div>
 
       {isTeacher && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Nova atividade</CardTitle>
-            <CardDescription>Escolha o tipo de atividade.</CardDescription>
+            <CardTitle className="text-base">{t("Nova atividade", "New activity")}</CardTitle>
+            <CardDescription>{t("Escolha o tipo de atividade.", "Choose the type of activity.")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <ActivityForm key={formKey} submitLabel="Criar" onSubmit={create} />
+            <ActivityForm key={formKey} submitLabel={t("Criar", "Create")} onSubmit={create} />
           </CardContent>
         </Card>
       )}
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Atividades</CardTitle>
-          <CardDescription>{total} atividade(s)</CardDescription>
+          <CardTitle className="text-base">{t("Atividades", "Activities")}</CardTitle>
+          <CardDescription>{total} {t("atividade(s)", "activity(ies)")}</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -85,7 +90,9 @@ export default function Activities() {
             </div>
           ) : activities.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              {isTeacher ? "Nenhuma atividade ainda." : "Nenhuma atividade foi enviada para você ainda."}
+              {isTeacher
+                ? t("Nenhuma atividade ainda.", "No activities yet.")
+                : t("Nenhuma atividade foi enviada para você ainda.", "No activities have been sent to you yet.")}
             </p>
           ) : (
             <ul className="space-y-2">

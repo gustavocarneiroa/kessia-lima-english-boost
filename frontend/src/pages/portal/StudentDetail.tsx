@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api, ApiError } from "@/lib/api";
+import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,14 +49,14 @@ interface Lesson {
   makeupScheduled: boolean;
 }
 
-const WEEKDAYS: { value: string; label: string }[] = [
-  { value: "monday", label: "Segunda-feira" },
-  { value: "tuesday", label: "Terça-feira" },
-  { value: "wednesday", label: "Quarta-feira" },
-  { value: "thursday", label: "Quinta-feira" },
-  { value: "friday", label: "Sexta-feira" },
-  { value: "saturday", label: "Sábado" },
-  { value: "sunday", label: "Domingo" },
+const WEEKDAYS: { value: string; label: [pt: string, en: string] }[] = [
+  { value: "monday", label: ["Segunda-feira", "Monday"] },
+  { value: "tuesday", label: ["Terça-feira", "Tuesday"] },
+  { value: "wednesday", label: ["Quarta-feira", "Wednesday"] },
+  { value: "thursday", label: ["Quinta-feira", "Thursday"] },
+  { value: "friday", label: ["Sexta-feira", "Friday"] },
+  { value: "saturday", label: ["Sábado", "Saturday"] },
+  { value: "sunday", label: ["Domingo", "Sunday"] },
 ];
 
 const LESSONS_PREVIEW_SIZE = 50;
@@ -78,14 +79,15 @@ const emptyProfile: StudentProfile = {
   notes: "",
 };
 
-function formatDateTime(iso: string) {
+function formatDateTime(iso: string, locale: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+  return d.toLocaleString(locale, { dateStyle: "short", timeStyle: "short" });
 }
 
 export default function StudentDetail() {
   const { id } = useParams<{ id: string }>();
+  const { t, locale } = usePortalPrefs();
 
   const [student, setStudent] = useState<Student | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -120,7 +122,7 @@ export default function StudentDetail() {
     api
       .get<StudentProfile>(`/api/students/${id}/profile`)
       .then((data) => setProfile({ ...emptyProfile, ...data }))
-      .catch((err) => setProfileError(err instanceof ApiError ? err.message : "Não foi possível carregar o perfil."))
+      .catch((err) => setProfileError(err instanceof ApiError ? err.message : t("Não foi possível carregar o perfil.", "Couldn't load the profile.")))
       .finally(() => setProfileLoading(false));
 
     setLessonsLoading(true);
@@ -142,7 +144,7 @@ export default function StudentDetail() {
       const res = await api.post<{ link: string }>(`/api/students/${id}/reset-link`);
       setResetLink(res.link);
     } catch (err) {
-      setResetError(err instanceof ApiError ? err.message : "Não foi possível gerar o link.");
+      setResetError(err instanceof ApiError ? err.message : t("Não foi possível gerar o link.", "Couldn't generate the link."));
     } finally {
       setResetLoading(false);
     }
@@ -170,7 +172,7 @@ export default function StudentDetail() {
       setStudent((prev) => (prev ? { ...prev, fullName: body.fullName ?? null } : prev));
       setSaved(true);
     } catch (err) {
-      setProfileError(err instanceof ApiError ? err.message : "Não foi possível salvar o perfil.");
+      setProfileError(err instanceof ApiError ? err.message : t("Não foi possível salvar o perfil.", "Couldn't save the profile."));
     } finally {
       setProfileSaving(false);
     }
@@ -180,9 +182,9 @@ export default function StudentDetail() {
     return (
       <div className="space-y-4">
         <Link to="/portal/alunos" className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
-          <ArrowLeft className="h-4 w-4" /> Voltar para alunos
+          <ArrowLeft className="h-4 w-4" /> {t("Voltar para alunos", "Back to students")}
         </Link>
-        <p className="text-sm text-muted-foreground">Aluno não encontrado.</p>
+        <p className="text-sm text-muted-foreground">{t("Aluno não encontrado.", "Student not found.")}</p>
       </div>
     );
   }
@@ -191,20 +193,20 @@ export default function StudentDetail() {
     <div className="space-y-6">
       <div className="space-y-1">
         <Link to="/portal/alunos" className="inline-flex items-center gap-1 text-sm text-primary hover:underline">
-          <ArrowLeft className="h-4 w-4" /> Voltar para alunos
+          <ArrowLeft className="h-4 w-4" /> {t("Voltar para alunos", "Back to students")}
         </Link>
         <h1 className="text-2xl font-semibold tracking-tight">
-          {loading ? "Carregando..." : student?.fullName || student?.email}
+          {loading ? t("Carregando...", "Loading...") : student?.fullName || student?.email}
         </h1>
         {student?.fullName && <p className="text-sm text-muted-foreground">{student.email}</p>}
         {student && (
           <div className="flex flex-wrap items-center gap-2 pt-1">
             <Badge variant={student.hasLoggedIn ? "default" : "secondary"}>
-              {student.hasLoggedIn ? "Já fez login" : "Ainda não fez login"}
+              {student.hasLoggedIn ? t("Já fez login", "Has logged in") : t("Ainda não fez login", "Hasn't logged in yet")}
             </Badge>
             <Button variant="outline" size="sm" className="gap-1.5" onClick={generateResetLink} disabled={resetLoading}>
               {resetLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <KeyRound className="h-3.5 w-3.5" />}
-              Gerar link de redefinição de senha
+              {t("Gerar link de redefinição de senha", "Generate password reset link")}
             </Button>
           </div>
         )}
@@ -212,11 +214,14 @@ export default function StudentDetail() {
         {resetLink && (
           <div className="mt-2 max-w-lg space-y-1.5 rounded-md border bg-muted/40 p-3">
             <p className="text-xs text-muted-foreground">
-              Envie este link pro aluno (WhatsApp, por exemplo). Ele vale por 48 horas e só funciona uma vez.
+              {t(
+                "Envie este link pro aluno (WhatsApp, por exemplo). Ele vale por 48 horas e só funciona uma vez.",
+                "Send this link to the student (on WhatsApp, for example). It's valid for 48 hours and only works once.",
+              )}
             </p>
             <div className="flex items-center gap-2">
               <Input readOnly value={resetLink} onFocus={(e) => e.target.select()} className="text-xs" />
-              <Button type="button" variant="secondary" size="icon" onClick={copyResetLink} aria-label="Copiar link">
+              <Button type="button" variant="secondary" size="icon" onClick={copyResetLink} aria-label={t("Copiar link", "Copy link")}>
                 {resetCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </Button>
             </div>
@@ -226,7 +231,7 @@ export default function StudentDetail() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Perfil</CardTitle>
+          <CardTitle className="text-base">{t("Perfil", "Profile")}</CardTitle>
         </CardHeader>
         <CardContent>
           {profileLoading ? (
@@ -237,7 +242,7 @@ export default function StudentDetail() {
             <form onSubmit={handleSaveProfile} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="fullName">Nome completo</Label>
+                  <Label htmlFor="fullName">{t("Nome completo", "Full name")}</Label>
                   <Input
                     id="fullName"
                     value={profile.fullName ?? ""}
@@ -245,7 +250,7 @@ export default function StudentDetail() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="birthDate">Data de nascimento</Label>
+                  <Label htmlFor="birthDate">{t("Data de nascimento", "Date of birth")}</Label>
                   <Input
                     id="birthDate"
                     type="date"
@@ -254,7 +259,7 @@ export default function StudentDetail() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="phone">Telefone / WhatsApp</Label>
+                  <Label htmlFor="phone">{t("Telefone / WhatsApp", "Phone / WhatsApp")}</Label>
                   <Input
                     id="phone"
                     value={profile.phone ?? ""}
@@ -262,7 +267,7 @@ export default function StudentDetail() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="occupation">Profissão / emprego</Label>
+                  <Label htmlFor="occupation">{t("Profissão / emprego", "Occupation / job")}</Label>
                   <Input
                     id="occupation"
                     value={profile.occupation ?? ""}
@@ -270,10 +275,10 @@ export default function StudentDetail() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="englishLevel">Nível atual de inglês</Label>
+                  <Label htmlFor="englishLevel">{t("Nível atual de inglês", "Current English level")}</Label>
                   <Input
                     id="englishLevel"
-                    placeholder="ex: iniciante, intermediário..."
+                    placeholder={t("ex: iniciante, intermediário...", "e.g. beginner, intermediate...")}
                     value={profile.englishLevel ?? ""}
                     onChange={(e) => setProfile({ ...profile, englishLevel: e.target.value })}
                   />
@@ -282,25 +287,25 @@ export default function StudentDetail() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="classWeekday">Dia da aula</Label>
+                  <Label htmlFor="classWeekday">{t("Dia da aula", "Lesson day")}</Label>
                   <Select
                     value={profile.classWeekday || undefined}
                     onValueChange={(v) => setProfile({ ...profile, classWeekday: v })}
                   >
                     <SelectTrigger id="classWeekday">
-                      <SelectValue placeholder="Escolha o dia" />
+                      <SelectValue placeholder={t("Escolha o dia", "Choose the day")} />
                     </SelectTrigger>
                     <SelectContent>
                       {WEEKDAYS.map((w) => (
                         <SelectItem key={w.value} value={w.value}>
-                          {w.label}
+                          {t(...w.label)}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="classTime">Horário da aula</Label>
+                  <Label htmlFor="classTime">{t("Horário da aula", "Lesson time")}</Label>
                   <Input
                     id="classTime"
                     type="time"
@@ -312,28 +317,28 @@ export default function StudentDetail() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label htmlFor="installmentValue">Valor da parcela</Label>
+                  <Label htmlFor="installmentValue">{t("Valor da parcela", "Installment amount")}</Label>
                   <Input
                     id="installmentValue"
-                    placeholder="ex: R$ 280,00"
+                    placeholder={t("ex: R$ 280,00", "e.g. R$ 280.00")}
                     value={profile.installmentValue ?? ""}
                     onChange={(e) => setProfile({ ...profile, installmentValue: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="paymentDueDay">Dia de vencimento</Label>
+                  <Label htmlFor="paymentDueDay">{t("Dia de vencimento", "Due day")}</Label>
                   <Input
                     id="paymentDueDay"
                     type="number"
                     min={1}
                     max={31}
-                    placeholder="ex: 10"
+                    placeholder={t("ex: 10", "e.g. 10")}
                     value={profile.paymentDueDay ?? ""}
                     onChange={(e) => setProfile({ ...profile, paymentDueDay: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="contractStart">Início do contrato</Label>
+                  <Label htmlFor="contractStart">{t("Início do contrato", "Contract start")}</Label>
                   <Input
                     id="contractStart"
                     type="date"
@@ -342,7 +347,7 @@ export default function StudentDetail() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="contractEnd">Fim do contrato</Label>
+                  <Label htmlFor="contractEnd">{t("Fim do contrato", "Contract end")}</Label>
                   <Input
                     id="contractEnd"
                     type="date"
@@ -353,7 +358,7 @@ export default function StudentDetail() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="interests">O que gosta de aprender / interesses</Label>
+                <Label htmlFor="interests">{t("O que gosta de aprender / interesses", "What they like to learn / interests")}</Label>
                 <Textarea
                   id="interests"
                   rows={2}
@@ -363,7 +368,7 @@ export default function StudentDetail() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="learningGoals">Metas de estudo</Label>
+                <Label htmlFor="learningGoals">{t("Metas de estudo", "Study goals")}</Label>
                 <Textarea
                   id="learningGoals"
                   rows={2}
@@ -373,7 +378,7 @@ export default function StudentDetail() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="notes">Observações gerais</Label>
+                <Label htmlFor="notes">{t("Observações gerais", "General notes")}</Label>
                 <Textarea
                   id="notes"
                   rows={3}
@@ -383,11 +388,11 @@ export default function StudentDetail() {
               </div>
 
               {profileError && <p className="text-sm text-destructive">{profileError}</p>}
-              {saved && !profileError && <p className="text-sm text-muted-foreground">Perfil salvo.</p>}
+              {saved && !profileError && <p className="text-sm text-muted-foreground">{t("Perfil salvo.", "Profile saved.")}</p>}
 
               <Button type="submit" disabled={profileSaving} className="gap-2">
                 {profileSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-                Salvar perfil
+                {t("Salvar perfil", "Save profile")}
               </Button>
             </form>
           )}
@@ -396,8 +401,8 @@ export default function StudentDetail() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Aulas deste aluno</CardTitle>
-          <CardDescription>{lessonsTotal} aula(s)</CardDescription>
+          <CardTitle className="text-base">{t("Aulas deste aluno", "This student's lessons")}</CardTitle>
+          <CardDescription>{lessonsTotal} {t("aula(s)", "lesson(s)")}</CardDescription>
         </CardHeader>
         <CardContent>
           {lessonsLoading ? (
@@ -405,19 +410,21 @@ export default function StudentDetail() {
               <Loader2 className="h-5 w-5 animate-spin" />
             </div>
           ) : lessons.length === 0 ? (
-            <p className="py-2 text-sm text-muted-foreground">Nenhuma aula cadastrada para este aluno ainda.</p>
+            <p className="py-2 text-sm text-muted-foreground">
+              {t("Nenhuma aula cadastrada para este aluno ainda.", "No lessons added for this student yet.")}
+            </p>
           ) : (
             <ul className="divide-y">
               {lessons.map((lesson) => (
                 <li key={lesson.id} className="space-y-1 py-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-sm font-medium">{lesson.subject}</p>
-                    {lesson.attended === true && <Badge>Compareceu</Badge>}
-                    {lesson.attended === false && <Badge variant="destructive">Faltou</Badge>}
-                    {lesson.attended === null && <Badge variant="secondary">Aguardando</Badge>}
-                    {lesson.makeupScheduled && <Badge variant="outline">Reposição marcada</Badge>}
+                    {lesson.attended === true && <Badge>{t("Compareceu", "Attended")}</Badge>}
+                    {lesson.attended === false && <Badge variant="destructive">{t("Faltou", "Missed")}</Badge>}
+                    {lesson.attended === null && <Badge variant="secondary">{t("Aguardando", "Pending")}</Badge>}
+                    {lesson.makeupScheduled && <Badge variant="outline">{t("Reposição marcada", "Make-up scheduled")}</Badge>}
                   </div>
-                  <p className="text-xs text-muted-foreground">{formatDateTime(lesson.scheduledAt)}</p>
+                  <p className="text-xs text-muted-foreground">{formatDateTime(lesson.scheduledAt, locale)}</p>
                   <div className="flex flex-wrap gap-3 text-xs">
                     {lesson.classLink && (
                       <a
@@ -426,7 +433,7 @@ export default function StudentDetail() {
                         rel="noreferrer"
                         className="inline-flex items-center gap-1 text-primary hover:underline"
                       >
-                        <LinkIcon className="h-3 w-3" /> Link da aula
+                        <LinkIcon className="h-3 w-3" /> {t("Link da aula", "Lesson link")}
                         <ExternalLink className="h-2.5 w-2.5" />
                       </a>
                     )}
@@ -437,7 +444,7 @@ export default function StudentDetail() {
                         rel="noreferrer"
                         className="inline-flex items-center gap-1 text-primary hover:underline"
                       >
-                        <ClipboardList className="h-3 w-3" /> Atividade
+                        <ClipboardList className="h-3 w-3" /> {t("Atividade", "Activity")}
                         <ExternalLink className="h-2.5 w-2.5" />
                       </a>
                     )}
@@ -448,11 +455,15 @@ export default function StudentDetail() {
           )}
           {lessonsTotal > lessons.length && (
             <p className="pt-3 text-xs text-muted-foreground">
-              Mostrando as {lessons.length} aulas mais recentes de {lessonsTotal}. Veja o histórico completo na aba
-              "Aulas", filtrando por este aluno.
+              {t(
+                `Mostrando as ${lessons.length} aulas mais recentes de ${lessonsTotal}. Veja o histórico completo na aba "Aulas", filtrando por este aluno.`,
+                `Showing the ${lessons.length} most recent of ${lessonsTotal} lessons. See the full history in the "Lessons" tab, filtering by this student.`,
+              )}
             </p>
           )}
-          <p className="pt-2 text-xs text-muted-foreground">Para adicionar ou editar aulas, use a aba "Aulas" no menu.</p>
+          <p className="pt-2 text-xs text-muted-foreground">
+            {t('Para adicionar ou editar aulas, use a aba "Aulas" no menu.', 'To add or edit lessons, use the "Lessons" tab in the menu.')}
+          </p>
         </CardContent>
       </Card>
     </div>

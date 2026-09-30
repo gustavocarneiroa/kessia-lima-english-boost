@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,6 +53,7 @@ function cardTextClass(text: string) {
 export default function VocabListDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { t } = usePortalPrefs();
   const navigate = useNavigate();
   const isTeacher = user?.role === "teacher";
   const [list, setList] = useState<ListDetail | null>(null);
@@ -93,7 +95,7 @@ export default function VocabListDetail() {
       setSelected(new Set(data.studentIds ?? []));
       if (isTeacher) setStudents(await api.get<Student[]>("/api/students"));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível abrir a lista.");
+      setError(err instanceof ApiError ? err.message : t("Não foi possível abrir a lista.", "Couldn't open the list."));
     } finally {
       setLoading(false);
     }
@@ -125,7 +127,7 @@ export default function VocabListDetail() {
       if (err instanceof ApiError && err.code === "not_in_dictionary") {
         setManual({ word, phonetic: "", meaning: "", wordAudio: null, meaningAudio: null, image: null });
       } else {
-        setError(err instanceof ApiError ? err.message : "Não foi possível adicionar a palavra.");
+        setError(err instanceof ApiError ? err.message : t("Não foi possível adicionar a palavra.", "Couldn't add the word."));
       }
     } finally {
       setAdding(false);
@@ -150,7 +152,7 @@ export default function VocabListDetail() {
       setManual(null);
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível salvar o card.");
+      setError(err instanceof ApiError ? err.message : t("Não foi possível salvar o card.", "Couldn't save the card."));
     } finally {
       setSavingManual(false);
     }
@@ -166,7 +168,7 @@ export default function VocabListDetail() {
       setPhrase({ phrase: "", meaning: "", phraseAudio: null, meaningAudio: null, image: null });
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível salvar a frase.");
+      setError(err instanceof ApiError ? err.message : t("Não foi possível salvar a frase.", "Couldn't save the phrase."));
     } finally {
       setSavingPhrase(false);
     }
@@ -182,7 +184,7 @@ export default function VocabListDetail() {
       setList((l) => (l ? { ...l, title: editingTitle.trim() } : l));
       setEditingTitle(null);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível mudar o nome da lista.");
+      setError(err instanceof ApiError ? err.message : t("Não foi possível mudar o nome da lista.", "Couldn't rename the list."));
     } finally {
       setSavingTitle(false);
     }
@@ -232,7 +234,7 @@ export default function VocabListDetail() {
   }
 
   if (!list) {
-    return <p className="text-sm text-destructive">{error ?? "Lista não encontrada."}</p>;
+    return <p className="text-sm text-destructive">{error ?? t("Lista não encontrada.", "List not found.")}</p>;
   }
 
   return (
@@ -240,7 +242,7 @@ export default function VocabListDetail() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <Link to="/portal/vocabulario" className="text-sm text-muted-foreground hover:underline">
-            ← Todas as listas
+            ← {t("Todas as listas", "All lists")}
           </Link>
           {editingTitle !== null ? (
             <form onSubmit={saveTitle} className="mt-1 flex flex-wrap items-center gap-2">
@@ -253,10 +255,10 @@ export default function VocabListDetail() {
                 required
               />
               <Button type="submit" size="sm" disabled={savingTitle || !editingTitle.trim()}>
-                {savingTitle ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar"}
+                {savingTitle ? <Loader2 className="h-4 w-4 animate-spin" /> : t("Salvar", "Save")}
               </Button>
               <Button type="button" size="sm" variant="ghost" onClick={() => setEditingTitle(null)}>
-                Cancelar
+                {t("Cancelar", "Cancel")}
               </Button>
             </form>
           ) : (
@@ -266,8 +268,8 @@ export default function VocabListDetail() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label="Editar nome da lista"
-                  title="Editar nome da lista"
+                  aria-label={t("Editar nome da lista", "Rename list")}
+                  title={t("Editar nome da lista", "Rename list")}
                   onClick={() => setEditingTitle(list.title)}
                 >
                   <Pencil className="h-4 w-4" />
@@ -280,11 +282,11 @@ export default function VocabListDetail() {
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="gap-2" onClick={() => void duplicate()}>
               <Copy className="h-4 w-4" />
-              Duplicar
+              {t("Duplicar", "Duplicate")}
             </Button>
             <Button variant="outline" size="sm" className="gap-2 text-destructive" onClick={() => void removeList()}>
               <Trash2 className="h-4 w-4" />
-              Apagar lista
+              {t("Apagar lista", "Delete list")}
             </Button>
           </div>
         )}
@@ -293,9 +295,12 @@ export default function VocabListDetail() {
       {cards.length > 0 && card && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Estudar</CardTitle>
+            <CardTitle className="text-base">{t("Estudar", "Study")}</CardTitle>
             <CardDescription>
-              Card {index + 1} de {cards.length} — toque no card para virar
+              {t(
+                `Card ${index + 1} de ${cards.length} — toque no card para virar`,
+                `Card ${index + 1} of ${cards.length} — tap the card to flip it`,
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -320,7 +325,7 @@ export default function VocabListDetail() {
                     <p className={cardTextClass(card.word)}>{card.word}</p>
                     {card.hasWordAudio && (
                       <span onClick={(e) => e.stopPropagation()}>
-                        <VocabAudioButton cardId={card.id} kind="word" label="Ouvir" />
+                        <VocabAudioButton cardId={card.id} kind="word" label={t("Ouvir", "Listen")} />
                       </span>
                     )}
                   </div>
@@ -336,17 +341,17 @@ export default function VocabListDetail() {
                     <p className={cardTextClass(card.meaning)}>{card.meaning}</p>
                     {card.hasMeaningAudio && (
                       <span onClick={(e) => e.stopPropagation()}>
-                        <VocabAudioButton cardId={card.id} kind="meaning" label="Ouvir" />
+                        <VocabAudioButton cardId={card.id} kind="meaning" label={t("Ouvir", "Listen")} />
                       </span>
                     )}
                   </div>
                 </div>
               </div>
             </div>
-            <p className="text-center text-xs text-muted-foreground">Toque no card para virar</p>
+            <p className="text-center text-xs text-muted-foreground">{t("Toque no card para virar", "Tap the card to flip it")}</p>
             {card.sourceUrl && (
               <p className="text-xs text-muted-foreground">
-                Definição:{" "}
+                {t("Definição:", "Definition:")}{" "}
                 <a className="underline" href={card.sourceUrl} target="_blank" rel="noreferrer">
                   Merriam-Webster Learner's Dictionary
                 </a>
@@ -354,10 +359,10 @@ export default function VocabListDetail() {
             )}
             <div className="flex gap-2">
               <Button variant="outline" disabled={index === 0} onClick={() => setIndex((i) => i - 1)}>
-                Anterior
+                {t("Anterior", "Previous")}
               </Button>
               <Button variant="outline" disabled={index >= cards.length - 1} onClick={() => setIndex((i) => i + 1)}>
-                Próximo
+                {t("Próximo", "Next")}
               </Button>
             </div>
           </CardContent>
@@ -368,11 +373,17 @@ export default function VocabListDetail() {
         <>
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">{mode === "word" ? "Adicionar palavra" : "Adicionar frase"}</CardTitle>
+              <CardTitle className="text-base">{mode === "word" ? t("Adicionar palavra", "Add word") : t("Adicionar frase", "Add phrase")}</CardTitle>
               <CardDescription>
                 {mode === "word"
-                  ? "Digite só a palavra. O dicionário preenche o resto quando encontrar."
-                  : "Uma frase ou expressão inteira. O áudio da frase é gerado sozinho se você não gravar."}
+                  ? t(
+                      "Digite só a palavra. O dicionário preenche o resto quando encontrar.",
+                      "Just type the word. The dictionary fills in the rest when it finds it.",
+                    )
+                  : t(
+                      "Uma frase ou expressão inteira. O áudio da frase é gerado sozinho se você não gravar.",
+                      "A whole phrase or expression. The phrase audio is generated automatically if you don't record it.",
+                    )}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -383,7 +394,7 @@ export default function VocabListDetail() {
                   variant={mode === "word" ? "default" : "outline"}
                   onClick={() => setMode("word")}
                 >
-                  Palavra
+                  {t("Palavra", "Word")}
                 </Button>
                 <Button
                   type="button"
@@ -394,63 +405,74 @@ export default function VocabListDetail() {
                     setManual(null);
                   }}
                 >
-                  Frase
+                  {t("Frase", "Phrase")}
                 </Button>
               </div>
               {mode === "phrase" && (
                 <form onSubmit={savePhrase} className="space-y-3">
                   <div className="space-y-1">
-                    <Label>Frase em inglês</Label>
+                    <Label>{t("Frase em inglês", "Phrase in English")}</Label>
                     <Textarea
                       value={phrase.phrase}
                       onChange={(e) => setPhrase({ ...phrase, phrase: e.target.value })}
-                      placeholder="ex.: How are you doing?"
+                      placeholder={t("ex.: How are you doing?", "e.g. How are you doing?")}
                       maxLength={300}
                       required
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label>Significado</Label>
+                    <Label>{t("Significado", "Meaning")}</Label>
                     <Textarea
                       value={phrase.meaning}
                       onChange={(e) => setPhrase({ ...phrase, meaning: e.target.value })}
-                      placeholder="ex.: Como você está? (jeito informal de cumprimentar)"
+                      placeholder={t(
+                        "ex.: Como você está? (jeito informal de cumprimentar)",
+                        "e.g. Como você está? (informal way to greet someone)",
+                      )}
                       required
                     />
                   </div>
                   <VocabImageField
-                    label="Imagem (opcional)"
+                    label={t("Imagem (opcional)", "Image (optional)")}
                     value={phrase.image}
                     onChange={(v) => setPhrase({ ...phrase, image: v })}
                   />
                   <VocabAudioField
-                    label="Áudio da frase (opcional — se não gravar, é gerado sozinho)"
+                    label={t(
+                      "Áudio da frase (opcional — se não gravar, é gerado sozinho)",
+                      "Phrase audio (optional — generated automatically if you don't record it)",
+                    )}
                     value={phrase.phraseAudio}
                     onChange={(v) => setPhrase({ ...phrase, phraseAudio: v })}
                   />
                   <VocabAudioField
-                    label="Áudio do significado (opcional)"
+                    label={t("Áudio do significado (opcional)", "Meaning audio (optional)")}
                     value={phrase.meaningAudio}
                     onChange={(v) => setPhrase({ ...phrase, meaningAudio: v })}
                   />
                   <Button type="submit" disabled={savingPhrase}>
-                    {savingPhrase ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar frase"}
+                    {savingPhrase ? <Loader2 className="h-4 w-4 animate-spin" /> : t("Salvar frase", "Save phrase")}
                   </Button>
                 </form>
               )}
               {mode === "word" && (
                 <form onSubmit={addWord} className="flex flex-col gap-3 sm:flex-row">
-                  <Input value={word} onChange={(e) => setWord(e.target.value)} placeholder="ex.: apple" required />
+                  <Input value={word} onChange={(e) => setWord(e.target.value)} placeholder={t("ex.: apple", "e.g. apple")} required />
                   <Button type="submit" disabled={adding}>
-                    {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buscar"}
+                    {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : t("Buscar", "Look up")}
                   </Button>
                 </form>
               )}
               {mode === "word" && manual && (
                 <form onSubmit={saveManual} className="space-y-3 rounded-md border p-3">
-                  <p className="text-sm">Essa palavra não está no dicionário. Preencha tudo abaixo.</p>
+                  <p className="text-sm">
+                    {t(
+                      "Essa palavra não está no dicionário. Preencha tudo abaixo.",
+                      "This word isn't in the dictionary. Fill in everything below.",
+                    )}
+                  </p>
                   <div className="space-y-1">
-                    <Label>Fonética</Label>
+                    <Label>{t("Fonética", "Phonetics")}</Label>
                     <Input
                       value={manual.phonetic}
                       onChange={(e) => setManual({ ...manual, phonetic: e.target.value })}
@@ -459,7 +481,7 @@ export default function VocabListDetail() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label>Significado</Label>
+                    <Label>{t("Significado", "Meaning")}</Label>
                     <Textarea
                       value={manual.meaning}
                       onChange={(e) => setManual({ ...manual, meaning: e.target.value })}
@@ -467,26 +489,26 @@ export default function VocabListDetail() {
                     />
                   </div>
                   <VocabImageField
-                    label="Imagem (opcional)"
+                    label={t("Imagem (opcional)", "Image (optional)")}
                     value={manual.image}
                     onChange={(v) => setManual({ ...manual, image: v })}
                   />
                   <VocabAudioField
-                    label="Áudio da palavra"
+                    label={t("Áudio da palavra", "Word audio")}
                     value={manual.wordAudio}
                     onChange={(v) => setManual({ ...manual, wordAudio: v })}
                   />
                   <VocabAudioField
-                    label="Áudio do significado"
+                    label={t("Áudio do significado", "Meaning audio")}
                     value={manual.meaningAudio}
                     onChange={(v) => setManual({ ...manual, meaningAudio: v })}
                   />
                   <div className="flex gap-2">
                     <Button type="submit" disabled={savingManual || !manual.wordAudio || !manual.meaningAudio}>
-                      {savingManual ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar card"}
+                      {savingManual ? <Loader2 className="h-4 w-4 animate-spin" /> : t("Salvar card", "Save card")}
                     </Button>
                     <Button type="button" variant="ghost" onClick={() => setManual(null)}>
-                      Cancelar
+                      {t("Cancelar", "Cancel")}
                     </Button>
                   </div>
                 </form>
@@ -497,11 +519,11 @@ export default function VocabListDetail() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Enviar para alunos</CardTitle>
+              <CardTitle className="text-base">{t("Enviar para alunos", "Send to students")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {students.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Cadastre alunos em Alunos primeiro.</p>
+                <p className="text-sm text-muted-foreground">{t("Cadastre alunos em Alunos primeiro.", "Add students under Students first.")}</p>
               ) : (
                 <ul className="space-y-2">
                   {students.map((s) => (
@@ -521,18 +543,18 @@ export default function VocabListDetail() {
                 </ul>
               )}
               <Button type="button" onClick={() => void saveStudents()}>
-                Salvar quem pode estudar
+                {t("Salvar quem pode estudar", "Save who can study it")}
               </Button>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Palavras e frases desta lista</CardTitle>
+              <CardTitle className="text-base">{t("Palavras e frases desta lista", "Words and phrases in this list")}</CardTitle>
             </CardHeader>
             <CardContent>
               {cards.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nenhuma palavra ou frase ainda.</p>
+                <p className="text-sm text-muted-foreground">{t("Nenhuma palavra ou frase ainda.", "No words or phrases yet.")}</p>
               ) : (
                 <ul className="space-y-2">
                   {cards.map((c) => (
@@ -552,9 +574,9 @@ export default function VocabListDetail() {
                               if (f) void replaceCardImage(c.id, f);
                             }}
                           />
-                          {c.hasImage ? "Trocar imagem" : "Adicionar imagem"}
+                          {c.hasImage ? t("Trocar imagem", "Replace image") : t("Adicionar imagem", "Add image")}
                         </label>
-                        <Button variant="ghost" size="icon" onClick={() => void removeCard(c.id)}>
+                        <Button variant="ghost" size="icon" onClick={() => void removeCard(c.id)} aria-label={t("Remover", "Remove")}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>

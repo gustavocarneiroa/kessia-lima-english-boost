@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -35,6 +36,7 @@ export default function ForumPost() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t, locale } = usePortalPrefs();
   const isTeacher = user?.role === "teacher";
   const [post, setPost] = useState<ForumPostDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,7 +71,7 @@ export default function ForumPost() {
       setComment("");
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível enviar o comentário.");
+      setError(err instanceof ApiError ? err.message : t("Não foi possível enviar o comentário.", "Couldn't send the comment."));
     } finally {
       setSending(false);
     }
@@ -93,7 +95,7 @@ export default function ForumPost() {
   const back = (
     <Button asChild variant="ghost" size="sm" className="gap-1 px-2">
       <Link to="/portal/forum">
-        <ArrowLeft className="h-4 w-4" /> Fórum
+        <ArrowLeft className="h-4 w-4" /> {t("Fórum", "Forum")}
       </Link>
     </Button>
   );
@@ -110,7 +112,7 @@ export default function ForumPost() {
     return (
       <div className="space-y-4">
         {back}
-        <p className="text-muted-foreground">Essa publicação não existe mais.</p>
+        <p className="text-muted-foreground">{t("Essa publicação não existe mais.", "This post no longer exists.")}</p>
       </div>
     );
   }
@@ -127,9 +129,9 @@ export default function ForumPost() {
             <div className="min-w-0 space-y-1">
               <CardTitle className="text-xl">{post.title}</CardTitle>
               <CardDescription>
-                {post.authorName} · {formatForumDate(post.publishedAt ?? post.createdAt)}
+                {post.authorName} · {formatForumDate(post.publishedAt ?? post.createdAt, locale)}
               </CardDescription>
-              {!post.publishedAt && <Badge variant="outline">Aguardando aprovação</Badge>}
+              {!post.publishedAt && <Badge variant="outline">{t("Aguardando aprovação", "Waiting for approval")}</Badge>}
             </div>
             {canDeletePost && (
               <Button
@@ -137,7 +139,7 @@ export default function ForumPost() {
                 size="icon"
                 className="shrink-0 text-muted-foreground"
                 onClick={() => setConfirmDeletePost(true)}
-                aria-label="Excluir publicação"
+                aria-label={t("Excluir publicação", "Delete post")}
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -162,11 +164,15 @@ export default function ForumPost() {
       {post.publishedAt && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Comentários ({post.comments.length})</CardTitle>
+            <CardTitle className="text-base">
+              {t("Comentários", "Comments")} ({post.comments.length})
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {post.comments.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Ninguém comentou ainda. Seja o primeiro!</p>
+              <p className="text-sm text-muted-foreground">
+                {t("Ninguém comentou ainda. Seja o primeiro!", "No comments yet. Be the first!")}
+              </p>
             ) : (
               <ul className="divide-y">
                 {post.comments.map((c) => (
@@ -174,7 +180,7 @@ export default function ForumPost() {
                     <div className="min-w-0">
                       <p className="text-xs text-muted-foreground">
                         <span className="font-medium text-foreground">{c.authorName}</span> ·{" "}
-                        {formatForumDate(c.createdAt)}
+                        {formatForumDate(c.createdAt, locale)}
                       </p>
                       <p className="whitespace-pre-wrap text-sm">{c.body}</p>
                     </div>
@@ -184,7 +190,7 @@ export default function ForumPost() {
                         size="icon"
                         className="h-7 w-7 shrink-0 text-muted-foreground"
                         onClick={() => removeComment(c.id)}
-                        aria-label="Apagar comentário"
+                        aria-label={t("Apagar comentário", "Delete comment")}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
@@ -198,14 +204,14 @@ export default function ForumPost() {
               <Textarea
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Escreva um comentário..."
+                placeholder={t("Escreva um comentário...", "Write a comment...")}
                 maxLength={2000}
                 rows={3}
                 required
               />
               <Button type="submit" size="sm" disabled={sending || !comment.trim()} className="gap-2">
                 {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                Comentar
+                {t("Comentar", "Comment")}
               </Button>
               {error && <p className="text-sm text-destructive">{error}</p>}
             </form>
@@ -216,16 +222,19 @@ export default function ForumPost() {
       <AlertDialog open={confirmDeletePost} onOpenChange={setConfirmDeletePost}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir esta publicação?</AlertDialogTitle>
+            <AlertDialogTitle>{t("Excluir esta publicação?", "Delete this post?")}</AlertDialogTitle>
             <AlertDialogDescription>
-              "{post.title}" e todos os comentários dela serão apagados. Essa ação não pode ser desfeita.
+              {t(
+                `"${post.title}" e todos os comentários dela serão apagados. Essa ação não pode ser desfeita.`,
+                `"${post.title}" and all its comments will be deleted. This can't be undone.`,
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting}>{t("Cancelar", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={removePost} disabled={deleting} className="gap-2">
               {deleting && <Loader2 className="h-4 w-4 animate-spin" />}
-              Excluir
+              {t("Excluir", "Delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError } from "@/lib/api";
+import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,10 +28,10 @@ export type QuizItemDraft =
 
 type StudentLevel = "beginner" | "intermediate" | "advanced";
 
-const LEVEL_OPTIONS: { value: StudentLevel; label: string }[] = [
-  { value: "beginner", label: "Iniciante" },
-  { value: "intermediate", label: "Intermediário" },
-  { value: "advanced", label: "Avançado" },
+const LEVEL_OPTIONS: { value: StudentLevel; label: [pt: string, en: string] }[] = [
+  { value: "beginner", label: ["Iniciante", "Beginner"] },
+  { value: "intermediate", label: ["Intermediário", "Intermediate"] },
+  { value: "advanced", label: ["Avançado", "Advanced"] },
 ];
 
 export function emptyQuestion(): QuestionDraft {
@@ -65,6 +66,7 @@ interface ActivityFormProps {
 }
 
 export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit, onCancel }: ActivityFormProps) {
+  const { t } = usePortalPrefs();
   const [activityKind, setActivityKind] = useState<"embed" | "listening" | "quiz">(lockKind ?? "listening");
 
   const [title, setTitle] = useState(initial?.title ?? "");
@@ -160,7 +162,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
       });
       setQuestions(res.questions.map((q) => ({ prompt: q.prompt, options: q.options, correctIndex: q.correctIndex })));
     } catch (err) {
-      setGenerateError(err instanceof ApiError ? err.message : "Não foi possível gerar as perguntas.");
+      setGenerateError(err instanceof ApiError ? err.message : t("Não foi possível gerar as perguntas.", "Couldn't generate the questions."));
     } finally {
       setGenerating(false);
     }
@@ -184,7 +186,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
         await onSubmit({ kind: "embed", title, embedCode });
       }
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível salvar a atividade.");
+      setError(err instanceof ApiError ? err.message : t("Não foi possível salvar a atividade.", "Couldn't save the activity."));
     } finally {
       setSaving(false);
     }
@@ -193,7 +195,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
   return (
     <>
       {!lockKind && (
-        <div className="mb-4 flex gap-2">
+        <div className="mb-4 flex flex-wrap gap-2">
           <Button
             type="button"
             variant={activityKind === "listening" ? "default" : "outline"}
@@ -202,7 +204,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
             onClick={() => setActivityKind("listening")}
           >
             <Headphones className="h-4 w-4" />
-            Listening (vídeo + perguntas)
+            {t("Listening (vídeo + perguntas)", "Listening (video + questions)")}
           </Button>
           <Button
             type="button"
@@ -212,7 +214,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
             onClick={() => setActivityKind("quiz")}
           >
             <PenLine className="h-4 w-4" />
-            Feita por você (múltipla escolha / completar)
+            {t("Feita por você (múltipla escolha / completar)", "Made by you (multiple choice / fill in the blank)")}
           </Button>
           <Button
             type="button"
@@ -222,18 +224,22 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
             onClick={() => setActivityKind("embed")}
           >
             <Link2 className="h-4 w-4" />
-            Link de incorporação
+            {t("Link de incorporação", "Embed link")}
           </Button>
         </div>
       )}
 
       <form onSubmit={submit} className="space-y-4">
         <div className="space-y-1">
-          <Label>Título</Label>
+          <Label>{t("Título", "Title")}</Label>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder={activityKind === "listening" ? "ex.: Listening — Daily routine" : "ex.: Match — verbos"}
+            placeholder={
+              activityKind === "listening"
+                ? t("ex.: Listening — Daily routine", "e.g. Listening — Daily routine")
+                : t("ex.: Match — verbos", "e.g. Match — verbs")
+            }
             required
           />
         </div>
@@ -241,7 +247,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
         {activityKind === "listening" ? (
           <>
             <div className="space-y-1">
-              <Label>Link do vídeo no YouTube</Label>
+              <Label>{t("Link do vídeo no YouTube", "YouTube video link")}</Label>
               <Input
                 value={youtubeUrl}
                 onChange={(e) => setYoutubeUrl(e.target.value)}
@@ -251,16 +257,17 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
             </div>
 
             <div className="space-y-2 rounded-md border bg-muted/30 p-3">
-              <Label className="text-xs">Gerar perguntas automaticamente (opcional)</Label>
+              <Label className="text-xs">{t("Gerar perguntas automaticamente (opcional)", "Generate questions automatically (optional)")}</Label>
               <p className="text-xs text-muted-foreground">
-                Cole abaixo a transcrição do vídeo — no YouTube, clique nos "···" abaixo do vídeo → "Mostrar
-                transcrição" → selecione e copie o texto. A IA usa esse texto pra sugerir as perguntas. Você pode
-                revisar e editar depois.
+                {t(
+                  'Cole abaixo a transcrição do vídeo — no YouTube, clique nos "···" abaixo do vídeo → "Mostrar transcrição" → selecione e copie o texto. A IA usa esse texto pra sugerir as perguntas. Você pode revisar e editar depois.',
+                  'Paste the video transcript below — on YouTube, click the "···" under the video → "Show transcript" → select and copy the text. The AI uses it to suggest questions. You can review and edit them afterwards.',
+                )}
               </p>
               <Textarea
                 value={transcript}
                 onChange={(e) => setTranscript(e.target.value)}
-                placeholder="Cole aqui a transcrição copiada do YouTube..."
+                placeholder={t("Cole aqui a transcrição copiada do YouTube...", "Paste the transcript copied from YouTube here...")}
                 rows={4}
               />
               <div className="flex flex-wrap gap-2 pt-1">
@@ -272,7 +279,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                     variant={level === opt.value ? "default" : "outline"}
                     onClick={() => setLevel(opt.value)}
                   >
-                    {opt.label}
+                    {t(...opt.label)}
                   </Button>
                 ))}
               </div>
@@ -285,7 +292,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                 onClick={() => void generateQuestions()}
               >
                 {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                Gerar perguntas automaticamente
+                {t("Gerar perguntas automaticamente", "Generate questions automatically")}
               </Button>
               {generateError && (
                 <p className="text-sm text-destructive">
@@ -294,7 +301,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                     <>
                       {" "}
                       <Link to="/portal/configuracoes" className="underline">
-                        Ir para Configurações
+                        {t("Ir para Configurações", "Go to Settings")}
                       </Link>
                     </>
                   )}
@@ -303,17 +310,17 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
             </div>
 
             <div className="space-y-3">
-              <Label>Perguntas</Label>
+              <Label>{t("Perguntas", "Questions")}</Label>
               {questions.map((q, qi) => (
                 <Card key={qi} className="border-dashed">
                   <CardContent className="space-y-3 pt-4">
                     <div className="flex items-start gap-2">
                       <div className="flex-1 space-y-1">
-                        <Label className="text-xs">Pergunta {qi + 1}</Label>
+                        <Label className="text-xs">{t("Pergunta", "Question")} {qi + 1}</Label>
                         <Textarea
                           value={q.prompt}
                           onChange={(e) => updateQuestion(qi, { prompt: e.target.value })}
-                          placeholder="ex.: What time does she wake up?"
+                          placeholder={t("ex.: What time does she wake up?", "e.g. What time does she wake up?")}
                           rows={2}
                           required
                         />
@@ -332,7 +339,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                     </div>
 
                     <div className="space-y-2">
-                      <Label className="text-xs">Opções (marque a correta)</Label>
+                      <Label className="text-xs">{t("Opções (marque a correta)", "Options (mark the correct one)")}</Label>
                       <RadioGroup
                         value={String(q.correctIndex)}
                         onValueChange={(v) => updateQuestion(qi, { correctIndex: Number(v) })}
@@ -344,7 +351,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                             <Input
                               value={opt}
                               onChange={(e) => updateOption(qi, oi, e.target.value)}
-                              placeholder={`Opção ${oi + 1}`}
+                              placeholder={`${t("Opção", "Option")} ${oi + 1}`}
                               required
                             />
                             {q.options.length > 2 && (
@@ -358,7 +365,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                       {q.options.length < 6 && (
                         <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => addOption(qi)}>
                           <Plus className="h-3 w-3" />
-                          Adicionar opção
+                          {t("Adicionar opção", "Add option")}
                         </Button>
                       )}
                     </div>
@@ -367,24 +374,26 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
               ))}
               <Button type="button" variant="outline" size="sm" className="gap-2" onClick={addQuestion}>
                 <Plus className="h-4 w-4" />
-                Adicionar pergunta
+                {t("Adicionar pergunta", "Add question")}
               </Button>
             </div>
           </>
         ) : activityKind === "quiz" ? (
           <div className="space-y-3">
-            <Label>Perguntas</Label>
+            <Label>{t("Perguntas", "Questions")}</Label>
             {quizItems.map((q, qi) => (
               <Card key={qi} className="border-dashed">
                 <CardContent className="space-y-3 pt-4">
                   <div className="flex items-start gap-2">
                     <div className="flex-1 space-y-1">
-                      <Label className="text-xs">Pergunta {qi + 1}</Label>
+                      <Label className="text-xs">{t("Pergunta", "Question")} {qi + 1}</Label>
                       <Textarea
                         value={q.prompt}
                         onChange={(e) => updateQuizItem(qi, { prompt: e.target.value })}
                         placeholder={
-                          q.type === "choice" ? "ex.: What is the past tense of 'go'?" : "ex.: She ___ to school every day. (go)"
+                          q.type === "choice"
+                            ? t("ex.: What is the past tense of 'go'?", "e.g. What is the past tense of 'go'?")
+                            : t("ex.: She ___ to school every day. (go)", "e.g. She ___ to school every day. (go)")
                         }
                         rows={2}
                         required
@@ -410,7 +419,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                       variant={q.type === "choice" ? "default" : "outline"}
                       onClick={() => updateQuizItem(qi, q.type === "choice" ? q : emptyQuizChoiceItem())}
                     >
-                      Múltipla escolha
+                      {t("Múltipla escolha", "Multiple choice")}
                     </Button>
                     <Button
                       type="button"
@@ -418,13 +427,13 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                       variant={q.type === "blank" ? "default" : "outline"}
                       onClick={() => updateQuizItem(qi, q.type === "blank" ? q : emptyQuizBlankItem())}
                     >
-                      Completar (resposta escrita)
+                      {t("Completar (resposta escrita)", "Fill in the blank (written answer)")}
                     </Button>
                   </div>
 
                   {q.type === "choice" ? (
                     <div className="space-y-2">
-                      <Label className="text-xs">Opções (marque a correta)</Label>
+                      <Label className="text-xs">{t("Opções (marque a correta)", "Options (mark the correct one)")}</Label>
                       <RadioGroup
                         value={String(q.correctIndex)}
                         onValueChange={(v) => updateQuizItem(qi, { correctIndex: Number(v) })}
@@ -436,7 +445,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                             <Input
                               value={opt}
                               onChange={(e) => updateQuizOption(qi, oi, e.target.value)}
-                              placeholder={`Opção ${oi + 1}`}
+                              placeholder={`${t("Opção", "Option")} ${oi + 1}`}
                               required
                             />
                             {q.options.length > 2 && (
@@ -450,14 +459,16 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                       {q.options.length < 6 && (
                         <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => addQuizOption(qi)}>
                           <Plus className="h-3 w-3" />
-                          Adicionar opção
+                          {t("Adicionar opção", "Add option")}
                         </Button>
                       )}
                     </div>
                   ) : (
                     <p className="text-xs text-muted-foreground">
-                      O aluno vai digitar a resposta. Não tem correção automática — depois que ele responder, você
-                      corrige essa pergunta como certa ou errada na tela da atividade.
+                      {t(
+                        "O aluno vai digitar a resposta. Não tem correção automática — depois que ele responder, você corrige essa pergunta como certa ou errada na tela da atividade.",
+                        "The student types the answer. There's no automatic grading — once they answer, you mark this question right or wrong on the activity screen.",
+                      )}
                     </p>
                   )}
                 </CardContent>
@@ -466,17 +477,17 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
             <div className="flex flex-wrap gap-2">
               <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => addQuizItem("choice")}>
                 <Plus className="h-4 w-4" />
-                Adicionar múltipla escolha
+                {t("Adicionar múltipla escolha", "Add multiple choice")}
               </Button>
               <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => addQuizItem("blank")}>
                 <Plus className="h-4 w-4" />
-                Adicionar completar
+                {t("Adicionar completar", "Add fill in the blank")}
               </Button>
             </div>
           </div>
         ) : (
           <div className="space-y-1">
-            <Label>Código de incorporação</Label>
+            <Label>{t("Código de incorporação", "Embed code")}</Label>
             <Textarea
               value={embedCode}
               onChange={(e) => setEmbedCode(e.target.value)}
@@ -495,7 +506,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
           </Button>
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel} disabled={saving}>
-              Cancelar
+              {t("Cancelar", "Cancel")}
             </Button>
           )}
         </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -89,6 +90,7 @@ interface Student {
 export default function ActivityDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const { t } = usePortalPrefs();
   const navigate = useNavigate();
   const isTeacher = user?.role === "teacher";
   const [activity, setActivity] = useState<ActivityDetail | null>(null);
@@ -120,7 +122,7 @@ export default function ActivityDetail() {
       }
       if (isTeacher) setStudents(await api.get<Student[]>("/api/students"));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível abrir a atividade.");
+      setError(err instanceof ApiError ? err.message : t("Não foi possível abrir a atividade.", "Couldn't open the activity."));
     } finally {
       setLoading(false);
     }
@@ -157,7 +159,7 @@ export default function ActivityDetail() {
       const res = await api.post<Submission>(`/api/activities/${id}/submit`, { answers: orderedAnswers });
       setResult(res);
     } catch (err) {
-      setSubmitError(err instanceof ApiError ? err.message : "Não foi possível enviar as respostas.");
+      setSubmitError(err instanceof ApiError ? err.message : t("Não foi possível enviar as respostas.", "Couldn't send your answers."));
     } finally {
       setSubmitting(false);
     }
@@ -188,7 +190,7 @@ export default function ActivityDetail() {
   }
 
   if (!activity) {
-    return <p className="text-sm text-destructive">{error ?? "Atividade não encontrada."}</p>;
+    return <p className="text-sm text-destructive">{error ?? t("Atividade não encontrada.", "Activity not found.")}</p>;
   }
 
   const allAnswered = activity.questions
@@ -202,7 +204,7 @@ export default function ActivityDetail() {
           <p className="truncate font-medium">{activity.title}</p>
           <Button variant="outline" size="sm" className="gap-2" onClick={() => setExpanded(false)}>
             <Minimize2 className="h-4 w-4" />
-            Sair da tela cheia
+            {t("Sair da tela cheia", "Exit full screen")}
           </Button>
         </div>
         <iframe
@@ -220,7 +222,7 @@ export default function ActivityDetail() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <Link to="/portal/atividades" className="text-sm text-muted-foreground hover:underline">
-            ← Todas as atividades
+            ← {t("Todas as atividades", "All activities")}
           </Link>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">{activity.title}</h1>
         </div>
@@ -228,19 +230,19 @@ export default function ActivityDetail() {
           {activity.kind === "embed" && (
             <Button variant="outline" size="sm" className="gap-2" onClick={() => setExpanded(true)}>
               <Maximize2 className="h-4 w-4" />
-              Tela cheia
+              {t("Tela cheia", "Full screen")}
             </Button>
           )}
           {isTeacher && !editing && (
             <Button variant="outline" size="sm" className="gap-2" onClick={() => setEditing(true)}>
               <Pencil className="h-4 w-4" />
-              Editar
+              {t("Editar", "Edit")}
             </Button>
           )}
           {isTeacher && (
             <Button variant="outline" size="sm" className="gap-2 text-destructive" onClick={() => void removeActivity()}>
               <Trash2 className="h-4 w-4" />
-              Apagar atividade
+              {t("Apagar atividade", "Delete activity")}
             </Button>
           )}
         </div>
@@ -249,7 +251,7 @@ export default function ActivityDetail() {
       {editing ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Editar atividade</CardTitle>
+            <CardTitle className="text-base">{t("Editar atividade", "Edit activity")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ActivityForm
@@ -277,7 +279,7 @@ export default function ActivityDetail() {
                         })),
                       }
               }
-              submitLabel="Salvar alterações"
+              submitLabel={t("Salvar alterações", "Save changes")}
               onSubmit={saveEdit}
               onCancel={() => setEditing(false)}
             />
@@ -300,15 +302,19 @@ export default function ActivityDetail() {
           {!isTeacher && activity.questions && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Perguntas</CardTitle>
+                <CardTitle className="text-base">{t("Perguntas", "Questions")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 {result && (
                   <div className="rounded-md border bg-muted/40 p-3 text-sm">
-                    Nota (múltipla escolha): <span className="font-semibold">{result.score}</span> de {result.total}
+                    {t("Nota (múltipla escolha):", "Score (multiple choice):")} <span className="font-semibold">{result.score}</span>{" "}
+                    {t("de", "of")} {result.total}
                     {(activity.questions as QuizItem[]).some((q) => q.type === "blank") && (
                       <p className="mt-1 text-muted-foreground">
-                        As perguntas de completar são corrigidas pela professora depois.
+                        {t(
+                          "As perguntas de completar são corrigidas pela professora depois.",
+                          "Fill-in-the-blank questions are graded by your teacher later.",
+                        )}
                       </p>
                     )}
                   </div>
@@ -336,7 +342,7 @@ export default function ActivityDetail() {
                                 key={oi}
                                 className={cn(
                                   "flex items-center gap-2 rounded-md px-2 py-1",
-                                  isCorrect && "bg-green-500/10",
+                                  isCorrect && "bg-green-500/10 dark:bg-green-400/15",
                                   isWrongPick && "bg-destructive/10",
                                 )}
                               >
@@ -344,7 +350,7 @@ export default function ActivityDetail() {
                                 <Label htmlFor={`quiz-ans-q${qi}-o${oi}`} className="flex-1 font-normal">
                                   {opt}
                                 </Label>
-                                {isCorrect && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                                {isCorrect && <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />}
                                 {isWrongPick && <XCircle className="h-4 w-4 text-destructive" />}
                               </div>
                             );
@@ -364,20 +370,22 @@ export default function ActivityDetail() {
                         value={(answers[qi] as string) ?? ""}
                         onChange={(e) => setAnswers((prev) => ({ ...prev, [qi]: e.target.value }))}
                         disabled={!!result}
-                        placeholder="Sua resposta"
+                        placeholder={t("Sua resposta", "Your answer")}
                         rows={1}
                         className="min-h-10"
                       />
                       {result &&
                         (grade === undefined ? (
-                          <p className="text-xs text-muted-foreground">Aguardando correção da professora.</p>
+                          <p className="text-xs text-muted-foreground">
+                            {t("Aguardando correção da professora.", "Waiting for your teacher to grade it.")}
+                          </p>
                         ) : grade ? (
-                          <p className="flex items-center gap-1 text-xs text-green-600">
-                            <CheckCircle2 className="h-3 w-3" /> Certo
+                          <p className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                            <CheckCircle2 className="h-3 w-3" /> {t("Certo", "Correct")}
                           </p>
                         ) : (
                           <p className="flex items-center gap-1 text-xs text-destructive">
-                            <XCircle className="h-3 w-3" /> Errado
+                            <XCircle className="h-3 w-3" /> {t("Errado", "Wrong")}
                           </p>
                         ))}
                     </div>
@@ -387,12 +395,12 @@ export default function ActivityDetail() {
                 {!result && (
                   <Button onClick={() => void submitAnswers()} disabled={!allAnswered || submitting} className="gap-2">
                     {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                    Enviar respostas
+                    {t("Enviar respostas", "Submit answers")}
                   </Button>
                 )}
                 {result && (
                   <Button variant="outline" onClick={() => setResult(null)}>
-                    Tentar novamente
+                    {t("Tentar novamente", "Try again")}
                   </Button>
                 )}
                 {submitError && <p className="text-sm text-destructive">{submitError}</p>}
@@ -403,7 +411,7 @@ export default function ActivityDetail() {
           {isTeacher && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Gabarito</CardTitle>
+                <CardTitle className="text-base">{t("Gabarito", "Answer key")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {(activity.questions as QuizItem[] | undefined)?.map((q, qi) => (
@@ -413,8 +421,11 @@ export default function ActivityDetail() {
                     </p>
                     <p className="text-muted-foreground">
                       {q.type === "choice"
-                        ? `Correta: ${q.options?.[q.correctIndex ?? -1] ?? "—"}`
-                        : "Completar — você corrige depois que o aluno responder"}
+                        ? `${t("Correta", "Correct")}: ${q.options?.[q.correctIndex ?? -1] ?? "—"}`
+                        : t(
+                            "Completar — você corrige depois que o aluno responder",
+                            "Fill in the blank — you grade it after the student answers",
+                          )}
                     </p>
                   </div>
                 ))}
@@ -425,14 +436,16 @@ export default function ActivityDetail() {
           {isTeacher && (activity.results?.length ?? 0) > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Respostas dos alunos</CardTitle>
+                <CardTitle className="text-base">{t("Respostas dos alunos", "Student answers")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {activity.results!.map((r) => (
                   <div key={r.studentId} className="space-y-2 rounded-md border p-3">
                     <div className="flex justify-between text-sm">
                       <span className="font-medium">{r.fullName || r.email}</span>
-                      <span>{r.score}/{r.total} (múltipla escolha)</span>
+                      <span>
+                        {r.score}/{r.total} ({t("múltipla escolha", "multiple choice")})
+                      </span>
                     </div>
                     {(activity.questions as QuizItem[]).map((q, qi) => {
                       if (q.type !== "blank") return null;
@@ -444,7 +457,7 @@ export default function ActivityDetail() {
                           <p className="text-xs text-muted-foreground">
                             {qi + 1}. <PromptText text={q.prompt} />
                           </p>
-                          <p className="whitespace-pre-line">{ans || <span className="italic text-muted-foreground">(sem resposta)</span>}</p>
+                          <p className="whitespace-pre-line">{ans || <span className="italic text-muted-foreground">{t("(sem resposta)", "(no answer)")}</span>}</p>
                           <div className="mt-1 flex items-center gap-2">
                             <Button
                               type="button"
@@ -453,7 +466,7 @@ export default function ActivityDetail() {
                               disabled={grading.has(gradeKey)}
                               onClick={() => void gradeBlank(r.studentId, qi, true)}
                             >
-                              Certo
+                              {t("Certo", "Correct")}
                             </Button>
                             <Button
                               type="button"
@@ -462,7 +475,7 @@ export default function ActivityDetail() {
                               disabled={grading.has(gradeKey)}
                               onClick={() => void gradeBlank(r.studentId, qi, false)}
                             >
-                              Errado
+                              {t("Errado", "Wrong")}
                             </Button>
                             {grading.has(gradeKey) && <Loader2 className="h-3 w-3 animate-spin" />}
                           </div>
@@ -495,12 +508,13 @@ export default function ActivityDetail() {
           {!isTeacher && activity.questions && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Perguntas</CardTitle>
+                <CardTitle className="text-base">{t("Perguntas", "Questions")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 {result && (
                   <div className="rounded-md border bg-muted/40 p-3 text-sm">
-                    Sua nota: <span className="font-semibold">{result.score}</span> de {result.total}
+                    {t("Sua nota:", "Your score:")} <span className="font-semibold">{result.score}</span> {t("de", "of")}{" "}
+                    {result.total}
                   </div>
                 )}
 
@@ -525,7 +539,7 @@ export default function ActivityDetail() {
                               key={oi}
                               className={cn(
                                 "flex items-center gap-2 rounded-md px-2 py-1",
-                                isCorrect && "bg-green-500/10",
+                                isCorrect && "bg-green-500/10 dark:bg-green-400/15",
                                 isWrongPick && "bg-destructive/10",
                               )}
                             >
@@ -533,7 +547,7 @@ export default function ActivityDetail() {
                               <Label htmlFor={`ans-q${qi}-o${oi}`} className="flex-1 font-normal">
                                 {opt}
                               </Label>
-                              {isCorrect && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                              {isCorrect && <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />}
                               {isWrongPick && <XCircle className="h-4 w-4 text-destructive" />}
                             </div>
                           );
@@ -546,12 +560,12 @@ export default function ActivityDetail() {
                 {!result && (
                   <Button onClick={() => void submitAnswers()} disabled={!allAnswered || submitting} className="gap-2">
                     {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                    Enviar respostas
+                    {t("Enviar respostas", "Submit answers")}
                   </Button>
                 )}
                 {result && (
                   <Button variant="outline" onClick={() => setResult(null)}>
-                    Tentar novamente
+                    {t("Tentar novamente", "Try again")}
                   </Button>
                 )}
                 {submitError && <p className="text-sm text-destructive">{submitError}</p>}
@@ -562,7 +576,7 @@ export default function ActivityDetail() {
           {isTeacher && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Gabarito</CardTitle>
+                <CardTitle className="text-base">{t("Gabarito", "Answer key")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {(activity.questions as Question[] | undefined)?.map((q, qi) => (
@@ -571,7 +585,7 @@ export default function ActivityDetail() {
                       {qi + 1}. {q.prompt}
                     </p>
                     <p className="text-muted-foreground">
-                      Correta: {q.options[q.correctIndex ?? -1] ?? "—"}
+                      {t("Correta", "Correct")}: {q.options[q.correctIndex ?? -1] ?? "—"}
                     </p>
                   </div>
                 ))}
@@ -582,7 +596,7 @@ export default function ActivityDetail() {
           {isTeacher && (activity.results?.length ?? 0) > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Resultados dos alunos</CardTitle>
+                <CardTitle className="text-base">{t("Resultados dos alunos", "Student results")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="space-y-1 text-sm">
@@ -604,11 +618,11 @@ export default function ActivityDetail() {
       {isTeacher && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Enviar para alunos</CardTitle>
+            <CardTitle className="text-base">{t("Enviar para alunos", "Send to students")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {students.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Cadastre alunos em Alunos primeiro.</p>
+              <p className="text-sm text-muted-foreground">{t("Cadastre alunos em Alunos primeiro.", "Add students under Students first.")}</p>
             ) : (
               <ul className="space-y-2">
                 {students.map((s) => (
@@ -628,7 +642,7 @@ export default function ActivityDetail() {
               </ul>
             )}
             <Button type="button" onClick={() => void saveStudents()}>
-              Salvar quem pode fazer
+              {t("Salvar quem pode fazer", "Save who can do it")}
             </Button>
           </CardContent>
         </Card>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api, ApiError, fetchBoletoBlob } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,10 +81,8 @@ const emptyForm = {
   dueDate: "",
 };
 
-const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-
-function formatMoney(cents: number) {
-  return brl.format(cents / 100);
+function formatMoney(cents: number, locale: string) {
+  return new Intl.NumberFormat(locale, { style: "currency", currency: "BRL" }).format(cents / 100);
 }
 
 // "280", "280,50", "R$ 1.280,50" → centavos
@@ -100,9 +99,17 @@ function centsToInput(cents: number) {
   return (cents / 100).toFixed(2).replace(".", ",");
 }
 
-function formatDate(key: string) {
+function formatDate(key: string, locale: string) {
   const [y, m, d] = key.split("-");
-  return y && m && d ? `${d}/${m}/${y}` : key;
+  if (!y || !m || !d) return key;
+  return locale === "en-US" ? `${m}/${d}/${y}` : `${d}/${m}/${y}`;
+}
+
+// "2026-09" → "setembro de 2026" / "September 2026"
+function formatMonth(key: string, locale: string) {
+  const [y, m] = key.split("-").map(Number);
+  if (!y || !m) return key;
+  return new Date(y, m - 1, 1).toLocaleDateString(locale, { month: "long", year: "numeric" });
 }
 
 function pad(n: number) {
@@ -120,13 +127,16 @@ function currentMonthKey() {
 }
 
 function StatusBadge({ status }: { status: PaymentStatus }) {
-  if (status === "paid") return <Badge className="bg-emerald-600 hover:bg-emerald-600">Paga</Badge>;
-  if (status === "overdue") return <Badge variant="destructive">Atrasada</Badge>;
-  return <Badge variant="secondary">Pendente</Badge>;
+  const { t } = usePortalPrefs();
+  if (status === "paid")
+    return <Badge className="bg-emerald-600 text-white hover:bg-emerald-600">{t("Paga", "Paid")}</Badge>;
+  if (status === "overdue") return <Badge variant="destructive">{t("Atrasada", "Overdue")}</Badge>;
+  return <Badge variant="secondary">{t("Pendente", "Pending")}</Badge>;
 }
 
 export default function Finance() {
   const { user } = useAuth();
+  const { t, locale } = usePortalPrefs();
   const isTeacher = user?.role === "teacher";
 
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -229,11 +239,11 @@ export default function Finance() {
     setError(null);
     const amountCents = parseMoney(form.amount);
     if (!form.studentId || !form.dueDate || !form.description.trim()) {
-      setError("Escolha o aluno, a descrição e a data de vencimento.");
+      setError(t("Escolha o aluno, a descrição e a data de vencimento.", "Choose the student, description and due date."));
       return;
     }
     if (!amountCents) {
-      setError("Digite um valor válido, ex: 280,00.");
+      setError(t("Digite um valor válido, ex: 280,00.", "Enter a valid amount, e.g. 280.00."));
       return;
     }
     setSaving(true);
@@ -247,7 +257,7 @@ export default function Finance() {
       setForm(emptyForm);
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível salvar a cobrança.");
+      setError(err instanceof ApiError ? err.message : t("Não foi possível salvar a cobrança.", "Couldn't save the charge."));
     } finally {
       setSaving(false);
     }
@@ -257,7 +267,7 @@ export default function Finance() {
     setGenerateError(null);
     setGenerateResult(null);
     if (!generateMonth) {
-      setGenerateError("Escolha o mês.");
+      setGenerateError(t("Escolha o mês.", "Choose the month."));
       return;
     }
     setGenerating(true);
@@ -269,7 +279,7 @@ export default function Finance() {
       setGenerateResult(res);
       await load();
     } catch (err) {
-      setGenerateError(err instanceof ApiError ? err.message : "Não foi possível gerar as mensalidades.");
+      setGenerateError(err instanceof ApiError ? err.message : t("Não foi possível gerar as mensalidades.", "Couldn't generate the monthly fees."));
     } finally {
       setGenerating(false);
     }
@@ -281,7 +291,7 @@ export default function Finance() {
       await api.put(`/api/payments/${payment.id}`, { paidAt: paid ? todayKey() : null });
       await load();
     } catch (err) {
-      setListError(err instanceof ApiError ? err.message : "Não foi possível atualizar a cobrança.");
+      setListError(err instanceof ApiError ? err.message : t("Não foi possível atualizar a cobrança.", "Couldn't update the charge."));
     }
   }
 
@@ -297,11 +307,11 @@ export default function Finance() {
     if (!file || !payment) return;
     setListError(null);
     if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-      setListError("O boleto precisa ser um arquivo PDF.");
+      setListError(t("O boleto precisa ser um arquivo PDF.", "The boleto must be a PDF file."));
       return;
     }
     if (file.size > MAX_BOLETO_BYTES) {
-      setListError("Esse PDF é grande demais (máximo 5 MB).");
+      setListError(t("Esse PDF é grande demais (máximo 5 MB).", "This PDF is too large (5 MB max)."));
       return;
     }
     setBoletoBusyId(payment.id);
@@ -310,7 +320,7 @@ export default function Finance() {
       await api.put(`/api/payments/${payment.id}/boleto`, { file: dataUrl });
       await load();
     } catch (err) {
-      setListError(err instanceof ApiError ? err.message : "Não foi possível anexar o boleto.");
+      setListError(err instanceof ApiError ? err.message : t("Não foi possível anexar o boleto.", "Couldn't attach the boleto."));
     } finally {
       setBoletoBusyId(null);
       setUploadTarget(null);
@@ -324,7 +334,7 @@ export default function Finance() {
       await api.delete(`/api/payments/${payment.id}/boleto`);
       await load();
     } catch (err) {
-      setListError(err instanceof ApiError ? err.message : "Não foi possível remover o boleto.");
+      setListError(err instanceof ApiError ? err.message : t("Não foi possível remover o boleto.", "Couldn't remove the boleto."));
     } finally {
       setBoletoBusyId(null);
     }
@@ -344,7 +354,7 @@ export default function Finance() {
       a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 10_000);
     } catch (err) {
-      setListError(err instanceof ApiError ? err.message : "Não foi possível baixar o boleto.");
+      setListError(err instanceof ApiError ? err.message : t("Não foi possível baixar o boleto.", "Couldn't download the boleto."));
     } finally {
       setBoletoBusyId(null);
     }
@@ -367,11 +377,11 @@ export default function Finance() {
     setEditError(null);
     const amountCents = parseMoney(editForm.amount);
     if (!editForm.studentId || !editForm.dueDate || !editForm.description.trim()) {
-      setEditError("Escolha o aluno, a descrição e a data de vencimento.");
+      setEditError(t("Escolha o aluno, a descrição e a data de vencimento.", "Choose the student, description and due date."));
       return;
     }
     if (!amountCents) {
-      setEditError("Digite um valor válido, ex: 280,00.");
+      setEditError(t("Digite um valor válido, ex: 280,00.", "Enter a valid amount, e.g. 280.00."));
       return;
     }
     setEditSaving(true);
@@ -385,7 +395,7 @@ export default function Finance() {
       setEditing(null);
       await load();
     } catch (err) {
-      setEditError(err instanceof ApiError ? err.message : "Não foi possível salvar as alterações.");
+      setEditError(err instanceof ApiError ? err.message : t("Não foi possível salvar as alterações.", "Couldn't save the changes."));
     } finally {
       setEditSaving(false);
     }
@@ -400,7 +410,7 @@ export default function Finance() {
       setDeleting(null);
       await load();
     } catch (err) {
-      setListError(err instanceof ApiError ? err.message : "Não foi possível excluir a cobrança.");
+      setListError(err instanceof ApiError ? err.message : t("Não foi possível excluir a cobrança.", "Couldn't delete the charge."));
     } finally {
       setDeleteSaving(false);
     }
@@ -408,7 +418,7 @@ export default function Finance() {
 
   const summaryScope = [
     filterStudentId ? studentNameById.get(filterStudentId) : null,
-    filterMonth ? `vencimento em ${formatDate(`${filterMonth}-01`).slice(3)}` : null,
+    filterMonth ? `${t("vencimento em", "due in")} ${formatMonth(filterMonth, locale)}` : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -416,50 +426,58 @@ export default function Finance() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Financeiro</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("Financeiro", "Payments")}</h1>
         <p className="text-muted-foreground">
           {isTeacher
-            ? "Registre as mensalidades de cada aluno, anexe o boleto gerado no app da Cora e marque quando forem pagas."
-            : "Veja suas mensalidades, baixe o boleto e acompanhe se estão pagas, pendentes ou atrasadas."}
+            ? t(
+                "Registre as mensalidades de cada aluno, anexe o boleto gerado no app da Cora e marque quando forem pagas.",
+                "Record each student's monthly fees, attach the boleto generated in the Cora app, and mark them as paid.",
+              )
+            : t(
+                "Veja suas mensalidades, baixe o boleto e acompanhe se estão pagas, pendentes ou atrasadas.",
+                "See your monthly fees, download the boleto, and check whether they're paid, pending or overdue.",
+              )}
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>{isTeacher ? "Recebido" : "Pago"}</CardDescription>
-            <CardTitle className="text-2xl text-emerald-600">{formatMoney(summary.paidCents)}</CardTitle>
+            <CardDescription>{isTeacher ? t("Recebido", "Received") : t("Pago", "Paid")}</CardDescription>
+            <CardTitle className="text-2xl text-emerald-600 dark:text-emerald-400">{formatMoney(summary.paidCents, locale)}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>{isTeacher ? "A receber" : "A pagar"}</CardDescription>
-            <CardTitle className="text-2xl">{formatMoney(summary.pendingCents)}</CardTitle>
+            <CardDescription>{isTeacher ? t("A receber", "To receive") : t("A pagar", "To pay")}</CardDescription>
+            <CardTitle className="text-2xl">{formatMoney(summary.pendingCents, locale)}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Atrasado</CardDescription>
-            <CardTitle className="text-2xl text-destructive">{formatMoney(summary.overdueCents)}</CardTitle>
+            <CardDescription>{t("Atrasado", "Overdue")}</CardDescription>
+            <CardTitle className="text-2xl text-destructive">{formatMoney(summary.overdueCents, locale)}</CardTitle>
           </CardHeader>
         </Card>
       </div>
-      {summaryScope && <p className="-mt-3 text-xs text-muted-foreground">Totais filtrados: {summaryScope}</p>}
+      {summaryScope && <p className="-mt-3 text-xs text-muted-foreground">{t("Totais filtrados:", "Filtered totals:")} {summaryScope}</p>}
 
       {isTeacher && (
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Gerar mensalidades do mês</CardTitle>
+              <CardTitle className="text-base">{t("Gerar mensalidades do mês", "Generate this month's fees")}</CardTitle>
               <CardDescription>
-                Cria de uma vez a mensalidade de cada aluno, usando o valor da parcela e o dia de vencimento do
-                cadastro dele. Quem já tem cobrança no mês é pulado.
+                {t(
+                  "Cria de uma vez a mensalidade de cada aluno, usando o valor da parcela e o dia de vencimento do cadastro dele. Quem já tem cobrança no mês é pulado.",
+                  "Creates every student's monthly fee at once, using the installment amount and due day from their profile. Anyone who already has a charge that month is skipped.",
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-wrap items-end gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="generate-month">Mês</Label>
+                  <Label htmlFor="generate-month">{t("Mês", "Month")}</Label>
                   <Input
                     id="generate-month"
                     type="month"
@@ -470,7 +488,7 @@ export default function Finance() {
                 </div>
                 <Button onClick={generate} disabled={generating} className="gap-2">
                   {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarPlus className="h-4 w-4" />}
-                  Gerar mensalidades
+                  {t("Gerar mensalidades", "Generate fees")}
                 </Button>
               </div>
               {generateError && <p className="text-sm text-destructive">{generateError}</p>}
@@ -478,8 +496,11 @@ export default function Finance() {
                 <div className="space-y-2 text-sm">
                   <p className="font-medium">
                     {generateResult.created.length === 0
-                      ? "Nenhuma mensalidade nova criada."
-                      : `${generateResult.created.length} mensalidade(s) criada(s): ${generateResult.created.join(", ")}.`}
+                      ? t("Nenhuma mensalidade nova criada.", "No new fees created.")
+                      : t(
+                          `${generateResult.created.length} mensalidade(s) criada(s): ${generateResult.created.join(", ")}.`,
+                          `${generateResult.created.length} fee(s) created: ${generateResult.created.join(", ")}.`,
+                        )}
                   </p>
                   {generateResult.skipped.length > 0 && (
                     <ul className="list-disc space-y-0.5 pl-5 text-muted-foreground">
@@ -497,16 +518,16 @@ export default function Finance() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Nova cobrança avulsa</CardTitle>
+              <CardTitle className="text-base">{t("Nova cobrança avulsa", "New one-off charge")}</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={create} className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label>Aluno</Label>
+                    <Label>{t("Aluno", "Student")}</Label>
                     <Select value={form.studentId} onValueChange={(v) => void selectStudentForNewPayment(v)}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Escolha o aluno" />
+                        <SelectValue placeholder={t("Escolha o aluno", "Choose the student")} />
                       </SelectTrigger>
                       <SelectContent>
                         {students.map((s) => (
@@ -518,28 +539,28 @@ export default function Finance() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="description">Descrição</Label>
+                    <Label htmlFor="description">{t("Descrição", "Description")}</Label>
                     <Input
                       id="description"
-                      placeholder="ex: Material didático"
+                      placeholder={t("ex: Material didático", "e.g. Course materials")}
                       value={form.description}
                       onChange={(e) => setForm({ ...form, description: e.target.value })}
                       required
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="amount">Valor (R$)</Label>
+                    <Label htmlFor="amount">{t("Valor (R$)", "Amount (R$)")}</Label>
                     <Input
                       id="amount"
                       inputMode="decimal"
-                      placeholder="280,00"
+                      placeholder={t("280,00", "280.00")}
                       value={form.amount}
                       onChange={(e) => setForm({ ...form, amount: e.target.value })}
                       required
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <Label htmlFor="dueDate">Vencimento</Label>
+                    <Label htmlFor="dueDate">{t("Vencimento", "Due date")}</Label>
                     <Input
                       id="dueDate"
                       type="date"
@@ -554,7 +575,7 @@ export default function Finance() {
 
                 <Button type="submit" disabled={saving} className="gap-2">
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                  Adicionar cobrança
+                  {t("Adicionar cobrança", "Add charge")}
                 </Button>
               </form>
             </CardContent>
@@ -564,14 +585,14 @@ export default function Finance() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{isTeacher ? "Cobranças" : "Suas mensalidades"}</CardTitle>
-          <CardDescription>{total} cobrança(s)</CardDescription>
+          <CardTitle className="text-base">{isTeacher ? t("Cobranças", "Charges") : t("Suas mensalidades", "Your monthly fees")}</CardTitle>
+          <CardDescription>{total} {t("cobrança(s)", "charge(s)")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {isTeacher && (
               <div className="space-y-1.5">
-                <Label>Aluno</Label>
+                <Label>{t("Aluno", "Student")}</Label>
                 <Select
                   value={filterStudentId || "all"}
                   onValueChange={(v) => {
@@ -580,10 +601,10 @@ export default function Finance() {
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Todos os alunos" />
+                    <SelectValue placeholder={t("Todos os alunos", "All students")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos os alunos</SelectItem>
+                    <SelectItem value="all">{t("Todos os alunos", "All students")}</SelectItem>
                     {students.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
                         {s.fullName || s.email}
@@ -594,7 +615,7 @@ export default function Finance() {
               </div>
             )}
             <div className="space-y-1.5">
-              <Label htmlFor="filter-month">Mês do vencimento</Label>
+              <Label htmlFor="filter-month">{t("Mês do vencimento", "Due month")}</Label>
               <Input
                 id="filter-month"
                 type="month"
@@ -606,7 +627,7 @@ export default function Finance() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Situação</Label>
+              <Label>{t("Situação", "Status")}</Label>
               <Select
                 value={filterStatus || "all"}
                 onValueChange={(v) => {
@@ -615,21 +636,21 @@ export default function Finance() {
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Todas" />
+                  <SelectValue placeholder={t("Todas", "All")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="open">Em aberto (pendentes + atrasadas)</SelectItem>
-                  <SelectItem value="pending">Pendentes</SelectItem>
-                  <SelectItem value="overdue">Atrasadas</SelectItem>
-                  <SelectItem value="paid">Pagas</SelectItem>
+                  <SelectItem value="all">{t("Todas", "All")}</SelectItem>
+                  <SelectItem value="open">{t("Em aberto (pendentes + atrasadas)", "Open (pending + overdue)")}</SelectItem>
+                  <SelectItem value="pending">{t("Pendentes", "Pending")}</SelectItem>
+                  <SelectItem value="overdue">{t("Atrasadas", "Overdue")}</SelectItem>
+                  <SelectItem value="paid">{t("Pagas", "Paid")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           {hasFilters ? (
             <Button variant="ghost" size="sm" onClick={clearFilters} className="mb-4 gap-1 text-muted-foreground">
-              <X className="h-3.5 w-3.5" /> Limpar filtros
+              <X className="h-3.5 w-3.5" /> {t("Limpar filtros", "Clear filters")}
             </Button>
           ) : null}
 
@@ -640,7 +661,9 @@ export default function Finance() {
             </div>
           ) : payments.length === 0 ? (
             <p className="py-6 text-center text-sm text-muted-foreground">
-              {hasFilters ? "Nenhuma cobrança encontrada com esses filtros." : "Nenhuma cobrança cadastrada ainda."}
+              {hasFilters
+                ? t("Nenhuma cobrança encontrada com esses filtros.", "No charges match these filters.")
+                : t("Nenhuma cobrança cadastrada ainda.", "No charges added yet.")}
             </p>
           ) : (
             <ul className="divide-y">
@@ -655,9 +678,9 @@ export default function Finance() {
                       <StatusBadge status={payment.status} />
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">{formatMoney(payment.amountCents)}</span>
-                      {` · vence ${formatDate(payment.dueDate)}`}
-                      {payment.paidAt ? ` · paga em ${formatDate(payment.paidAt)}` : ""}
+                      <span className="font-medium text-foreground">{formatMoney(payment.amountCents, locale)}</span>
+                      {` · ${t("vence", "due")} ${formatDate(payment.dueDate, locale)}`}
+                      {payment.paidAt ? ` · ${t("paga em", "paid on")} ${formatDate(payment.paidAt, locale)}` : ""}
                       {isTeacher
                         ? ` · ${studentNameById.get(payment.studentId) ?? payment.studentName ?? payment.studentEmail ?? ""}`
                         : ""}
@@ -677,7 +700,7 @@ export default function Finance() {
                       ) : (
                         <Download className="h-4 w-4" />
                       )}
-                      Baixar boleto
+                      {t("Baixar boleto", "Download boleto")}
                     </Button>
                   )}
 
@@ -706,7 +729,7 @@ export default function Finance() {
                             disabled={boletoBusyId === payment.id}
                             onClick={() => chooseBoleto(payment)}
                           >
-                            Trocar
+                            {t("Trocar", "Replace")}
                           </Button>
                           <Button
                             variant="ghost"
@@ -715,7 +738,7 @@ export default function Finance() {
                             disabled={boletoBusyId === payment.id}
                             onClick={() => removeBoleto(payment)}
                           >
-                            Remover
+                            {t("Remover", "Remove")}
                           </Button>
                         </>
                       ) : (
@@ -731,26 +754,26 @@ export default function Finance() {
                           ) : (
                             <FileUp className="h-4 w-4" />
                           )}
-                          Anexar boleto
+                          {t("Anexar boleto", "Attach boleto")}
                         </Button>
                       )}
                       {payment.paidAt ? (
                         <Button variant="outline" size="sm" className="gap-1" onClick={() => setPaid(payment, false)}>
-                          <Undo2 className="h-4 w-4" /> Desfazer pagamento
+                          <Undo2 className="h-4 w-4" /> {t("Desfazer pagamento", "Undo payment")}
                         </Button>
                       ) : (
                         <Button size="sm" className="gap-1" onClick={() => setPaid(payment, true)}>
-                          <Check className="h-4 w-4" /> Marcar como paga
+                          <Check className="h-4 w-4" /> {t("Marcar como paga", "Mark as paid")}
                         </Button>
                       )}
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(payment)} aria-label="Editar cobrança">
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(payment)} aria-label={t("Editar cobrança", "Edit charge")}>
                         <Pencil className="h-4 w-4 text-muted-foreground" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => setDeleting(payment)}
-                        aria-label="Excluir cobrança"
+                        aria-label={t("Excluir cobrança", "Delete charge")}
                       >
                         <Trash2 className="h-4 w-4 text-muted-foreground" />
                       </Button>
@@ -776,16 +799,16 @@ export default function Finance() {
       <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar cobrança</DialogTitle>
+            <DialogTitle>{t("Editar cobrança", "Edit charge")}</DialogTitle>
           </DialogHeader>
 
           <form onSubmit={saveEdit} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>Aluno</Label>
+                <Label>{t("Aluno", "Student")}</Label>
                 <Select value={editForm.studentId} onValueChange={(v) => setEditForm({ ...editForm, studentId: v })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Escolha o aluno" />
+                    <SelectValue placeholder={t("Escolha o aluno", "Choose the student")} />
                   </SelectTrigger>
                   <SelectContent>
                     {students.map((s) => (
@@ -797,7 +820,7 @@ export default function Finance() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit-description">Descrição</Label>
+                <Label htmlFor="edit-description">{t("Descrição", "Description")}</Label>
                 <Input
                   id="edit-description"
                   value={editForm.description}
@@ -806,7 +829,7 @@ export default function Finance() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit-amount">Valor (R$)</Label>
+                <Label htmlFor="edit-amount">{t("Valor (R$)", "Amount (R$)")}</Label>
                 <Input
                   id="edit-amount"
                   inputMode="decimal"
@@ -816,7 +839,7 @@ export default function Finance() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit-dueDate">Vencimento</Label>
+                <Label htmlFor="edit-dueDate">{t("Vencimento", "Due date")}</Label>
                 <Input
                   id="edit-dueDate"
                   type="date"
@@ -832,7 +855,7 @@ export default function Finance() {
             <DialogFooter>
               <Button type="submit" disabled={editSaving} className="gap-2">
                 {editSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-                Salvar alterações
+                {t("Salvar alterações", "Save changes")}
               </Button>
             </DialogFooter>
           </form>
@@ -842,17 +865,17 @@ export default function Finance() {
       <AlertDialog open={deleting !== null} onOpenChange={(open) => !open && setDeleting(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir esta cobrança?</AlertDialogTitle>
+            <AlertDialogTitle>{t("Excluir esta cobrança?", "Delete this charge?")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {deleting?.description} — {deleting ? formatMoney(deleting.amountCents) : ""}. Essa ação não pode ser
-              desfeita.
+              {deleting?.description} — {deleting ? formatMoney(deleting.amountCents, locale) : ""}.{" "}
+              {t("Essa ação não pode ser desfeita.", "This can't be undone.")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteSaving}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteSaving}>{t("Cancelar", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmRemove} disabled={deleteSaving} className="gap-2">
               {deleteSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-              Excluir
+              {t("Excluir", "Delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

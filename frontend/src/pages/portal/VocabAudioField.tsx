@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Mic, Square, Upload } from "lucide-react";
+import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 
 export function VocabAudioField({
   label,
@@ -12,6 +13,7 @@ export function VocabAudioField({
   value: string | null;
   onChange: (dataUrl: string) => void;
 }) {
+  const { t } = usePortalPrefs();
   const [recording, setRecording] = useState(false);
   const recRef = useRef<MediaRecorder | null>(null);
   const chunks = useRef<Blob[]>([]);
@@ -49,12 +51,12 @@ export function VocabAudioField({
         {!recording ? (
           <Button type="button" variant="outline" size="sm" className="gap-2" onClick={start}>
             <Mic className="h-4 w-4" />
-            Gravar
+            {t("Gravar", "Record")}
           </Button>
         ) : (
           <Button type="button" variant="destructive" size="sm" className="gap-2" onClick={stop}>
             <Square className="h-4 w-4" />
-            Parar
+            {t("Parar", "Stop")}
           </Button>
         )}
         <label className="inline-flex cursor-pointer items-center">
@@ -69,10 +71,10 @@ export function VocabAudioField({
           />
           <span className="inline-flex h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm">
             <Upload className="h-4 w-4" />
-            Arquivo
+            {t("Arquivo", "File")}
           </span>
         </label>
-        {value && <span className="text-xs text-muted-foreground">Áudio pronto</span>}
+        {value && <span className="text-xs text-muted-foreground">{t("Áudio pronto", "Audio ready")}</span>}
       </div>
       {value && <audio className="w-full" controls src={value} />}
     </div>

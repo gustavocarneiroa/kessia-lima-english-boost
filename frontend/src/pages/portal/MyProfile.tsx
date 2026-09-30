@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 
 interface Profile {
   fullName?: string | null;
@@ -18,21 +19,21 @@ interface Profile {
   contractEnd?: string | null;
 }
 
-const WEEKDAY_LABELS: Record<string, string> = {
-  monday: "Segunda-feira",
-  tuesday: "Terça-feira",
-  wednesday: "Quarta-feira",
-  thursday: "Quinta-feira",
-  friday: "Sexta-feira",
-  saturday: "Sábado",
-  sunday: "Domingo",
+const WEEKDAY_LABELS: Record<string, [pt: string, en: string]> = {
+  monday: ["Segunda-feira", "Monday"],
+  tuesday: ["Terça-feira", "Tuesday"],
+  wednesday: ["Quarta-feira", "Wednesday"],
+  thursday: ["Quinta-feira", "Thursday"],
+  friday: ["Sexta-feira", "Friday"],
+  saturday: ["Sábado", "Saturday"],
+  sunday: ["Domingo", "Sunday"],
 };
 
-function formatDate(value?: string | null) {
+function formatDate(value: string | null | undefined, lang: "pt" | "en") {
   if (!value) return "—";
   const [year, month, day] = value.split("-");
   if (!year || !month || !day) return value;
-  return `${day}/${month}/${year}`;
+  return lang === "en" ? `${month}/${day}/${year}` : `${day}/${month}/${year}`;
 }
 
 function Field({ label, value }: { label: string; value?: string | null }) {
@@ -45,6 +46,7 @@ function Field({ label, value }: { label: string; value?: string | null }) {
 }
 
 export default function MyProfile() {
+  const { t, lang } = usePortalPrefs();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -55,16 +57,18 @@ export default function MyProfile() {
       .finally(() => setLoading(false));
   }, []);
 
+  const weekday = profile?.classWeekday ? WEEKDAY_LABELS[profile.classWeekday] : undefined;
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Meu perfil</h1>
-        <p className="text-muted-foreground">Seus dados cadastrados pela professora.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("Meu perfil", "My profile")}</h1>
+        <p className="text-muted-foreground">{t("Seus dados cadastrados pela professora.", "Your details, as registered by your teacher.")}</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Dados</CardTitle>
+          <CardTitle className="text-base">{t("Dados", "Details")}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -74,29 +78,29 @@ export default function MyProfile() {
           ) : (
             <div className="space-y-6">
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Nome completo" value={profile?.fullName} />
-                <Field label="Telefone / WhatsApp" value={profile?.phone} />
-                <Field label="Profissão / emprego" value={profile?.occupation} />
-                <Field label="Nível atual de inglês" value={profile?.englishLevel} />
+                <Field label={t("Nome completo", "Full name")} value={profile?.fullName} />
+                <Field label={t("Telefone / WhatsApp", "Phone / WhatsApp")} value={profile?.phone} />
+                <Field label={t("Profissão / emprego", "Occupation / job")} value={profile?.occupation} />
+                <Field label={t("Nível atual de inglês", "Current English level")} value={profile?.englishLevel} />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
-                  label="Dia da aula"
-                  value={profile?.classWeekday ? WEEKDAY_LABELS[profile.classWeekday] ?? profile.classWeekday : null}
+                  label={t("Dia da aula", "Lesson day")}
+                  value={weekday ? t(...weekday) : profile?.classWeekday}
                 />
-                <Field label="Horário da aula" value={profile?.classTime} />
+                <Field label={t("Horário da aula", "Lesson time")} value={profile?.classTime} />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Valor da parcela" value={profile?.installmentValue} />
-                <Field label="Dia de vencimento" value={profile?.paymentDueDay} />
-                <Field label="Início do contrato" value={formatDate(profile?.contractStart)} />
-                <Field label="Fim do contrato" value={formatDate(profile?.contractEnd)} />
+                <Field label={t("Valor da parcela", "Installment amount")} value={profile?.installmentValue} />
+                <Field label={t("Dia de vencimento", "Due day")} value={profile?.paymentDueDay} />
+                <Field label={t("Início do contrato", "Contract start")} value={formatDate(profile?.contractStart, lang)} />
+                <Field label={t("Fim do contrato", "Contract end")} value={formatDate(profile?.contractEnd, lang)} />
               </div>
 
-              <Field label="O que gosta de aprender / interesses" value={profile?.interests} />
-              <Field label="Metas de estudo" value={profile?.learningGoals} />
+              <Field label={t("O que gosta de aprender / interesses", "What you like to learn / interests")} value={profile?.interests} />
+              <Field label={t("Metas de estudo", "Study goals")} value={profile?.learningGoals} />
             </div>
           )}
         </CardContent>

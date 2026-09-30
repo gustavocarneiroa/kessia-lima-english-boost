@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { PortalPrefsProvider, usePortalPrefs } from "@/contexts/PortalPrefsContext";
 import {
   Sidebar,
   SidebarContent,
@@ -18,12 +19,55 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { CalendarDays, GraduationCap, Wallet, LayoutDashboard, Layers, LogOut, Map, MessagesSquare, Puzzle, Settings, Smartphone, User, Users } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  CalendarDays,
+  GraduationCap,
+  Languages,
+  Wallet,
+  LayoutDashboard,
+  Layers,
+  LogOut,
+  Map,
+  MessagesSquare,
+  Moon,
+  Puzzle,
+  Settings,
+  Smartphone,
+  Sun,
+  User,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import logo from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
 
+interface NavItem {
+  to: string;
+  icon: LucideIcon;
+  label: [pt: string, en: string];
+  tooltip?: [pt: string, en: string];
+  end?: boolean;
+  only?: "teacher" | "student";
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { to: "/portal", icon: LayoutDashboard, label: ["Início", "Home"], end: true },
+  { to: "/portal/aulas", icon: CalendarDays, label: ["Aulas", "Lessons"] },
+  { to: "/portal/vocabulario", icon: Layers, label: ["Vocabulário", "Vocabulary"] },
+  { to: "/portal/trilha", icon: Map, label: ["Trilha", "Path"], tooltip: ["Trilha de aprendizagem", "Learning path"] },
+  { to: "/portal/atividades", icon: Puzzle, label: ["Atividades", "Activities"] },
+  { to: "/portal/forum", icon: MessagesSquare, label: ["Fórum", "Forum"] },
+  { to: "/portal/financeiro", icon: Wallet, label: ["Financeiro", "Payments"] },
+  { to: "/portal/alunos", icon: Users, label: ["Alunos", "Students"], only: "teacher" },
+  { to: "/portal/perfil", icon: User, label: ["Meu perfil", "My profile"], only: "student" },
+  { to: "/portal/dispositivos", icon: Smartphone, label: ["Dispositivos", "Devices"] },
+  { to: "/portal/configuracoes", icon: Settings, label: ["Configurações", "Settings"], only: "teacher" },
+];
+
 function PortalSidebar({ user, onLogout }: { user: { email: string; role: string }; onLogout: () => void }) {
   const { isMobile, setOpenMobile } = useSidebar();
+  const { t } = usePortalPrefs();
   const isTeacher = user.role === "teacher";
 
   const closeMobileMenu = () => {
@@ -34,7 +78,7 @@ function PortalSidebar({ user, onLogout }: { user: { email: string; role: string
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1.5">
-          <img src={logo} alt="" className="h-7 w-auto" />
+          <img src={logo} alt="" className="h-7 w-auto dark:invert" />
           <div className="min-w-0 group-data-[collapsible=icon]:hidden">
             <p className="truncate text-sm font-semibold">Teacher Kessia</p>
             <p className="truncate text-xs text-muted-foreground">Portal</p>
@@ -47,154 +91,25 @@ function PortalSidebar({ user, onLogout }: { user: { email: string; role: string
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Início">
-                  <NavLink
-                    to="/portal"
-                    end
-                    onClick={closeMobileMenu}
-                    className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                  >
-                    <LayoutDashboard />
-                    <span>Início</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Aulas">
-                  <NavLink
-                    to="/portal/aulas"
-                    onClick={closeMobileMenu}
-                    className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                  >
-                    <CalendarDays />
-                    <span>Aulas</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Vocabulário">
-                  <NavLink
-                    to="/portal/vocabulario"
-                    onClick={closeMobileMenu}
-                    className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                  >
-                    <Layers />
-                    <span>Vocabulário</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Trilha de aprendizagem">
-                  <NavLink
-                    to="/portal/trilha"
-                    onClick={closeMobileMenu}
-                    className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                  >
-                    <Map />
-                    <span>Trilha</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Atividades">
-                  <NavLink
-                    to="/portal/atividades"
-                    onClick={closeMobileMenu}
-                    className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                  >
-                    <Puzzle />
-                    <span>Atividades</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Fórum">
-                  <NavLink
-                    to="/portal/forum"
-                    onClick={closeMobileMenu}
-                    className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                  >
-                    <MessagesSquare />
-                    <span>Fórum</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Financeiro">
-                  <NavLink
-                    to="/portal/financeiro"
-                    onClick={closeMobileMenu}
-                    className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                  >
-                    <Wallet />
-                    <span>Financeiro</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              {isTeacher && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Alunos">
-                    <NavLink
-                      to="/portal/alunos"
-                      onClick={closeMobileMenu}
-                      className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                    >
-                      <Users />
-                      <span>Alunos</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-
-              {!isTeacher && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Meu perfil">
-                    <NavLink
-                      to="/portal/perfil"
-                      onClick={closeMobileMenu}
-                      className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                    >
-                      <User />
-                      <span>Meu perfil</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Dispositivos">
-                  <NavLink
-                    to="/portal/dispositivos"
-                    onClick={closeMobileMenu}
-                    className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                  >
-                    <Smartphone />
-                    <span>Dispositivos</span>
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              {isTeacher && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild tooltip="Configurações">
-                    <NavLink
-                      to="/portal/configuracoes"
-                      onClick={closeMobileMenu}
-                      className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                    >
-                      <Settings />
-                      <span>Configurações</span>
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+              {NAV_ITEMS.filter((item) => !item.only || item.only === (isTeacher ? "teacher" : "student")).map(
+                (item) => {
+                  const label = t(...item.label);
+                  return (
+                    <SidebarMenuItem key={item.to}>
+                      <SidebarMenuButton asChild tooltip={item.tooltip ? t(...item.tooltip) : label}>
+                        <NavLink
+                          to={item.to}
+                          end={item.end}
+                          onClick={closeMobileMenu}
+                          className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
+                        >
+                          <item.icon />
+                          <span>{label}</span>
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                },
               )}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -208,7 +123,7 @@ function PortalSidebar({ user, onLogout }: { user: { email: string; role: string
           </div>
           <div className="min-w-0">
             <p className="truncate text-xs font-medium">{user.email}</p>
-            <p className="text-xs text-muted-foreground">{isTeacher ? "Professora" : "Aluno(a)"}</p>
+            <p className="text-xs text-muted-foreground">{isTeacher ? t("Professora", "Teacher") : t("Aluno(a)", "Student")}</p>
           </div>
         </div>
         <Button
@@ -218,10 +133,50 @@ function PortalSidebar({ user, onLogout }: { user: { email: string; role: string
           onClick={onLogout}
         >
           <LogOut className="h-4 w-4" />
-          <span className="group-data-[collapsible=icon]:hidden">Sair</span>
+          <span className="group-data-[collapsible=icon]:hidden">{t("Sair", "Log out")}</span>
         </Button>
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function PrefsToggles() {
+  const { lang, setLang, theme, setTheme, t } = usePortalPrefs();
+  const langLabel = lang === "en" ? "Mudar para português" : "Switch to English";
+  const themeLabel = theme === "dark" ? t("Tema claro", "Light theme") : t("Tema escuro", "Dark theme");
+
+  return (
+    <div className="ml-auto flex items-center gap-1">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => setLang(lang === "en" ? "pt" : "en")}
+            aria-label={langLabel}
+          >
+            <Languages className="h-4 w-4" />
+            <span className="text-xs font-semibold">{lang === "en" ? "PT" : "EN"}</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{langLabel}</TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            aria-label={themeLabel}
+          >
+            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{themeLabel}</TooltipContent>
+      </Tooltip>
+    </div>
   );
 }
 
@@ -240,17 +195,20 @@ export default function PortalLayout() {
   };
 
   return (
-    <SidebarProvider>
-      <PortalSidebar user={user} onLogout={handleLogout} />
+    <PortalPrefsProvider>
+      <SidebarProvider>
+        <PortalSidebar user={user} onLogout={handleLogout} />
 
-      <SidebarInset>
-        <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger />
-        </header>
-        <div className="flex-1 space-y-6 p-4 sm:p-6">
-          <Outlet />
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+        <SidebarInset>
+          <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger />
+            <PrefsToggles />
+          </header>
+          <div className="flex-1 space-y-6 p-4 sm:p-6">
+            <Outlet />
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </PortalPrefsProvider>
   );
 }

@@ -3,6 +3,7 @@ import { api, ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Fingerprint, Loader2, Smartphone } from "lucide-react";
+import { usePortalPrefs, type TFn } from "@/contexts/PortalPrefsContext";
 
 interface Device {
   id: string;
@@ -10,7 +11,15 @@ interface Device {
   createdAt: string;
 }
 
+// O nome é salvo em português ("Celular"/"Computador") — traduz na hora de mostrar.
+function deviceLabel(name: string | null, t: TFn) {
+  if (name === "Celular") return t("Celular", "Phone");
+  if (name === "Computador") return t("Computador", "Computer");
+  return name ?? t("Dispositivo", "Device");
+}
+
 export default function Devices() {
+  const { t, locale } = usePortalPrefs();
   const [devices, setDevices] = useState<Device[]>([]);
   const [loadingList, setLoadingList] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +53,7 @@ export default function Devices() {
       await api.post("/api/webauthn/register-verify", { response, deviceName });
       await loadDevices();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível adicionar este dispositivo.");
+      setError(err instanceof ApiError ? err.message : t("Não foi possível adicionar este dispositivo.", "Couldn't add this device."));
     } finally {
       setAdding(false);
     }
@@ -53,9 +62,12 @@ export default function Devices() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dispositivos</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("Dispositivos", "Devices")}</h1>
         <p className="text-muted-foreground">
-          Adicione este dispositivo para entrar depois só com biometria/PIN, sem digitar senha.
+          {t(
+            "Adicione este dispositivo para entrar depois só com biometria/PIN, sem digitar senha.",
+            "Add this device so you can sign in later with just your fingerprint/face/PIN, no password needed.",
+          )}
         </p>
       </div>
 
@@ -63,7 +75,7 @@ export default function Devices() {
         <CardContent className="flex flex-col items-start gap-4 pt-6">
           <Button onClick={addDevice} disabled={adding} className="gap-2">
             {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <Fingerprint className="h-4 w-4" />}
-            Adicionar este dispositivo
+            {t("Adicionar este dispositivo", "Add this device")}
           </Button>
           {error && <p className="text-sm text-destructive">{error}</p>}
         </CardContent>
@@ -71,8 +83,8 @@ export default function Devices() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Dispositivos cadastrados</CardTitle>
-          <CardDescription>{devices.length} dispositivo(s)</CardDescription>
+          <CardTitle className="text-base">{t("Dispositivos cadastrados", "Registered devices")}</CardTitle>
+          <CardDescription>{devices.length} {t("dispositivo(s)", "device(s)")}</CardDescription>
         </CardHeader>
         <CardContent>
           {loadingList ? (
@@ -80,16 +92,16 @@ export default function Devices() {
               <Loader2 className="h-5 w-5 animate-spin" />
             </div>
           ) : devices.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">Nenhum dispositivo ainda.</p>
+            <p className="py-6 text-center text-sm text-muted-foreground">{t("Nenhum dispositivo ainda.", "No devices yet.")}</p>
           ) : (
             <ul className="divide-y">
               {devices.map((d) => (
                 <li key={d.id} className="flex items-center gap-3 py-3">
                   <Smartphone className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-sm font-medium">{d.deviceName ?? "Dispositivo"}</p>
+                    <p className="text-sm font-medium">{deviceLabel(d.deviceName, t)}</p>
                     <p className="text-xs text-muted-foreground">
-                      Adicionado em {new Date(d.createdAt).toLocaleDateString("pt-BR")}
+                      {t("Adicionado em", "Added on")} {new Date(d.createdAt).toLocaleDateString(locale)}
                     </p>
                   </div>
                 </li>

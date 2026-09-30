@@ -1,5 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { Upload } from "lucide-react";
+import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 
 export function VocabImageField({
   label,
@@ -10,6 +11,8 @@ export function VocabImageField({
   value: string | null;
   onChange: (dataUrl: string) => void;
 }) {
+  const { t } = usePortalPrefs();
+
   async function onFile(file: File) {
     onChange(await blobToDataUrl(file));
   }
@@ -30,10 +33,10 @@ export function VocabImageField({
           />
           <span className="inline-flex h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm">
             <Upload className="h-4 w-4" />
-            Escolher imagem
+            {t("Escolher imagem", "Choose image")}
           </span>
         </label>
-        {value && <span className="text-xs text-muted-foreground">Imagem pronta</span>}
+        {value && <span className="text-xs text-muted-foreground">{t("Imagem pronta", "Image ready")}</span>}
       </div>
       {value && <img src={value} alt="" className="h-24 rounded-md object-cover" />}
     </div>

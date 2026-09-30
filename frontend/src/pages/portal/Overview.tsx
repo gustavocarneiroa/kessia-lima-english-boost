@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,8 +28,8 @@ import { useWordle, useWordleLeaderboard } from "@/hooks/useWordle";
 
 interface ShortcutItem {
   to: string;
-  label: string;
-  description: string;
+  label: [pt: string, en: string];
+  description: [pt: string, en: string];
   icon: LucideIcon;
   teacherOnly?: boolean;
 }
@@ -62,51 +63,52 @@ interface Lesson {
 const shortcuts: ShortcutItem[] = [
   {
     to: "/portal/aulas",
-    label: "Aulas",
-    description: "Datas, horários, links e presença",
+    label: ["Aulas", "Lessons"],
+    description: ["Datas, horários, links e presença", "Dates, times, links and attendance"],
     icon: CalendarDays,
   },
   {
     to: "/portal/atividades",
-    label: "Atividades",
-    description: "Exercícios para praticar o conteúdo",
+    label: ["Atividades", "Activities"],
+    description: ["Exercícios para praticar o conteúdo", "Exercises to practice what you learned"],
     icon: ClipboardList,
   },
   {
     to: "/portal/vocabulario",
-    label: "Vocabulário",
-    description: "Listas de palavras para estudar",
+    label: ["Vocabulário", "Vocabulary"],
+    description: ["Listas de palavras para estudar", "Word lists to study"],
     icon: Layers,
   },
   {
     to: "/portal/forum",
-    label: "Fórum",
-    description: "Artigos, links e conversas com a turma",
+    label: ["Fórum", "Forum"],
+    description: ["Artigos, links e conversas com a turma", "Articles, links and chats with the class"],
     icon: MessagesSquare,
   },
   {
     to: "/portal/alunos",
-    label: "Alunos",
-    description: "Cadastro e perfil de cada aluno",
+    label: ["Alunos", "Students"],
+    description: ["Cadastro e perfil de cada aluno", "Each student's registration and profile"],
     icon: Users,
     teacherOnly: true,
   },
   {
     to: "/portal/dispositivos",
-    label: "Dispositivos",
-    description: "Entrar sem senha com biometria",
+    label: ["Dispositivos", "Devices"],
+    description: ["Entrar sem senha com biometria", "Sign in without a password using biometrics"],
     icon: Smartphone,
   },
 ];
 
-function formatTime(iso: string) {
+function formatTime(iso: string, locale: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 }
 
 export default function Overview() {
   const { user } = useAuth();
+  const { t, locale } = usePortalPrefs();
   const [todayLessons, setTodayLessons] = useState<Lesson[]>([]);
   const [loadingToday, setLoadingToday] = useState(true);
   const [birthdays, setBirthdays] = useState<Birthday[]>([]);
@@ -178,7 +180,7 @@ export default function Overview() {
   return (
     <div className="space-y-1">
       <h1 className="text-2xl font-semibold tracking-tight">
-        Olá, {isTeacher ? "professora" : "aluno(a)"}!
+        {isTeacher ? t("Olá, professora!", "Hi, teacher!") : t("Olá, aluno(a)!", "Hi there!")}
       </h1>
       <p className="text-muted-foreground">{user.email}</p>
 
@@ -188,40 +190,52 @@ export default function Overview() {
         <Card className="mt-6 border-primary/40 bg-primary/5">
           <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" /> Novidades pra você!
+              <Sparkles className="h-5 w-5 text-primary" /> {t("Novidades pra você!", "What's new for you!")}
             </CardTitle>
-            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={dismissNewContent} aria-label="Fechar aviso">
+            <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={dismissNewContent} aria-label={t("Fechar aviso", "Dismiss")}>
               <X className="h-4 w-4" />
             </Button>
           </CardHeader>
           <CardContent className="space-y-2">
             {newContent.lessons.length > 0 && (
               <p className="text-sm">
-                {newContent.lessons.length === 1 ? "1 aula nova foi marcada" : `${newContent.lessons.length} aulas novas foram marcadas`} —{" "}
+                {newContent.lessons.length === 1
+                  ? t("1 aula nova foi marcada", "1 new lesson was scheduled")
+                  : t(
+                      `${newContent.lessons.length} aulas novas foram marcadas`,
+                      `${newContent.lessons.length} new lessons were scheduled`,
+                    )}{" "}
+                —{" "}
                 <Link to="/portal/aulas" onClick={dismissNewContent} className="text-primary hover:underline">
-                  ver aulas
+                  {t("ver aulas", "see lessons")}
                 </Link>
               </p>
             )}
             {newContent.activities.length > 0 && (
               <p className="text-sm">
                 {newContent.activities.length === 1
-                  ? "1 atividade nova foi adicionada"
-                  : `${newContent.activities.length} atividades novas foram adicionadas`}{" "}
+                  ? t("1 atividade nova foi adicionada", "1 new activity was added")
+                  : t(
+                      `${newContent.activities.length} atividades novas foram adicionadas`,
+                      `${newContent.activities.length} new activities were added`,
+                    )}{" "}
                 —{" "}
                 <Link to="/portal/atividades" onClick={dismissNewContent} className="text-primary hover:underline">
-                  ver atividades
+                  {t("ver atividades", "see activities")}
                 </Link>
               </p>
             )}
             {newContent.forumPosts.length > 0 && (
               <p className="text-sm">
                 {newContent.forumPosts.length === 1
-                  ? "1 publicação nova no fórum"
-                  : `${newContent.forumPosts.length} publicações novas no fórum`}{" "}
+                  ? t("1 publicação nova no fórum", "1 new forum post")
+                  : t(
+                      `${newContent.forumPosts.length} publicações novas no fórum`,
+                      `${newContent.forumPosts.length} new forum posts`,
+                    )}{" "}
                 —{" "}
                 <Link to="/portal/forum" onClick={dismissNewContent} className="text-primary hover:underline">
-                  ver fórum
+                  {t("ver fórum", "see forum")}
                 </Link>
               </p>
             )}
@@ -235,11 +249,14 @@ export default function Overview() {
             <p className="flex items-center gap-2 text-sm">
               <MessagesSquare className="h-5 w-5 text-primary" />
               {pendingForumCount === 1
-                ? "1 publicação de aluno aguardando sua aprovação no fórum"
-                : `${pendingForumCount} publicações de alunos aguardando sua aprovação no fórum`}
+                ? t("1 publicação de aluno aguardando sua aprovação no fórum", "1 student post waiting for your approval in the forum")
+                : t(
+                    `${pendingForumCount} publicações de alunos aguardando sua aprovação no fórum`,
+                    `${pendingForumCount} student posts waiting for your approval in the forum`,
+                  )}
             </p>
             <Button asChild size="sm">
-              <Link to="/portal/forum">Revisar</Link>
+              <Link to="/portal/forum">{t("Revisar", "Review")}</Link>
             </Button>
           </CardContent>
         </Card>
@@ -249,7 +266,7 @@ export default function Overview() {
         <Card className="mt-6 border-primary/40 bg-primary/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Cake className="h-5 w-5 text-primary" /> Aniversário hoje!
+              <Cake className="h-5 w-5 text-primary" /> {t("Aniversário hoje!", "Birthday today!")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -268,9 +285,9 @@ export default function Overview() {
 
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Aulas de hoje</CardTitle>
+          <CardTitle>{t("Aulas de hoje", "Today's lessons")}</CardTitle>
           <CardDescription>
-            {new Date().toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}
+            {new Date().toLocaleDateString(locale, { weekday: "long", day: "2-digit", month: "long" })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -279,7 +296,7 @@ export default function Overview() {
               <Loader2 className="h-5 w-5 animate-spin" />
             </div>
           ) : todayLessons.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhuma aula marcada para hoje.</p>
+            <p className="text-sm text-muted-foreground">{t("Nenhuma aula marcada para hoje.", "No lessons scheduled for today.")}</p>
           ) : (
             <ul className="divide-y">
               {[...todayLessons]
@@ -288,16 +305,16 @@ export default function Overview() {
                   <li key={lesson.id} className="flex flex-col gap-1 py-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0 space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-medium">{formatTime(lesson.scheduledAt)}</span>
+                        <span className="font-medium">{formatTime(lesson.scheduledAt, locale)}</span>
                         <span className="text-sm text-muted-foreground">{lesson.subject}</span>
                         {isTeacher && (
                           <span className="text-sm text-muted-foreground">
                             · {lesson.studentName || lesson.studentEmail}
                           </span>
                         )}
-                        {lesson.attended === true && <Badge>Compareceu</Badge>}
-                        {lesson.attended === false && <Badge variant="destructive">Faltou</Badge>}
-                        {lesson.makeupScheduled && <Badge variant="outline">Reposição marcada</Badge>}
+                        {lesson.attended === true && <Badge>{t("Compareceu", "Attended")}</Badge>}
+                        {lesson.attended === false && <Badge variant="destructive">{t("Faltou", "Missed")}</Badge>}
+                        {lesson.makeupScheduled && <Badge variant="outline">{t("Reposição marcada", "Make-up scheduled")}</Badge>}
                       </div>
                     </div>
                     {lesson.classLink && (
@@ -307,7 +324,7 @@ export default function Overview() {
                         rel="noreferrer"
                         className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
                       >
-                        <LinkIcon className="h-3.5 w-3.5" /> Link da aula
+                        <LinkIcon className="h-3.5 w-3.5" /> {t("Link da aula", "Lesson link")}
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     )}
@@ -321,7 +338,7 @@ export default function Overview() {
       <Card className="mt-6">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Puzzle className="h-4 w-4 text-primary" /> Jogo do dia · Wordle
+            <Puzzle className="h-4 w-4 text-primary" /> {t("Jogo do dia · Wordle", "Game of the day · Wordle")}
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2 sm:divide-x sm:gap-6">
@@ -332,31 +349,33 @@ export default function Overview() {
               <p className="text-sm text-muted-foreground">
                 {wordleToday?.result ? (
                   wordleToday.result.won ? (
-                    <>
-                      Você acertou em {wordleToday.result.guessesUsed}{" "}
-                      {wordleToday.result.guessesUsed === 1 ? "tentativa" : "tentativas"} hoje (+{wordleToday.result.points} pts).
-                    </>
+                    t(
+                      `Você acertou em ${wordleToday.result.guessesUsed} ${wordleToday.result.guessesUsed === 1 ? "tentativa" : "tentativas"} hoje (+${wordleToday.result.points} pts).`,
+                      `You got it in ${wordleToday.result.guessesUsed} ${wordleToday.result.guessesUsed === 1 ? "guess" : "guesses"} today (+${wordleToday.result.points} pts).`,
+                    )
                   ) : (
-                    "Você já jogou hoje. Volte amanhã!"
+                    t("Você já jogou hoje. Volte amanhã!", "You already played today. Come back tomorrow!")
                   )
                 ) : (
-                  "Você ainda não jogou hoje."
+                  t("Você ainda não jogou hoje.", "You haven't played today yet.")
                 )}
               </p>
             )}
             <Button asChild size="sm" className="shrink-0">
-              <Link to="/wordle">{wordleToday?.result ? "Jogar de novo amanhã" : "Jogar agora"}</Link>
+              <Link to="/wordle">
+                {wordleToday?.result ? t("Jogar de novo amanhã", "Play again tomorrow") : t("Jogar agora", "Play now")}
+              </Link>
             </Button>
           </div>
 
           <div className="sm:pl-6">
             <p className="mb-1 flex items-center gap-1 text-xs font-medium text-muted-foreground">
-              <Trophy className="h-3.5 w-3.5 text-primary" /> Top 3 de hoje
+              <Trophy className="h-3.5 w-3.5 text-primary" /> {t("Top 3 de hoje", "Today's top 3")}
             </p>
             {loadingLeaderboard ? (
               <Skeleton className="h-12 w-full" />
             ) : leaderboard.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Ninguém jogou hoje ainda.</p>
+              <p className="text-sm text-muted-foreground">{t("Ninguém jogou hoje ainda.", "Nobody has played today yet.")}</p>
             ) : (
               <ul className="space-y-0.5">
                 {leaderboard.slice(0, 3).map((entry, i) => (
@@ -365,7 +384,7 @@ export default function Overview() {
                     className={`flex items-center justify-between text-sm ${entry.isYou ? "font-semibold text-primary" : ""}`}
                   >
                     <span>
-                      {i + 1}º {entry.isYou ? "Você" : entry.firstName}
+                      {t(`${i + 1}º`, `#${i + 1}`)} {entry.isYou ? t("Você", "You") : entry.firstName}
                       {entry.won && !entry.hintUsed && " 🌟"}
                     </span>
                     <span className="text-muted-foreground">{entry.points} pts</span>
@@ -386,8 +405,8 @@ export default function Overview() {
                   <item.icon className="h-5 w-5 text-primary" />
                 </div>
                 <div className="min-w-0">
-                  <p className="font-medium">{item.label}</p>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                  <p className="font-medium">{t(...item.label)}</p>
+                  <p className="text-sm text-muted-foreground">{t(...item.description)}</p>
                 </div>
               </CardContent>
             </Card>

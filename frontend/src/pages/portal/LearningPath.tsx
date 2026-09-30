@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,10 +29,10 @@ interface Student {
   email: string;
 }
 
-const AREA_LABELS: Record<Area, string> = {
-  grammar: "Gramática",
-  vocabulary: "Vocabulário",
-  communication: "Comunicação",
+const AREA_LABELS: Record<Area, [pt: string, en: string]> = {
+  grammar: ["Gramática", "Grammar"],
+  vocabulary: ["Vocabulário", "Vocabulary"],
+  communication: ["Comunicação", "Communication"],
 };
 
 const LEVELS = ["A1", "A2", "B1", "B2", "C1"];
@@ -48,6 +49,8 @@ const emptyForm: TopicFormState = { title: "", level: "", area: "", exerciseUrl:
 
 export default function LearningPath() {
   const { user } = useAuth();
+  // "t" já é usado aqui pra tópico, então a tradução fica como "tr"
+  const { t: tr } = usePortalPrefs();
   const isTeacher = user?.role === "teacher";
 
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -129,7 +132,7 @@ export default function LearningPath() {
       setCreating(false);
       await load(selectedStudent || undefined);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível criar o tópico.");
+      setError(err instanceof ApiError ? err.message : tr("Não foi possível criar o tópico.", "Couldn't create the topic."));
     } finally {
       setSaving(false);
     }
@@ -156,7 +159,7 @@ export default function LearningPath() {
       setEditingId(null);
       await load(selectedStudent || undefined);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível salvar as alterações.");
+      setError(err instanceof ApiError ? err.message : tr("Não foi possível salvar as alterações.", "Couldn't save the changes."));
     } finally {
       setSaving(false);
     }
@@ -171,39 +174,39 @@ export default function LearningPath() {
     return (
       <form onSubmit={onSubmit} className="space-y-3">
         <div className="space-y-1">
-          <Label>Título</Label>
+          <Label>{tr("Título", "Title")}</Label>
           <Input
             value={form.title}
             onChange={(e) => setForm({ ...form, title: e.target.value })}
-            placeholder="ex.: Present simple"
+            placeholder={tr("ex.: Present simple", "e.g. Present simple")}
             required
           />
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1">
-            <Label>Nível</Label>
+            <Label>{tr("Nível", "Level")}</Label>
             <Input
               value={form.level}
               onChange={(e) => setForm({ ...form, level: e.target.value })}
-              placeholder="ex.: A1 ou A2, B1"
+              placeholder={tr("ex.: A1 ou A2, B1", "e.g. A1 or A2, B1")}
             />
           </div>
           <div className="space-y-1">
-            <Label>Área</Label>
+            <Label>{tr("Área", "Area")}</Label>
             <Select value={form.area || undefined} onValueChange={(v) => setForm({ ...form, area: v as Area })}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione" />
+                <SelectValue placeholder={tr("Selecione", "Select")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="grammar">Gramática</SelectItem>
-                <SelectItem value="vocabulary">Vocabulário</SelectItem>
-                <SelectItem value="communication">Comunicação</SelectItem>
+                <SelectItem value="grammar">{tr(...AREA_LABELS.grammar)}</SelectItem>
+                <SelectItem value="vocabulary">{tr(...AREA_LABELS.vocabulary)}</SelectItem>
+                <SelectItem value="communication">{tr(...AREA_LABELS.communication)}</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
         <div className="space-y-1">
-          <Label>Link de exercício (opcional)</Label>
+          <Label>{tr("Link de exercício (opcional)", "Exercise link (optional)")}</Label>
           <Input
             value={form.exerciseUrl}
             onChange={(e) => setForm({ ...form, exerciseUrl: e.target.value })}
@@ -211,7 +214,7 @@ export default function LearningPath() {
           />
         </div>
         <div className="space-y-1">
-          <Label>Link de vídeo (opcional)</Label>
+          <Label>{tr("Link de vídeo (opcional)", "Video link (optional)")}</Label>
           <Input
             value={form.videoUrl}
             onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
@@ -224,7 +227,7 @@ export default function LearningPath() {
             {submitLabel}
           </Button>
           <Button type="button" size="sm" variant="outline" onClick={onCancel} disabled={saving}>
-            Cancelar
+            {tr("Cancelar", "Cancel")}
           </Button>
         </div>
       </form>
@@ -234,11 +237,17 @@ export default function LearningPath() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Trilha de aprendizagem</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{tr("Trilha de aprendizagem", "Learning path")}</h1>
         <p className="text-muted-foreground">
           {isTeacher
-            ? "A lista de conteúdos que os alunos vão estudando, do básico ao avançado."
-            : "Os conteúdos da sua jornada de inglês — marque o que você já estudou."}
+            ? tr(
+                "A lista de conteúdos que os alunos vão estudando, do básico ao avançado.",
+                "The list of topics students work through, from basic to advanced.",
+              )
+            : tr(
+                "Os conteúdos da sua jornada de inglês — marque o que você já estudou.",
+                "The topics in your English journey — check off what you've already studied.",
+              )}
         </p>
       </div>
 
@@ -246,13 +255,13 @@ export default function LearningPath() {
         <Card>
           <CardContent className="flex flex-wrap items-end gap-3 pt-4">
             <div className="space-y-1">
-              <Label className="text-xs">Ver progresso de</Label>
+              <Label className="text-xs">{tr("Ver progresso de", "See progress for")}</Label>
               <Select value={selectedStudent || "none"} onValueChange={(v) => setSelectedStudent(v === "none" ? "" : v)}>
                 <SelectTrigger className="w-64">
-                  <SelectValue placeholder="Selecione um aluno" />
+                  <SelectValue placeholder={tr("Selecione um aluno", "Select a student")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Nenhum aluno selecionado</SelectItem>
+                  <SelectItem value="none">{tr("Nenhum aluno selecionado", "No student selected")}</SelectItem>
                   {students.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.email}
@@ -263,7 +272,7 @@ export default function LearningPath() {
             </div>
             {!selectedStudent && (
               <p className="text-xs text-muted-foreground">
-                Selecione um aluno pra marcar o que ele já concluiu.
+                {tr("Selecione um aluno pra marcar o que ele já concluiu.", "Select a student to check off what they've completed.")}
               </p>
             )}
           </CardContent>
@@ -273,16 +282,16 @@ export default function LearningPath() {
       {isTeacher && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Novo tópico</CardTitle>
-            <CardDescription>Adicione um conteúdo à trilha.</CardDescription>
+            <CardTitle className="text-base">{tr("Novo tópico", "New topic")}</CardTitle>
+            <CardDescription>{tr("Adicione um conteúdo à trilha.", "Add a topic to the path.")}</CardDescription>
           </CardHeader>
           <CardContent>
             {creating ? (
-              renderTopicForm(createForm, setCreateForm, createTopic, () => setCreating(false), "Criar")
+              renderTopicForm(createForm, setCreateForm, createTopic, () => setCreating(false), tr("Criar", "Create"))
             ) : (
               <Button size="sm" className="gap-2" onClick={() => setCreating(true)}>
                 <Plus className="h-4 w-4" />
-                Adicionar tópico
+                {tr("Adicionar tópico", "Add topic")}
               </Button>
             )}
             {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
@@ -292,21 +301,23 @@ export default function LearningPath() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Conteúdos</CardTitle>
-          <CardDescription>{filtered.length} de {topics.length} tópico(s)</CardDescription>
+          <CardTitle className="text-base">{tr("Conteúdos", "Topics")}</CardTitle>
+          <CardDescription>
+            {tr(`${filtered.length} de ${topics.length} tópico(s)`, `${filtered.length} of ${topics.length} topic(s)`)}
+          </CardDescription>
           <div className="flex flex-wrap gap-2 pt-2">
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por título..."
+              placeholder={tr("Buscar por título...", "Search by title...")}
               className="w-56"
             />
             <Select value={levelFilter} onValueChange={setLevelFilter}>
               <SelectTrigger className="w-32">
-                <SelectValue placeholder="Nível" />
+                <SelectValue placeholder={tr("Nível", "Level")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os níveis</SelectItem>
+                <SelectItem value="all">{tr("Todos os níveis", "All levels")}</SelectItem>
                 {LEVELS.map((l) => (
                   <SelectItem key={l} value={l}>
                     {l}
@@ -316,13 +327,13 @@ export default function LearningPath() {
             </Select>
             <Select value={areaFilter} onValueChange={setAreaFilter}>
               <SelectTrigger className="w-40">
-                <SelectValue placeholder="Área" />
+                <SelectValue placeholder={tr("Área", "Area")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas as áreas</SelectItem>
-                <SelectItem value="grammar">Gramática</SelectItem>
-                <SelectItem value="vocabulary">Vocabulário</SelectItem>
-                <SelectItem value="communication">Comunicação</SelectItem>
+                <SelectItem value="all">{tr("Todas as áreas", "All areas")}</SelectItem>
+                <SelectItem value="grammar">{tr(...AREA_LABELS.grammar)}</SelectItem>
+                <SelectItem value="vocabulary">{tr(...AREA_LABELS.vocabulary)}</SelectItem>
+                <SelectItem value="communication">{tr(...AREA_LABELS.communication)}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -333,13 +344,13 @@ export default function LearningPath() {
               <Loader2 className="h-5 w-5 animate-spin" />
             </div>
           ) : filtered.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhum tópico encontrado.</p>
+            <p className="text-sm text-muted-foreground">{tr("Nenhum tópico encontrado.", "No topics found.")}</p>
           ) : (
             <ul className="space-y-2">
               {filtered.map((t) => (
                 <li key={t.id} className="rounded-md border p-3">
                   {editingId === t.id ? (
-                    renderTopicForm(editForm, setEditForm, saveEdit, () => setEditingId(null), "Salvar")
+                    renderTopicForm(editForm, setEditForm, saveEdit, () => setEditingId(null), tr("Salvar", "Save"))
                   ) : (
                     <div className="flex items-start gap-3">
                       <Checkbox
@@ -352,7 +363,7 @@ export default function LearningPath() {
                         <p className="font-medium">{t.title}</p>
                         <div className="flex flex-wrap gap-1.5">
                           {t.level && <Badge variant="secondary">{t.level}</Badge>}
-                          {t.area && <Badge variant="outline">{AREA_LABELS[t.area]}</Badge>}
+                          {t.area && <Badge variant="outline">{tr(...AREA_LABELS[t.area])}</Badge>}
                         </div>
                         <div className="flex flex-wrap gap-3 pt-1">
                           {t.exerciseUrl && (
@@ -362,7 +373,7 @@ export default function LearningPath() {
                               rel="noreferrer"
                               className="flex items-center gap-1 text-xs text-muted-foreground hover:underline"
                             >
-                              <FileText className="h-3 w-3" /> Exercício
+                              <FileText className="h-3 w-3" /> {tr("Exercício", "Exercise")}
                             </a>
                           )}
                           {t.videoUrl && (
@@ -372,17 +383,17 @@ export default function LearningPath() {
                               rel="noreferrer"
                               className="flex items-center gap-1 text-xs text-muted-foreground hover:underline"
                             >
-                              <Headphones className="h-3 w-3" /> Vídeo
+                              <Headphones className="h-3 w-3" /> {tr("Vídeo", "Video")}
                             </a>
                           )}
                         </div>
                       </div>
                       {isTeacher && (
                         <div className="flex shrink-0 gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => startEdit(t)}>
+                          <Button variant="ghost" size="icon" onClick={() => startEdit(t)} aria-label={tr("Editar", "Edit")}>
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => void removeTopic(t.id)}>
+                          <Button variant="ghost" size="icon" className="text-destructive" onClick={() => void removeTopic(t.id)} aria-label={tr("Excluir", "Delete")}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>

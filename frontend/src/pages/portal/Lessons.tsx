@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,14 +74,15 @@ function splitDateTime(iso: string) {
   };
 }
 
-function formatDateTime(iso: string) {
+function formatDateTime(iso: string, locale: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+  return d.toLocaleString(locale, { dateStyle: "short", timeStyle: "short" });
 }
 
 export default function Lessons() {
   const { user } = useAuth();
+  const { t, locale } = usePortalPrefs();
   const isTeacher = user?.role === "teacher";
 
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -181,7 +183,7 @@ export default function Lessons() {
     e.preventDefault();
     setError(null);
     if (!form.studentId || !form.date || !form.time) {
-      setError("Escolha o aluno, a data e o horário da aula.");
+      setError(t("Escolha o aluno, a data e o horário da aula.", "Choose the student, date and time of the lesson."));
       return;
     }
     setSaving(true);
@@ -197,7 +199,7 @@ export default function Lessons() {
       setForm(emptyForm);
       await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível salvar a aula.");
+      setError(err instanceof ApiError ? err.message : t("Não foi possível salvar a aula.", "Couldn't save the lesson."));
     } finally {
       setSaving(false);
     }
@@ -231,7 +233,7 @@ export default function Lessons() {
       setDeleting(null);
       await load();
     } catch (err) {
-      setListError(err instanceof ApiError ? err.message : "Não foi possível excluir a aula.");
+      setListError(err instanceof ApiError ? err.message : t("Não foi possível excluir a aula.", "Couldn't delete the lesson."));
     } finally {
       setDeleteSaving(false);
     }
@@ -254,7 +256,7 @@ export default function Lessons() {
     if (!editing) return;
     setEditError(null);
     if (!editForm.studentId || !editForm.date || !editForm.time) {
-      setEditError("Escolha o aluno, a data e o horário da aula.");
+      setEditError(t("Escolha o aluno, a data e o horário da aula.", "Choose the student, date and time of the lesson."));
       return;
     }
     setEditSaving(true);
@@ -270,7 +272,7 @@ export default function Lessons() {
       setEditing(null);
       await load();
     } catch (err) {
-      setEditError(err instanceof ApiError ? err.message : "Não foi possível salvar as alterações.");
+      setEditError(err instanceof ApiError ? err.message : t("Não foi possível salvar as alterações.", "Couldn't save the changes."));
     } finally {
       setEditSaving(false);
     }
@@ -279,27 +281,30 @@ export default function Lessons() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Aulas</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("Aulas", "Lessons")}</h1>
         <p className="text-muted-foreground">
           {isTeacher
-            ? "Cadastre as aulas de cada aluno: data, horário, assunto, link da aula e da atividade."
-            : "Veja suas próximas aulas e o histórico das aulas já dadas."}
+            ? t(
+                "Cadastre as aulas de cada aluno: data, horário, assunto, link da aula e da atividade.",
+                "Add each student's lessons: date, time, subject, lesson link and activity link.",
+              )
+            : t("Veja suas próximas aulas e o histórico das aulas já dadas.", "See your upcoming lessons and the history of past ones.")}
         </p>
       </div>
 
       {isTeacher && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Nova aula</CardTitle>
+            <CardTitle className="text-base">{t("Nova aula", "New lesson")}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={create} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
-                  <Label>Aluno</Label>
+                  <Label>{t("Aluno", "Student")}</Label>
                   <Select value={form.studentId} onValueChange={(v) => void selectStudentForNewLesson(v)}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Escolha o aluno" />
+                      <SelectValue placeholder={t("Escolha o aluno", "Choose the student")} />
                     </SelectTrigger>
                     <SelectContent>
                       {students.map((s) => (
@@ -311,17 +316,17 @@ export default function Lessons() {
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="subject">Assunto</Label>
+                  <Label htmlFor="subject">{t("Assunto", "Subject")}</Label>
                   <Input
                     id="subject"
-                    placeholder="ex: Unit 3 - Past Simple"
+                    placeholder={t("ex: Unit 3 - Past Simple", "e.g. Unit 3 - Past Simple")}
                     value={form.subject}
                     onChange={(e) => setForm({ ...form, subject: e.target.value })}
                     required
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="date">Data</Label>
+                  <Label htmlFor="date">{t("Data", "Date")}</Label>
                   <Input
                     id="date"
                     type="date"
@@ -331,7 +336,7 @@ export default function Lessons() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="time">Horário</Label>
+                  <Label htmlFor="time">{t("Horário", "Time")}</Label>
                   <Input
                     id="time"
                     type="time"
@@ -341,7 +346,7 @@ export default function Lessons() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="classLink">Link da aula</Label>
+                  <Label htmlFor="classLink">{t("Link da aula", "Lesson link")}</Label>
                   <Input
                     id="classLink"
                     type="url"
@@ -351,7 +356,7 @@ export default function Lessons() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="activityLink">Link da atividade</Label>
+                  <Label htmlFor="activityLink">{t("Link da atividade", "Activity link")}</Label>
                   <Input
                     id="activityLink"
                     type="url"
@@ -366,7 +371,7 @@ export default function Lessons() {
 
               <Button type="submit" disabled={saving} className="gap-2">
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                Adicionar aula
+                {t("Adicionar aula", "Add lesson")}
               </Button>
             </form>
           </CardContent>
@@ -375,14 +380,14 @@ export default function Lessons() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">{isTeacher ? "Todas as aulas" : "Suas aulas"}</CardTitle>
-          <CardDescription>{total} aula(s)</CardDescription>
+          <CardTitle className="text-base">{isTeacher ? t("Todas as aulas", "All lessons") : t("Suas aulas", "Your lessons")}</CardTitle>
+          <CardDescription>{total} {t("aula(s)", "lesson(s)")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {isTeacher && (
               <div className="space-y-1.5">
-                <Label>Aluno</Label>
+                <Label>{t("Aluno", "Student")}</Label>
                 <Select
                   value={filterStudentId || "all"}
                   onValueChange={(v) => {
@@ -391,10 +396,10 @@ export default function Lessons() {
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Todos os alunos" />
+                    <SelectValue placeholder={t("Todos os alunos", "All students")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos os alunos</SelectItem>
+                    <SelectItem value="all">{t("Todos os alunos", "All students")}</SelectItem>
                     {students.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
                         {s.fullName || s.email}
@@ -405,7 +410,7 @@ export default function Lessons() {
               </div>
             )}
             <div className="space-y-1.5">
-              <Label htmlFor="filter-from">De</Label>
+              <Label htmlFor="filter-from">{t("De", "From")}</Label>
               <Input
                 id="filter-from"
                 type="date"
@@ -417,7 +422,7 @@ export default function Lessons() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="filter-to">Até</Label>
+              <Label htmlFor="filter-to">{t("Até", "To")}</Label>
               <Input
                 id="filter-to"
                 type="date"
@@ -429,7 +434,7 @@ export default function Lessons() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Comparecimento</Label>
+              <Label>{t("Comparecimento", "Attendance")}</Label>
               <Select
                 value={filterAttended || "all"}
                 onValueChange={(v) => {
@@ -438,18 +443,18 @@ export default function Lessons() {
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Todos" />
+                  <SelectValue placeholder={t("Todos", "All")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="yes">Compareceu</SelectItem>
-                  <SelectItem value="no">Faltou</SelectItem>
-                  <SelectItem value="pending">Aguardando</SelectItem>
+                  <SelectItem value="all">{t("Todos", "All")}</SelectItem>
+                  <SelectItem value="yes">{t("Compareceu", "Attended")}</SelectItem>
+                  <SelectItem value="no">{t("Faltou", "Missed")}</SelectItem>
+                  <SelectItem value="pending">{t("Aguardando", "Pending")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Reposição</Label>
+              <Label>{t("Reposição", "Make-up")}</Label>
               <Select
                 value={filterMakeup || "all"}
                 onValueChange={(v) => {
@@ -458,19 +463,19 @@ export default function Lessons() {
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Todas" />
+                  <SelectValue placeholder={t("Todas", "All")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="yes">Reposição marcada</SelectItem>
-                  <SelectItem value="no">Sem reposição</SelectItem>
+                  <SelectItem value="all">{t("Todas", "All")}</SelectItem>
+                  <SelectItem value="yes">{t("Reposição marcada", "Make-up scheduled")}</SelectItem>
+                  <SelectItem value="no">{t("Sem reposição", "No make-up")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           {hasFilters ? (
             <Button variant="ghost" size="sm" onClick={clearFilters} className="mb-4 gap-1 text-muted-foreground">
-              <X className="h-3.5 w-3.5" /> Limpar filtros
+              <X className="h-3.5 w-3.5" /> {t("Limpar filtros", "Clear filters")}
             </Button>
           ) : null}
 
@@ -481,7 +486,9 @@ export default function Lessons() {
             </div>
           ) : lessons.length === 0 ? (
             <p className="py-6 text-center text-sm text-muted-foreground">
-              {hasFilters ? "Nenhuma aula encontrada com esses filtros." : "Nenhuma aula cadastrada ainda."}
+              {hasFilters
+                ? t("Nenhuma aula encontrada com esses filtros.", "No lessons match these filters.")
+                : t("Nenhuma aula cadastrada ainda.", "No lessons added yet.")}
             </p>
           ) : (
             <ul className="divide-y">
@@ -490,13 +497,13 @@ export default function Lessons() {
                   <div className="min-w-0 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-medium">{lesson.subject}</p>
-                      {lesson.attended === true && <Badge>Compareceu</Badge>}
-                      {lesson.attended === false && <Badge variant="destructive">Faltou</Badge>}
-                      {lesson.attended === null && <Badge variant="secondary">Aguardando</Badge>}
-                      {lesson.makeupScheduled && <Badge variant="outline">Reposição marcada</Badge>}
+                      {lesson.attended === true && <Badge>{t("Compareceu", "Attended")}</Badge>}
+                      {lesson.attended === false && <Badge variant="destructive">{t("Faltou", "Missed")}</Badge>}
+                      {lesson.attended === null && <Badge variant="secondary">{t("Aguardando", "Pending")}</Badge>}
+                      {lesson.makeupScheduled && <Badge variant="outline">{t("Reposição marcada", "Make-up scheduled")}</Badge>}
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      {formatDateTime(lesson.scheduledAt)}
+                      {formatDateTime(lesson.scheduledAt, locale)}
                       {isTeacher && (studentEmailById.get(lesson.studentId) ?? lesson.studentEmail)
                         ? ` · ${studentEmailById.get(lesson.studentId) ?? lesson.studentEmail}`
                         : ""}
@@ -509,7 +516,7 @@ export default function Lessons() {
                           rel="noreferrer"
                           className="inline-flex items-center gap-1 text-primary hover:underline"
                         >
-                          <LinkIcon className="h-3.5 w-3.5" /> Link da aula
+                          <LinkIcon className="h-3.5 w-3.5" /> {t("Link da aula", "Lesson link")}
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
@@ -520,7 +527,7 @@ export default function Lessons() {
                           rel="noreferrer"
                           className="inline-flex items-center gap-1 text-primary hover:underline"
                         >
-                          <ClipboardList className="h-3.5 w-3.5" /> Atividade
+                          <ClipboardList className="h-3.5 w-3.5" /> {t("Atividade", "Activity")}
                           <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
@@ -537,9 +544,9 @@ export default function Lessons() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">Aguardando</SelectItem>
-                          <SelectItem value="yes">Compareceu</SelectItem>
-                          <SelectItem value="no">Faltou</SelectItem>
+                          <SelectItem value="pending">{t("Aguardando", "Pending")}</SelectItem>
+                          <SelectItem value="yes">{t("Compareceu", "Attended")}</SelectItem>
+                          <SelectItem value="no">{t("Faltou", "Missed")}</SelectItem>
                         </SelectContent>
                       </Select>
                       <label className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -547,15 +554,15 @@ export default function Lessons() {
                           checked={lesson.makeupScheduled}
                           onCheckedChange={(checked) => toggleMakeupScheduled(lesson, checked === true)}
                         />
-                        Reposição marcada
+                        {t("Reposição marcada", "Make-up scheduled")}
                       </label>
-                      <Button variant="ghost" size="icon" onClick={() => duplicateLesson(lesson)} aria-label="Duplicar aula">
+                      <Button variant="ghost" size="icon" onClick={() => duplicateLesson(lesson)} aria-label={t("Duplicar aula", "Duplicate lesson")}>
                         <Copy className="h-4 w-4 text-muted-foreground" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(lesson)} aria-label="Editar aula">
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(lesson)} aria-label={t("Editar aula", "Edit lesson")}>
                         <Pencil className="h-4 w-4 text-muted-foreground" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleting(lesson)} aria-label="Excluir aula">
+                      <Button variant="ghost" size="icon" onClick={() => setDeleting(lesson)} aria-label={t("Excluir aula", "Delete lesson")}>
                         <Trash2 className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </div>
@@ -571,19 +578,19 @@ export default function Lessons() {
       <Dialog open={editing !== null} onOpenChange={(open) => !open && setEditing(null)}>
         <DialogContent className="max-h-[85vh] max-w-lg overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar aula</DialogTitle>
+            <DialogTitle>{t("Editar aula", "Edit lesson")}</DialogTitle>
           </DialogHeader>
 
           <form onSubmit={saveEdit} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>Aluno</Label>
+                <Label>{t("Aluno", "Student")}</Label>
                 <Select
                   value={editForm.studentId}
                   onValueChange={(v) => setEditForm({ ...editForm, studentId: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Escolha o aluno" />
+                    <SelectValue placeholder={t("Escolha o aluno", "Choose the student")} />
                   </SelectTrigger>
                   <SelectContent>
                     {students.map((s) => (
@@ -595,7 +602,7 @@ export default function Lessons() {
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit-subject">Assunto</Label>
+                <Label htmlFor="edit-subject">{t("Assunto", "Subject")}</Label>
                 <Input
                   id="edit-subject"
                   value={editForm.subject}
@@ -604,7 +611,7 @@ export default function Lessons() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit-date">Data</Label>
+                <Label htmlFor="edit-date">{t("Data", "Date")}</Label>
                 <Input
                   id="edit-date"
                   type="date"
@@ -614,7 +621,7 @@ export default function Lessons() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit-time">Horário</Label>
+                <Label htmlFor="edit-time">{t("Horário", "Time")}</Label>
                 <Input
                   id="edit-time"
                   type="time"
@@ -624,7 +631,7 @@ export default function Lessons() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit-classLink">Link da aula</Label>
+                <Label htmlFor="edit-classLink">{t("Link da aula", "Lesson link")}</Label>
                 <Input
                   id="edit-classLink"
                   type="url"
@@ -634,7 +641,7 @@ export default function Lessons() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="edit-activityLink">Link da atividade</Label>
+                <Label htmlFor="edit-activityLink">{t("Link da atividade", "Activity link")}</Label>
                 <Input
                   id="edit-activityLink"
                   type="url"
@@ -650,7 +657,7 @@ export default function Lessons() {
             <DialogFooter>
               <Button type="submit" disabled={editSaving} className="gap-2">
                 {editSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-                Salvar alterações
+                {t("Salvar alterações", "Save changes")}
               </Button>
             </DialogFooter>
           </form>
@@ -660,17 +667,17 @@ export default function Lessons() {
       <AlertDialog open={deleting !== null} onOpenChange={(open) => !open && setDeleting(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir esta aula?</AlertDialogTitle>
+            <AlertDialogTitle>{t("Excluir esta aula?", "Delete this lesson?")}</AlertDialogTitle>
             <AlertDialogDescription>
-              {deleting?.subject} — {deleting ? formatDateTime(deleting.scheduledAt) : ""}. Essa ação não pode ser
-              desfeita.
+              {deleting?.subject} — {deleting ? formatDateTime(deleting.scheduledAt, locale) : ""}.{" "}
+              {t("Essa ação não pode ser desfeita.", "This can't be undone.")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteSaving}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteSaving}>{t("Cancelar", "Cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={confirmRemove} disabled={deleteSaving} className="gap-2">
               {deleteSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-              Excluir
+              {t("Excluir", "Delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

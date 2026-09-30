@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,7 @@ interface VocabList {
 
 export default function VocabLists() {
   const { user } = useAuth();
+  const { t } = usePortalPrefs();
   const isTeacher = user?.role === "teacher";
   const [lists, setLists] = useState<VocabList[]>([]);
   const [total, setTotal] = useState(0);
@@ -56,7 +58,7 @@ export default function VocabLists() {
       if (page !== 1) setPage(1);
       else await load();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Não foi possível criar a lista.");
+      setError(err instanceof ApiError ? err.message : t("Não foi possível criar a lista.", "Couldn't create the list."));
     } finally {
       setSaving(false);
     }
@@ -65,30 +67,33 @@ export default function VocabLists() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Vocabulário</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("Vocabulário", "Vocabulary")}</h1>
         <p className="text-muted-foreground">
           {isTeacher
-            ? "Crie listas de palavras, complete o que o dicionário não souber e envie para os alunos."
-            : "Estude as listas que a professora enviou para você."}
+            ? t(
+                "Crie listas de palavras, complete o que o dicionário não souber e envie para os alunos.",
+                "Create word lists, fill in whatever the dictionary doesn't know, and send them to your students.",
+              )
+            : t("Estude as listas que a professora enviou para você.", "Study the lists your teacher sent you.")}
         </p>
       </div>
 
       {isTeacher && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Nova lista</CardTitle>
+            <CardTitle className="text-base">{t("Nova lista", "New list")}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={create} className="flex flex-col gap-3 sm:flex-row">
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Nome da lista"
+                placeholder={t("Nome da lista", "List name")}
                 required
               />
               <Button type="submit" disabled={saving} className="gap-2">
                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                Criar
+                {t("Criar", "Create")}
               </Button>
             </form>
             {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
@@ -98,8 +103,8 @@ export default function VocabLists() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Listas</CardTitle>
-          <CardDescription>{total} lista(s)</CardDescription>
+          <CardTitle className="text-base">{t("Listas", "Lists")}</CardTitle>
+          <CardDescription>{total} {t("lista(s)", "list(s)")}</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -108,7 +113,9 @@ export default function VocabLists() {
             </div>
           ) : lists.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              {isTeacher ? "Nenhuma lista ainda." : "Nenhuma lista foi enviada para você ainda."}
+              {isTeacher
+                ? t("Nenhuma lista ainda.", "No lists yet.")
+                : t("Nenhuma lista foi enviada para você ainda.", "No lists have been sent to you yet.")}
             </p>
           ) : (
             <ul className="space-y-2">
