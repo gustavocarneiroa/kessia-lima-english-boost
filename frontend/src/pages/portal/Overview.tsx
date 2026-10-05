@@ -25,6 +25,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useWordle, useWordleLeaderboard } from "@/hooks/useWordle";
+import NoticeBoard from "./NoticeBoard";
 
 interface ShortcutItem {
   to: string;
@@ -183,6 +184,8 @@ export default function Overview() {
         {isTeacher ? t("Olá, professora!", "Hi, teacher!") : t("Olá, aluno(a)!", "Hi there!")}
       </h1>
       <p className="text-muted-foreground">{user.email}</p>
+
+      <NoticeBoard isTeacher={isTeacher} />
 
       {!isTeacher &&
         newContent &&

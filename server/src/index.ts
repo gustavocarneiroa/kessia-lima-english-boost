@@ -15,6 +15,7 @@ import { settingsRoutes } from "./modules/settings/routes.ts";
 import { wordleRoutes } from "./modules/wordle/routes.ts";
 import { paymentRoutes } from "./modules/payments/routes.ts";
 import { forumRoutes } from "./modules/forum/routes.ts";
+import { noticeRoutes } from "./modules/notices/routes.ts";
 
 const app = Fastify({
   logger: { level: env.NODE_ENV === "production" ? "info" : "debug" },
@@ -43,6 +44,7 @@ await app.register(settingsRoutes);
 await app.register(wordleRoutes);
 await app.register(forumRoutes);
 await app.register(paymentRoutes);
+await app.register(noticeRoutes);
 
 app.setErrorHandler((err: unknown, req, reply) => {
   req.log.error({ err }, "erro não tratado");

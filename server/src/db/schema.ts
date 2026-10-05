@@ -194,6 +194,19 @@ export const payments = sqliteTable("payments", {
   createdAt: text("created_at").notNull(),
 });
 
+// Quadro de avisos: aparece sempre na tela inicial de todos os alunos. Só a
+// professora cria/edita. Os "importantes" vêm primeiro e com destaque; com
+// expiresOn preenchido, o aviso some do quadro dos alunos depois desse dia.
+export const notices = sqliteTable("notices", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  body: text("body"),
+  linkUrl: text("link_url"),
+  important: integer("important", { mode: "boolean" }).notNull().default(false),
+  expiresOn: text("expires_on"), // "YYYY-MM-DD" (último dia no ar, horário de Brasília) — null = não expira
+  createdAt: text("created_at").notNull(),
+});
+
 export const passwordResetTokens = sqliteTable("password_reset_tokens", {
   // hash (sha-256) do token — o token em si só existe no link, nunca é salvo em texto puro
   tokenHash: text("token_hash").primaryKey(),
