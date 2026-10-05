@@ -26,6 +26,7 @@ import Settings from "./pages/portal/Settings";
 import Forum from "./pages/portal/Forum";
 import ForumPost from "./pages/portal/ForumPost";
 import Finance from "./pages/portal/Finance";
+import Resources from "./pages/portal/Resources";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
               <Route path="atividades" element={<Activities />} />
               <Route path="atividades/:id" element={<ActivityDetail />} />
               <Route path="trilha" element={<LearningPath />} />
+              <Route path="recursos" element={<Resources />} />
               <Route path="forum" element={<Forum />} />
               <Route path="forum/:id" element={<ForumPost />} />
               <Route path="financeiro" element={<Finance />} />
