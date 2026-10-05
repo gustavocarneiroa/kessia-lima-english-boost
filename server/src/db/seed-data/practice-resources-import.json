@@ -1,0 +1,822 @@
+[
+  {
+    "name": "ABC",
+    "url": "https://www.abc.net.au/education/learn-english/",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Quer ouvir aquele sotaque australiano diferentão e praticar o Listening, ou ler notícias do mundo pra aprimorar o Reading? O ABC (Australian Broadcasting Corporation) é uma fonte incrível de conteúdo autêntico e adaptado pra quem está aprendendo."
+  },
+  {
+    "name": "Adele’s ESL Corner",
+    "url": "http://www.adelescorner.org",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Um tesouro com design dos anos 2000: o Adele’s ESL Corner tem exercícios de vocabulário, Listening e Gramática com explicações simples e níveis bem separados. Ótimo pra fazer atividades em casa."
+  },
+  {
+    "name": "Agenda Web",
+    "url": "https://agendaweb.org",
+    "skills": [
+      "grammar",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Exercícios de Gramática e Vocabulário, um podcast pra praticar Listening, músicas e vídeos. Não se assuste com o visual anos 2000 — o conteúdo vai te surpreender!"
+  },
+  {
+    "name": "All Things Grammar",
+    "url": "https://www.allthingsgrammar.com",
+    "skills": [
+      "grammar"
+    ],
+    "price": "free",
+    "description": "Poucos sites trabalham Gramática tão bem quanto o All Things Grammar. Sabe qual tempo verbal ou ponto gramatical está estudando? É só buscar e você encontra muito material de qualidade — ótimo pra estudar por conta própria."
+  },
+  {
+    "name": "All Things Topics",
+    "url": "https://www.allthingstopics.com/",
+    "skills": [
+      "listening",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Quer aprender vocabulário dentro de um contexto? Na coluna à esquerda você encontra uma lista enorme de temas do dia a dia, cada um com seu vocabulário. Perfeito pra ampliar o Vocabulário e usar essas palavras na conversação."
+  },
+  {
+    "name": "Anki",
+    "url": "https://ankiweb.net/about",
+    "skills": [
+      "reading",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "free",
+    "description": "Com o Anki você cria seus próprios flashcards (cartõezinhos de memória) e pratica vocabulário como em poucos outros recursos! Dá pra organizar as palavras por grupos e estudar de várias formas — e o app te lembra de revisar na hora certa."
+  },
+  {
+    "name": "BBC Learning English",
+    "url": "https://www.bbc.co.uk/learningenglish/",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "speaking",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "free",
+    "description": "O site da BBC é tão completo, mas tão completo, que o maior risco é você se perder dentro dele. Vá devagar, conhecendo os conteúdos. Tem vídeos no canal do YouTube (BBC Learning English), o podcast 6 Minute English e muito material riquíssimo. Esse quase vale por três, né?"
+  },
+  {
+    "name": "Beelingual App",
+    "url": "https://www.beelinguapp.com",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "speaking",
+      "vocabulary"
+    ],
+    "price": "paid",
+    "description": "O Beelingual é um app super completo: tem desde karaokê com leitura feita por falantes nativos até audiobooks. Você aprimora a leitura, a escuta e muito mais."
+  },
+  {
+    "name": "Breaking News English",
+    "url": "https://breakingnewsenglish.com/",
+    "skills": [
+      "listening",
+      "reading",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "free",
+    "description": "Sou 100% suspeita pra falar desse site, que é meu queridinho! O Breaking News English tem atividades sobre notícias, separadas em níveis de 1 a 6 (do básico ao avançado). O melhor: os temas são super atuais — a notícia acontece e pouco tempo depois já tem texto e exercício pra você praticar."
+  },
+  {
+    "name": "British Council Grammar",
+    "url": "https://learnenglish.britishcouncil.org/grammar",
+    "skills": [
+      "grammar"
+    ],
+    "price": "free",
+    "description": "Essa parte do site do British Council é só de Gramática, do iniciante ao avançado. As explicações são simples e os exercícios ajudam a fixar o conteúdo. Vale conferir e baixar o aplicativo também."
+  },
+  {
+    "name": "Busuu",
+    "url": "https://www.busuu.com/pt",
+    "skills": [
+      "reading",
+      "writing"
+    ],
+    "price": "freemium",
+    "description": "No Busuu você define quanto tempo quer estudar por dia, seus objetivos e seu nível atual, e o app monta um plano de estudos pra você. Um ótimo complemento pras nossas aulas."
+  },
+  {
+    "name": "Cake",
+    "url": "https://mycake.me",
+    "skills": [
+      "listening",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "freemium",
+    "description": "Com esse app você aprende não só vocabulário, mas o vocabulário que as pessoas usam de verdade: atual, do dia a dia e informal. Tudo que você precisa pra falar com mais confiança em situações reais."
+  },
+  {
+    "name": "Cambly",
+    "url": "https://www.cambly.com",
+    "skills": [
+      "listening",
+      "speaking",
+      "vocabulary"
+    ],
+    "price": "paid",
+    "description": "Assim como o italki, o Cambly é um serviço de aulas sob demanda: você pode conversar com professores nativos na hora que quiser. É pago."
+  },
+  {
+    "name": "Cambridge English",
+    "url": "https://www.cambridgeenglish.org/learning-english/",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "free",
+    "description": "Com mais de 150 lições gratuitas, o Cambridge English é um clássico do ensino de Inglês e tem material pra praticar todas as habilidades."
+  },
+  {
+    "name": "Carmen Luisa’s ESL Site",
+    "url": "http://www.carmenlu.com",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Atividades separadas por nível (do A2 ao C2, segundo o Quadro Europeu) em várias habilidades. O visual lembra os primórdios da internet, mas dá pra baixar PDFs e arquivos pra praticar em casa."
+  },
+  {
+    "name": "Coursera",
+    "url": "https://www.coursera.org",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "freemium",
+    "description": "Pra quem já está no intermediário ou avançado, nada melhor do que consumir material autêntico e viver o idioma. Num curso do Coursera você ouve, lê, estuda e escreve tudo em Inglês — e aprende um assunto novo ao mesmo tempo! Se precisar, tem legendas em Português."
+  },
+  {
+    "name": "Daily Grammar",
+    "url": "http://www.dailygrammar.com",
+    "skills": [
+      "grammar"
+    ],
+    "price": "free",
+    "description": "Se o seu desafio é Gramática, as mais de 400 lições do Daily Grammar COM CERTEZA vão te ajudar!"
+  },
+  {
+    "name": "Drive & Listen",
+    "url": "https://driveandlisten.herokuapp.com",
+    "skills": [
+      "listening"
+    ],
+    "price": "free",
+    "description": "Esse site é incrível: você “passeia” de carro por cidades do mundo todo enquanto escuta as rádios locais! Dá pra escolher a velocidade, a rádio e muito mais. Ótimo pra praticar Listening e conhecer outros lugares — perfeito pra quando bater aquele desânimo."
+  },
+  {
+    "name": "Duolingo",
+    "url": "https://pt.duolingo.com",
+    "skills": [
+      "listening",
+      "reading",
+      "speaking"
+    ],
+    "price": "freemium",
+    "description": "Muita gente torce o nariz pro Duolingo, e eu entendo! Mas experimente as histórias: com elas você pratica Listening, vê o vocabulário em contexto e responde perguntas de interpretação. E a parte de jogo ajuda a manter o ritmo — quem nunca passou mais tempo do que devia tentando ficar em 1º lugar no ranking? 😅"
+  },
+  {
+    "name": "Elllo",
+    "url": "https://elllo.org",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "freemium",
+    "recommended": true,
+    "note": "falantes de vários países do mundo",
+    "description": "Material super completo pra todos os níveis, com foco em entender pronúncias e sotaques diferentes, além de gramática e mais. Tudo separado por nível de um jeito fácil, pra você estudar por conta própria."
+  },
+  {
+    "name": "Elsa Speak",
+    "url": "https://elsaspeak.com",
+    "skills": [
+      "speaking"
+    ],
+    "price": "freemium",
+    "description": "O queridinho dos professores pra treinar pronúncia! O Elsa trabalha os sons do Inglês de forma bem específica e ajuda muito a melhorar o Speaking. Tem plano pago, mas as opções gratuitas já valem a pena."
+  },
+  {
+    "name": "ELT Base",
+    "url": "https://www.eltbase.com",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "free",
+    "description": "Plataforma criada pra professores, mas com muitas lições, quizzes e materiais que você pode usar sozinho, de acordo com seu nível. Tem muita variedade de temas e dá pra baixar tudo em PDF e estudar quando e onde quiser!"
+  },
+  {
+    "name": "Englisch-Hilfen",
+    "url": "https://www.englisch-hilfen.de/en/",
+    "skills": [
+      "grammar",
+      "listening",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Parece estranho um site de Inglês em Alemão, mas o conteúdo é todo em Inglês. Como foi feito pra estrangeiros, tudo é muito bem explicado — uma boa opção pra todos os níveis."
+  },
+  {
+    "name": "English Central",
+    "url": "https://pt.englishcentral.com/browse/videos",
+    "skills": [
+      "listening",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "freemium",
+    "description": "Vídeos de todos os níveis pra praticar Listening, organizados por nível e tema. E tem mais: uma inteligência artificial faz perguntas sobre o que você assistiu pra testar sua compreensão."
+  },
+  {
+    "name": "English Grammar Online",
+    "url": "https://www.ego4u.com",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "free",
+    "description": "Do Inglês do dia a dia ao Inglês para negócios: o English Grammar Online trabalha várias habilidades com exercícios variados e até uma “área de descompressão” com quizzes e jogos."
+  },
+  {
+    "name": "English Language Centres",
+    "url": "https://www.ecenglish.com/learnenglish/",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Pense nesse site como “quiz de tudo”: você testa desde os sons das palavras até gramática e boas maneiras. Cheio de recursos pra você estudar muito!"
+  },
+  {
+    "name": "English Learner",
+    "url": "https://www.englishlearner.com",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "free",
+    "description": "Quer testar o que aprendeu depois de um tempo estudando? No English Learner você testa seus conhecimentos em tópicos específicos, de acordo com o seu nível."
+  },
+  {
+    "name": "English Page",
+    "url": "https://www.englishpage.com",
+    "skills": [
+      "grammar",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Com foco em vocabulário e gramática, o English Page também tem ótimas opções de leitura. Um belo site pra praticar em casa."
+  },
+  {
+    "name": "ESL Brains",
+    "url": "http://eslbrains.com",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "freemium",
+    "description": "Plataforma de aulas pra professores que também tem muitos materiais gratuitos pra você usar sozinho. Os temas são atuais e muitos trabalham gramática com foco em conversação — use e abuse pra praticar o Speaking!"
+  },
+  {
+    "name": "ESL Lab",
+    "url": "https://www.esl-lab.com",
+    "skills": [
+      "listening"
+    ],
+    "price": "free",
+    "description": "Atividades de Listening pra todos os níveis, do iniciante ao avançado, de um jeito simples e fácil de praticar. Também tem jogos e quizzes."
+  },
+  {
+    "name": "ESL Pals",
+    "url": "http://eslpals.com",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "freemium",
+    "description": "Conteúdo atualizado e contextualizado, com aulas gratuitas que você pode fazer por conta própria. As lições trabalham gramática, vocabulário, temas pra conversação e mais."
+  },
+  {
+    "name": "ESL Video",
+    "url": "http://eslvideo.com",
+    "skills": [
+      "listening",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Vídeos sobre temas atuais, separados por nível, com perguntas de múltipla escolha pra testar sua compreensão. Os vídeos têm transcrição, o que ajuda a ampliar o vocabulário. Perfeito pra reforçar o Listening."
+  },
+  {
+    "name": "Flo-Joe’s",
+    "url": "https://www.flo-joe.co.uk/preliminaryenglish/index.htm",
+    "skills": [
+      "grammar",
+      "reading",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "free",
+    "description": "Vai fazer uma prova de proficiência de Cambridge? O Flo-Joe’s é o site pra você! Atividades separadas por nível e por habilidade — uma opção super completa pra se preparar."
+  },
+  {
+    "name": "Fluentu",
+    "url": "https://www.fluentu.com",
+    "skills": [
+      "listening",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "paid",
+    "description": "Aplicativo completo de estudo com vídeos reais (com 14 dias grátis pra testar). No plano premium dá até pra baixar os áudios e praticar offline."
+  },
+  {
+    "name": "Fórum Word Reference",
+    "url": "https://forum.wordreference.com",
+    "skills": [
+      "grammar",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Nesse fórum, pessoas do mundo todo debatem e explicam dúvidas sobre o idioma como poucos livros fazem. Ótimo pra quando você tem uma dúvida bem específica. Interessante do básico ao avançado."
+  },
+  {
+    "name": "Forvo",
+    "url": "https://pt.forvo.com",
+    "skills": [
+      "listening",
+      "speaking",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Procure uma palavra e ouça como ela é pronunciada por pessoas de vários lugares do mundo. Ótimo pra praticar Listening e imitar a pronúncia (o famoso shadowing)."
+  },
+  {
+    "name": "Future.Me",
+    "url": "https://www.futureme.org",
+    "skills": [
+      "reading",
+      "writing"
+    ],
+    "price": "free",
+    "description": "Que tal escrever uma carta em Inglês pro seu “eu do futuro”? No Future.Me você escreve um texto e escolhe quando quer recebê-lo — daqui a um mês, um semestre, um ano. Quando ele chegar, você vai perceber o quanto evoluiu na escrita!"
+  },
+  {
+    "name": "Grammar Quizzes",
+    "url": "http://grammar-quizzes.com/",
+    "skills": [
+      "grammar"
+    ],
+    "price": "free",
+    "description": "Precisa de um empurrãozinho pra estudar Gramática? Esse site tem quizzes que deixam o estudo mais leve e ajudam a fixar o conteúdo."
+  },
+  {
+    "name": "Grammarly",
+    "url": "https://www.grammarly.com",
+    "skills": [
+      "reading",
+      "writing"
+    ],
+    "price": "freemium",
+    "description": "Além de posts e dicas de estudo, o Grammarly é um ótimo corretor pros seus textos em Inglês. Use pra revisar o que você escreve e aprender com as correções."
+  },
+  {
+    "name": "Hellotalk",
+    "url": "https://www.hellotalk.com",
+    "skills": [
+      "listening",
+      "speaking",
+      "vocabulary"
+    ],
+    "price": "freemium",
+    "description": "O HelloTalk conecta você a pessoas do mundo todo pra praticar o idioma por mensagens, áudios e imagens. Você ajuda alguém com o Português e essa pessoa te ajuda com o Inglês."
+  },
+  {
+    "name": "italki",
+    "url": "https://www.italki.com/",
+    "skills": [
+      "listening",
+      "speaking",
+      "vocabulary"
+    ],
+    "price": "paid",
+    "description": "O italki conecta você a professores nativos pra praticar conversação. Pode ser ótimo pra ter contato com outras pessoas e sotaques. As aulas são pagas."
+  },
+  {
+    "name": "LanguageReactor",
+    "url": "https://www.languagereactor.com",
+    "skills": [
+      "listening",
+      "speaking",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Você assiste séries em Inglês? Ótimo pro Listening e vocabulário! O LanguageReactor (antigo Learn English with Netflix) deixa isso ainda melhor: mostra legendas em Inglês e Português ao mesmo tempo, deixa você pausar e repetir frases e salvar palavras. Funciona com Netflix, YouTube e mais."
+  },
+  {
+    "name": "Lingbe",
+    "url": "https://www.lingbe.com",
+    "skills": [
+      "listening",
+      "speaking",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Assim como o HelloTalk, no Lingbe você faz chamadas de voz com pessoas do mundo todo e pratica o Speaking. Funciona como uma comunidade de estudantes de idiomas e é gratuito."
+  },
+  {
+    "name": "LinguaHouse",
+    "url": "https://www.linguahouse.com",
+    "skills": [
+      "listening",
+      "reading",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "freemium",
+    "description": "Plataforma criada pra professores, mas com muitas atividades gratuitas sobre temas atuais que você pode fazer sozinho, em qualquer nível e em várias habilidades."
+  },
+  {
+    "name": "Linguee",
+    "url": "https://www.linguee.com.br",
+    "skills": [
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "No Linguee você pesquisa palavras e vê como elas são usadas em frases reais — muito melhor do que uma tradução solta! Ótimo pra descobrir expressões (idioms) e combinações de palavras (collocations)."
+  },
+  {
+    "name": "Livemocha",
+    "url": "https://www.livemochas.com/pt",
+    "skills": [
+      "reading",
+      "speaking",
+      "writing"
+    ],
+    "price": "freemium",
+    "description": "Foi o app que eu mesma usei pra aprender Espanhol, por isso indico pra todo mundo! Assim como no Tandem, você troca mensagens e conversa com falantes nativos em tempo real."
+  },
+  {
+    "name": "Lyrics Training",
+    "url": "https://lyricstraining.com",
+    "skills": [
+      "listening",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Queridinho dos professores! Escolha uma música, ouça e complete a letra com as palavras que faltam. Um jeito divertido de treinar Listening e aprender vocabulário."
+  },
+  {
+    "name": "Memrise",
+    "url": "https://app.memrise.com",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "speaking",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "freemium",
+    "description": "Com trilhas de estudo parecidas com as do Duolingo, o Memrise tem lições de todas as habilidades, com temas variados e atuais."
+  },
+  {
+    "name": "My English Pages",
+    "url": "https://www.myenglishpages.com",
+    "skills": [
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Textos sobre vários temas com perguntas de compreensão no final. Ótimo pra praticar Reading e vocabulário."
+  },
+  {
+    "name": "New ESL Blues",
+    "url": "https://eslbluesapps.com/index.html",
+    "skills": [
+      "grammar",
+      "reading",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "free",
+    "description": "Não se engane com o design não lá muito bonito: esse site tem até uma seção de dúvidas frequentes sobre o Inglês, explicadas de forma simples. Um tesouro do início dos anos 2000!"
+  },
+  {
+    "name": "New York Public Library",
+    "url": "https://www.nypl.org/blog/2012/11/28/11-great-free-websites-practice-english",
+    "skills": [
+      "grammar",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Já imaginou estudar com o conteúdo da Biblioteca Pública de Nova York? Essa página reúne vários sites gratuitos pra praticar Inglês, com notícias, revistas e muito mais."
+  },
+  {
+    "name": "News in Levels",
+    "url": "https://www.newsinlevels.com",
+    "skills": [
+      "listening",
+      "reading",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "free",
+    "description": "Notícias publicadas em três níveis de dificuldade. Cada notícia tem um vídeo com a leitura do texto, pra você ler e ouvir ao mesmo tempo."
+  },
+  {
+    "name": "Phrase Mix",
+    "url": "https://www.phrasemix.com",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "freemium",
+    "description": "Vídeos curtos e animações com situações da vida real, ótimos pra treinar o Listening e aprender expressões do dia a dia. Tem mais recursos na versão Premium."
+  },
+  {
+    "name": "Play Knoword",
+    "url": "https://playknoword.com",
+    "skills": [
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Jogo de vocabulário: o site mostra a definição e você descobre a palavra. Dá pra escolher temas da sua área de interesse — um jeito dinâmico de memorizar palavras novas."
+  },
+  {
+    "name": "Play Phrase",
+    "url": "https://www.playphrase.me",
+    "skills": [
+      "listening",
+      "speaking",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Sabe quando o Inglês falado parece “tudo atropelado”? Esse site resolve: você digita uma palavra ou frase e ele mostra trechos de filmes e séries em que ela foi dita. Assim você ouve a expressão em uso, em contextos diferentes."
+  },
+  {
+    "name": "Postcrossing",
+    "url": "https://www.postcrossing.com",
+    "skills": [
+      "reading",
+      "writing"
+    ],
+    "price": "free",
+    "description": "Outro site que me ajudou muito quando comecei a aprender! Você recebe o perfil de uma pessoa aleatória do mundo, envia um cartão-postal de verdade pra ela e recebe outro de outra pessoa, de outro lugar. Dá pra configurar o idioma e praticar a escrita com gente do planeta inteiro!"
+  },
+  {
+    "name": "Quizlet",
+    "url": "https://quizlet.com",
+    "skills": [
+      "reading",
+      "vocabulary"
+    ],
+    "price": "freemium",
+    "description": "No Quizlet você cria seus próprios cartões de estudo (flashcards) ou usa coleções prontas feitas por professores e outros estudantes, sobre qualquer tema."
+  },
+  {
+    "name": "Reverso",
+    "url": "https://context.reverso.net/traducao/",
+    "skills": [
+      "listening",
+      "speaking",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Procure uma palavra, ouça a pronúncia em sotaques diferentes e veja como ela é usada em frases reais. Ótimo pra aprender vocabulário e treinar Listening e Speaking — ideal pra quem já tem uma base no idioma."
+  },
+  {
+    "name": "Smart Words",
+    "url": "https://www.smart-words.org",
+    "skills": [
+      "grammar",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Chega de não saber o que algo significa ou de não conseguir se expressar por falta de vocabulário: o Smart Words tem desde palavras do dia a dia até as mais abstratas, pra você se comunicar como quiser."
+  },
+  {
+    "name": "Speakzer",
+    "url": "https://www.speakzer.com",
+    "skills": [
+      "listening",
+      "reading",
+      "speaking",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "paid",
+    "description": "Lições que trabalham todas as habilidades juntas a partir de temas atuais. O diferencial é ter bastante material pra praticar não só o Listening, mas também o Speaking."
+  },
+  {
+    "name": "Speechify",
+    "url": "https://speechify.com",
+    "skills": [
+      "listening"
+    ],
+    "price": "paid",
+    "description": "Cole qualquer texto no Speechify e ele lê em voz alta pra você. Perfeito pra treinar o Listening: acompanhe o texto escrito enquanto ouve. E serve pra estudar qualquer assunto, não só Inglês."
+  },
+  {
+    "name": "Talk English",
+    "url": "https://www.talkenglish.com",
+    "skills": [
+      "grammar",
+      "listening",
+      "reading",
+      "speaking",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "free",
+    "description": "Não deixe a aparência antiquada te enganar: o Talk English é super completo, com lições de todas as habilidades e até pequenos guias de como praticar cada uma delas."
+  },
+  {
+    "name": "Tandem",
+    "url": "https://www.tandem.net/pt-br",
+    "skills": [
+      "reading",
+      "speaking",
+      "writing"
+    ],
+    "price": "freemium",
+    "description": "Mais um app que vale a pena ter no celular! No Tandem você conversa com nativos de Inglês e com pessoas de outros países que também estudam Inglês, por áudio ou texto. E ainda pode ajudar quem está aprendendo Português."
+  },
+  {
+    "name": "TED x ESL",
+    "url": "http://tedxesl.wordpress.com",
+    "skills": [
+      "listening",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Atividades com TED Talks pra diferentes níveis, com transcrição e exercícios de escrita, leitura e compreensão. O site parou de ser atualizado em 2014, mas os temas são atemporais e as atividades são muito bem feitas."
+  },
+  {
+    "name": "The Learning Network",
+    "url": "https://www.nytimes.com/section/learning?_r=0",
+    "skills": [
+      "grammar",
+      "reading",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "freemium",
+    "description": "Esse recurso bem pouco conhecido é INCRÍVEL: análises e perguntas de interpretação sobre artigos e notícias do New York Times, além de propostas de escrita. Recomendadíssimo!"
+  },
+  {
+    "name": "Tiny Texts",
+    "url": "https://tinytexts.wordpress.com",
+    "skills": [
+      "listening",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Textos curtinhos com áudio pra praticar leitura e escuta ao mesmo tempo. Perfeito pra quem tem pouco tempo mas quer estudar mesmo assim."
+  },
+  {
+    "name": "Udemy",
+    "url": "https://www.udemy.com",
+    "skills": [
+      "reading",
+      "writing"
+    ],
+    "price": "freemium",
+    "description": "Cursos curtos sobre os mais diversos temas, muitos deles em Inglês. Indicado pra quem já está no intermediário ou avançado: você aprende algo novo e pratica o idioma ao mesmo tempo (no máximo com legendas)."
+  },
+  {
+    "name": "Using English",
+    "url": "https://www.usingenglish.com",
+    "skills": [
+      "grammar",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Além de testes de conhecimento, o Using English tem lições de Gramática, Vocabulário, Phrasal Verbs, Idioms e muito mais."
+  },
+  {
+    "name": "VOA Learn English",
+    "url": "https://learningenglish.voanews.com",
+    "skills": [
+      "grammar",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Conteúdo separado por nível em várias habilidades — ótimo pra estudar sozinho de forma organizada: é só seguir as trilhas do seu nível. Tem também aulas de Inglês explicadas em outros idiomas, inclusive Português."
+  },
+  {
+    "name": "VOA News",
+    "url": "https://www.voanews.com",
+    "skills": [
+      "grammar",
+      "reading",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Notícias de vários lugares do mundo pra você praticar o Reading, a compreensão e o vocabulário."
+  },
+  {
+    "name": "Vocabulary.com",
+    "url": "https://www.vocabulary.com",
+    "skills": [
+      "reading",
+      "vocabulary",
+      "writing"
+    ],
+    "price": "free",
+    "description": "Assim como o Anki, o Vocabulary.com tem aprendizado adaptativo: ele identifica o que você já estudou, prepara revisões e vai ampliando seu vocabulário conforme você avança."
+  },
+  {
+    "name": "Write and Improve",
+    "url": "http://writeandimprove.com",
+    "skills": [
+      "writing"
+    ],
+    "price": "free",
+    "description": "Ferramenta incrível de Cambridge: você escolhe um tema, escreve um texto e recebe a correção do seu Writing em segundos. Ótimo pra praticar a escrita sempre que quiser."
+  },
+  {
+    "name": "Yarn",
+    "url": "https://getyarn.io",
+    "skills": [
+      "listening",
+      "vocabulary"
+    ],
+    "price": "free",
+    "description": "Busque uma palavra ou frase e veja trechos de filmes, séries e vídeos em que ela aparece. Ótimo pra descobrir como as expressões são usadas de verdade — e ainda tem idiom do dia e quizzes."
+  },
+  {
+    "name": "Youglish",
+    "url": "https://youglish.com",
+    "skills": [
+      "listening"
+    ],
+    "price": "free",
+    "description": "Digite uma palavra ou frase e o Youglish mostra vídeos do YouTube com pessoas falando aquilo de verdade, com sotaques diferentes. Perfeito pra tirar dúvidas de pronúncia!"
+  }
+]

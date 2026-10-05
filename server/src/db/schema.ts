@@ -207,6 +207,20 @@ export const notices = sqliteTable("notices", {
   createdAt: text("created_at").notNull(),
 });
 
+// Aba "Recursos": sites e apps pra praticar inglês fora da aula. Todos os alunos
+// veem; só a professora cria/edita/apaga.
+export const practiceResources = sqliteTable("practice_resources", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  url: text("url").notNull(),
+  skills: text("skills").notNull(), // JSON: ("grammar" | "listening" | "reading" | "speaking" | "vocabulary" | "writing")[]
+  price: text("price", { enum: ["free", "freemium", "paid"] }).notNull(),
+  recommended: integer("recommended", { mode: "boolean" }).notNull().default(false),
+  note: text("note"),
+  description: text("description"),
+  createdAt: text("created_at").notNull(),
+});
+
 export const passwordResetTokens = sqliteTable("password_reset_tokens", {
   // hash (sha-256) do token — o token em si só existe no link, nunca é salvo em texto puro
   tokenHash: text("token_hash").primaryKey(),

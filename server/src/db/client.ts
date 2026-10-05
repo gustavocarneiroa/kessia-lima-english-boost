@@ -215,6 +215,18 @@ sqlite.exec(`
   CREATE INDEX IF NOT EXISTS payments_student_id_idx ON payments(student_id);
   CREATE INDEX IF NOT EXISTS payments_due_date_idx ON payments(due_date);
 
+  CREATE TABLE IF NOT EXISTS practice_resources (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    skills TEXT NOT NULL,
+    price TEXT NOT NULL,
+    recommended INTEGER NOT NULL DEFAULT 0,
+    note TEXT,
+    description TEXT,
+    created_at TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS notices (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
