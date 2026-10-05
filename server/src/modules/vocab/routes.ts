@@ -150,14 +150,18 @@ export async function vocabRoutes(app: FastifyInstance) {
     const session = req.session!;
     const { page, pageSize, offset } = parsePagination(req.query as Record<string, unknown>);
 
+    // Professora com ?studentId=: só as listas enviadas pra esse aluno (página do aluno).
+    const { studentId: queryStudentId } = req.query as { studentId?: string };
+    const studentId = session.role === "teacher" ? queryStudentId : session.userId;
+
     let all: (typeof schema.vocabLists.$inferSelect)[];
-    if (session.role === "teacher") {
+    if (!studentId) {
       all = db.select().from(schema.vocabLists).orderBy(desc(schema.vocabLists.createdAt)).all();
     } else {
       const assigned = db
         .select({ listId: schema.vocabListStudents.listId })
         .from(schema.vocabListStudents)
-        .where(eq(schema.vocabListStudents.studentId, session.userId))
+        .where(eq(schema.vocabListStudents.studentId, studentId))
         .all();
       const ids = new Set(assigned.map((a) => a.listId));
       all = db

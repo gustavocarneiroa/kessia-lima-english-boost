@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import StudentAssignments from "./StudentAssignments";
 import { Loader2, ArrowLeft, Link as LinkIcon, ClipboardList, ExternalLink, KeyRound, Copy, Check } from "lucide-react";
 
 interface Student {
@@ -466,6 +467,8 @@ export default function StudentDetail() {
           </p>
         </CardContent>
       </Card>
+
+      {id && <StudentAssignments studentId={id} />}
     </div>
   );
 }

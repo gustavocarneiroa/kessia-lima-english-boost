@@ -171,14 +171,19 @@ export async function activitiesRoutes(app: FastifyInstance) {
     const session = req.session!;
     const { page, pageSize, offset } = parsePagination(req.query as Record<string, unknown>);
 
+    // Professora com ?studentId=: só as atividades enviadas pra esse aluno, com a
+    // resposta dele (página do aluno). Sem isso, todas.
+    const { studentId: queryStudentId } = req.query as { studentId?: string };
+    const studentId = session.role === "teacher" ? queryStudentId : session.userId;
+
     let all: (typeof schema.activities.$inferSelect)[];
-    if (session.role === "teacher") {
+    if (!studentId) {
       all = db.select().from(schema.activities).orderBy(desc(schema.activities.createdAt)).all();
     } else {
       const assigned = db
         .select({ activityId: schema.activityStudents.activityId })
         .from(schema.activityStudents)
-        .where(eq(schema.activityStudents.studentId, session.userId))
+        .where(eq(schema.activityStudents.studentId, studentId))
         .all();
       const ids = new Set(assigned.map((a) => a.activityId));
       all = db
@@ -189,7 +194,30 @@ export async function activitiesRoutes(app: FastifyInstance) {
         .filter((a) => ids.has(a.id));
     }
 
-    return { items: all.slice(offset, offset + pageSize), total: all.length, page, pageSize };
+    const items = all.slice(offset, offset + pageSize);
+    if (session.role === "teacher" && studentId) {
+      const answers = db
+        .select({
+          activityId: schema.activityAnswers.activityId,
+          score: schema.activityAnswers.score,
+          total: schema.activityAnswers.total,
+          submittedAt: schema.activityAnswers.submittedAt,
+        })
+        .from(schema.activityAnswers)
+        .where(eq(schema.activityAnswers.studentId, studentId))
+        .all();
+      const byActivity = new Map(answers.map((a) => [a.activityId, a]));
+      const withAnswers = items.map((a) => {
+        const answer = byActivity.get(a.id);
+        return {
+          ...a,
+          studentAnswer: answer ? { score: answer.score, total: answer.total, submittedAt: answer.submittedAt } : null,
+        };
+      });
+      return { items: withAnswers, total: all.length, page, pageSize };
+    }
+
+    return { items, total: all.length, page, pageSize };
   });
 
   app.post("/api/activities/generate-questions", { preHandler: requireTeacher }, async (req, reply) => {
