@@ -55,6 +55,18 @@ function formatTime(iso: string, locale: string) {
   return d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
 }
 
+function formatDayAndTime(iso: string, locale: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString(locale, { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+// "YYYY-MM-DD" no fuso de quem está vendo — é o formato que o filtro de datas da tela de aulas usa.
+function localDateKey(iso: string) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export default function Overview() {
   const { user } = useAuth();
   const { t, locale } = usePortalPrefs();
@@ -146,48 +158,73 @@ export default function Overview() {
               <X className="h-4 w-4" />
             </Button>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-3">
             {newContent.lessons.length > 0 && (
-              <p className="text-sm">
-                {newContent.lessons.length === 1
-                  ? t("1 aula nova foi marcada", "1 new lesson was scheduled")
-                  : t(
-                      `${newContent.lessons.length} aulas novas foram marcadas`,
-                      `${newContent.lessons.length} new lessons were scheduled`,
-                    )}{" "}
-                —{" "}
-                <Link to="/portal/aulas" onClick={dismissNewContent} className="text-primary hover:underline">
-                  {t("ver aulas", "see lessons")}
-                </Link>
-              </p>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">
+                  {newContent.lessons.length === 1
+                    ? t("1 aula nova foi marcada:", "1 new lesson was scheduled:")
+                    : t(
+                        `${newContent.lessons.length} aulas novas foram marcadas:`,
+                        `${newContent.lessons.length} new lessons were scheduled:`,
+                      )}
+                </p>
+                <ul className="space-y-0.5 text-sm">
+                  {newContent.lessons.map((lesson) => (
+                    <li key={lesson.id}>
+                      <Link
+                        to={`/portal/aulas?dia=${localDateKey(lesson.scheduledAt)}&aula=${lesson.id}`}
+                        onClick={dismissNewContent}
+                        className="text-primary underline underline-offset-2 hover:opacity-70"
+                      >
+                        {formatDayAndTime(lesson.scheduledAt, locale)} · {lesson.subject}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
             {newContent.activities.length > 0 && (
-              <p className="text-sm">
-                {newContent.activities.length === 1
-                  ? t("1 atividade nova foi adicionada", "1 new activity was added")
-                  : t(
-                      `${newContent.activities.length} atividades novas foram adicionadas`,
-                      `${newContent.activities.length} new activities were added`,
-                    )}{" "}
-                —{" "}
-                <Link to="/portal/atividades" onClick={dismissNewContent} className="text-primary hover:underline">
-                  {t("ver atividades", "see activities")}
-                </Link>
-              </p>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">
+                  {newContent.activities.length === 1
+                    ? t("1 atividade nova foi adicionada:", "1 new activity was added:")
+                    : t(
+                        `${newContent.activities.length} atividades novas foram adicionadas:`,
+                        `${newContent.activities.length} new activities were added:`,
+                      )}
+                </p>
+                <ul className="space-y-0.5 text-sm">
+                  {newContent.activities.map((activity) => (
+                    <li key={activity.id}>
+                      <Link to={`/portal/atividades/${activity.id}`} onClick={dismissNewContent} className="text-primary underline underline-offset-2 hover:opacity-70">
+                        {activity.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
             {newContent.forumPosts.length > 0 && (
-              <p className="text-sm">
-                {newContent.forumPosts.length === 1
-                  ? t("1 publicação nova no fórum", "1 new forum post")
-                  : t(
-                      `${newContent.forumPosts.length} publicações novas no fórum`,
-                      `${newContent.forumPosts.length} new forum posts`,
-                    )}{" "}
-                —{" "}
-                <Link to="/portal/forum" onClick={dismissNewContent} className="text-primary hover:underline">
-                  {t("ver fórum", "see forum")}
-                </Link>
-              </p>
+              <div className="space-y-1">
+                <p className="text-sm font-medium">
+                  {newContent.forumPosts.length === 1
+                    ? t("1 publicação nova no fórum:", "1 new forum post:")
+                    : t(
+                        `${newContent.forumPosts.length} publicações novas no fórum:`,
+                        `${newContent.forumPosts.length} new forum posts:`,
+                      )}
+                </p>
+                <ul className="space-y-0.5 text-sm">
+                  {newContent.forumPosts.map((post) => (
+                    <li key={post.id}>
+                      <Link to={`/portal/forum/${post.id}`} onClick={dismissNewContent} className="text-primary underline underline-offset-2 hover:opacity-70">
+                        {post.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </CardContent>
         </Card>

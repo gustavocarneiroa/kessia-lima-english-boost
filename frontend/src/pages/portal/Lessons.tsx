@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
@@ -96,8 +97,13 @@ export default function Lessons() {
 
   const [page, setPage] = useState(1);
   const [filterStudentId, setFilterStudentId] = useState("");
-  const [filterFrom, setFilterFrom] = useState("");
-  const [filterTo, setFilterTo] = useState("");
+  // Vindo do aviso de novidades da tela inicial: já abre filtrado no dia da aula e com ela destacada.
+  const [searchParams] = useSearchParams();
+  const focusLessonId = searchParams.get("aula");
+  const diaParam = searchParams.get("dia") ?? "";
+  const focusDay = /^\d{4}-\d{2}-\d{2}$/.test(diaParam) ? diaParam : "";
+  const [filterFrom, setFilterFrom] = useState(focusDay);
+  const [filterTo, setFilterTo] = useState(focusDay);
   const [filterAttended, setFilterAttended] = useState("");
   const [filterMakeup, setFilterMakeup] = useState("");
 
@@ -493,7 +499,12 @@ export default function Lessons() {
           ) : (
             <ul className="divide-y">
               {lessons.map((lesson) => (
-                <li key={lesson.id} className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <li
+                  key={lesson.id}
+                  className={`flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between ${
+                    lesson.id === focusLessonId ? "-mx-3 rounded-lg bg-primary/10 px-3" : ""
+                  }`}
+                >
                   <div className="min-w-0 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-medium">{lesson.subject}</p>
