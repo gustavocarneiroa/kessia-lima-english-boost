@@ -50,7 +50,18 @@ export const vocabCards = sqliteTable("vocab_cards", {
   createdAt: text("created_at").notNull(),
 });
 
-export const vocabListStudents = sqliteTable("vocab_list_students", {
+// Flashcards que o próprio aluno cria (palavra, definição e um exemplo). Um
+// baralho só por aluno — só ele e a professora veem (ela pode corrigir/apagar).
+export const studentFlashcards = sqliteTable("student_flashcards", {
+  id: text("id").primaryKey(),
+  studentId: text("student_id").notNull().references(() => users.id),
+  word: text("word").notNull(),
+  definition: text("definition").notNull(),
+  example: text("example"),
+  createdAt: text("created_at").notNull(),
+});
+
+export const vocabListStudents =sqliteTable("vocab_list_students", {
   listId: text("list_id").notNull().references(() => vocabLists.id),
   studentId: text("student_id").notNull().references(() => users.id),
 });

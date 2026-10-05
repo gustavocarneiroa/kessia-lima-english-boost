@@ -90,6 +90,17 @@ sqlite.exec(`
     PRIMARY KEY (list_id, student_id)
   );
 
+  CREATE TABLE IF NOT EXISTS student_flashcards (
+    id TEXT PRIMARY KEY,
+    student_id TEXT NOT NULL REFERENCES users(id),
+    word TEXT NOT NULL,
+    definition TEXT NOT NULL,
+    example TEXT,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS student_flashcards_student_id_idx ON student_flashcards(student_id);
+
   CREATE TABLE IF NOT EXISTS activities (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,

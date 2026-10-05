@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Plus } from "lucide-react";
 import Pagination from "@/components/Pagination";
+import StudentFlashcards from "./StudentFlashcards";
 
 const PAGE_SIZE = 20;
 
@@ -135,6 +136,8 @@ export default function VocabLists() {
           <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
         </CardContent>
       </Card>
+
+      <StudentFlashcards />
     </div>
   );
 }
