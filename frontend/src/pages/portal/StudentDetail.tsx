@@ -230,6 +230,8 @@ export default function StudentDetail() {
         )}
       </div>
 
+      {id && <StudentAssignments studentId={id} />}
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t("Perfil", "Profile")}</CardTitle>
@@ -467,8 +469,6 @@ export default function StudentDetail() {
           </p>
         </CardContent>
       </Card>
-
-      {id && <StudentAssignments studentId={id} />}
     </div>
   );
 }
