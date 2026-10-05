@@ -8,32 +8,19 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  CalendarDays,
   Cake,
-  ClipboardList,
-  Layers,
   Loader2,
-  Smartphone,
   Sparkles,
-  Users,
   Link as LinkIcon,
   ExternalLink,
   MessagesSquare,
   Puzzle,
   Trophy,
   X,
-  type LucideIcon,
 } from "lucide-react";
 import { useWordle, useWordleLeaderboard } from "@/hooks/useWordle";
 import NoticeBoard from "./NoticeBoard";
 
-interface ShortcutItem {
-  to: string;
-  label: [pt: string, en: string];
-  description: [pt: string, en: string];
-  icon: LucideIcon;
-  teacherOnly?: boolean;
-}
 
 interface Birthday {
   id: string;
@@ -61,45 +48,6 @@ interface Lesson {
   makeupScheduled: boolean;
 }
 
-const shortcuts: ShortcutItem[] = [
-  {
-    to: "/portal/aulas",
-    label: ["Aulas", "Lessons"],
-    description: ["Datas, horários, links e presença", "Dates, times, links and attendance"],
-    icon: CalendarDays,
-  },
-  {
-    to: "/portal/atividades",
-    label: ["Atividades", "Activities"],
-    description: ["Exercícios para praticar o conteúdo", "Exercises to practice what you learned"],
-    icon: ClipboardList,
-  },
-  {
-    to: "/portal/vocabulario",
-    label: ["Vocabulário", "Vocabulary"],
-    description: ["Listas de palavras para estudar", "Word lists to study"],
-    icon: Layers,
-  },
-  {
-    to: "/portal/forum",
-    label: ["Fórum", "Forum"],
-    description: ["Artigos, links e conversas com a turma", "Articles, links and chats with the class"],
-    icon: MessagesSquare,
-  },
-  {
-    to: "/portal/alunos",
-    label: ["Alunos", "Students"],
-    description: ["Cadastro e perfil de cada aluno", "Each student's registration and profile"],
-    icon: Users,
-    teacherOnly: true,
-  },
-  {
-    to: "/portal/dispositivos",
-    label: ["Dispositivos", "Devices"],
-    description: ["Entrar sem senha com biometria", "Sign in without a password using biometrics"],
-    icon: Smartphone,
-  },
-];
 
 function formatTime(iso: string, locale: string) {
   const d = new Date(iso);
@@ -176,7 +124,6 @@ export default function Overview() {
   }
 
   if (!user) return null;
-  const visibleShortcuts = shortcuts.filter((s) => !s.teacherOnly || isTeacher);
 
   return (
     <div className="space-y-1">
@@ -398,24 +345,6 @@ export default function Overview() {
           </div>
         </CardContent>
       </Card>
-
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {visibleShortcuts.map((item) => (
-          <Link key={item.to} to={item.to}>
-            <Card className="h-full transition-colors hover:bg-muted/50">
-              <CardContent className="flex items-start gap-3 pt-6">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <item.icon className="h-5 w-5 text-primary" />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-medium">{t(...item.label)}</p>
-                  <p className="text-sm text-muted-foreground">{t(...item.description)}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
     </div>
   );
 }
