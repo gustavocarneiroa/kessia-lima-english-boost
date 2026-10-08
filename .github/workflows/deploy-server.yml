@@ -24,14 +24,60 @@ jobs:
           ssh-keyscan -H 45.90.123.41 >> ~/.ssh/known_hosts
 
       - name: Deploy via SSH
+        env:
+          NODE_ENV: ${{ secrets.NODE_ENV }}
+          PORT: ${{ secrets.PORT }}
+          HOST: ${{ secrets.HOST }}
+          DATABASE_PATH: ${{ secrets.DATABASE_PATH }}
+          AUDIO_DIR: ${{ secrets.AUDIO_DIR }}
+          PUBLIC_WEB_ORIGIN: ${{ secrets.PUBLIC_WEB_ORIGIN }}
+          EXTRA_CORS_ORIGINS: ${{ secrets.EXTRA_CORS_ORIGINS }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          TEACHER_EMAIL_DOMAIN: ${{ secrets.TEACHER_EMAIL_DOMAIN }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          WEBAUTHN_RP_ID: ${{ secrets.WEBAUTHN_RP_ID }}
+          WEBAUTHN_RP_NAME: ${{ secrets.WEBAUTHN_RP_NAME }}
+          MERRIAM_WEBSTER_LEARNERS_KEY: ${{ secrets.MERRIAM_WEBSTER_LEARNERS_KEY }}
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
         run: |
+          umask 077
+          : > "$RUNNER_TEMP/server.env"
+          write() {
+            if [ -z "$2" ]; then
+              if [ "$3" = yes ]; then
+                echo "Falta o secret $1"
+                exit 1
+              fi
+              return 0
+            fi
+            printf '%s=%s\n' "$1" "$2" >> "$RUNNER_TEMP/server.env"
+          }
+          write NODE_ENV "$NODE_ENV" yes
+          write PORT "$PORT" yes
+          write HOST "$HOST" yes
+          write DATABASE_PATH "$DATABASE_PATH" yes
+          write AUDIO_DIR "$AUDIO_DIR" no
+          write PUBLIC_WEB_ORIGIN "$PUBLIC_WEB_ORIGIN" yes
+          write EXTRA_CORS_ORIGINS "$EXTRA_CORS_ORIGINS" no
+          write JWT_SECRET "$JWT_SECRET" yes
+          write TEACHER_EMAIL_DOMAIN "$TEACHER_EMAIL_DOMAIN" yes
+          write ADMIN_EMAIL "$ADMIN_EMAIL" yes
+          write WEBAUTHN_RP_ID "$WEBAUTHN_RP_ID" yes
+          write WEBAUTHN_RP_NAME "$WEBAUTHN_RP_NAME" yes
+          write MERRIAM_WEBSTER_LEARNERS_KEY "$MERRIAM_WEBSTER_LEARNERS_KEY" yes
+          write PEXELS_API_KEY "$PEXELS_API_KEY" no
+          scp -i ~/.ssh/deploy_key "$RUNNER_TEMP/server.env" kessia@45.90.123.41:/home/kessia/server.env
           ssh -i ~/.ssh/deploy_key kessia@45.90.123.41 'bash -s' <<'REMOTE'
           set -euo pipefail
+          trap 'rm -f /home/kessia/server.env' EXIT
           export PATH=/opt/node22/bin:$PATH
           cd /home/kessia/app
 
           git fetch origin main
           git reset --hard origin/main
+
+          sed -i 's/\r$//' /home/kessia/server.env
+          install -m 600 /home/kessia/server.env server/.env
 
           cd server
           npm ci --omit=dev
