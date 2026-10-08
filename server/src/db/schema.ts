@@ -25,6 +25,7 @@ export const studentProfiles = sqliteTable("student_profiles", {
   contractStart: text("contract_start"), // início do contrato, "YYYY-MM-DD"
   contractEnd: text("contract_end"), // fim do contrato, "YYYY-MM-DD" — null se em andamento
   notes: text("notes"), // observações gerais
+  driveFolderUrl: text("drive_folder_url"), // link da pasta do aluno no Google Drive (o aluno também vê)
   updatedAt: text("updated_at").notNull(),
 });
 

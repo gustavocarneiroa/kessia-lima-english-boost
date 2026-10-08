@@ -298,6 +298,11 @@ try {
 } catch {
   // já existe
 }
+try {
+  sqlite.exec(`ALTER TABLE student_profiles ADD COLUMN drive_folder_url TEXT`);
+} catch {
+  // já existe
+}
 
 try {
   sqlite.exec(`ALTER TABLE activity_answers ADD COLUMN manual_grades TEXT`);

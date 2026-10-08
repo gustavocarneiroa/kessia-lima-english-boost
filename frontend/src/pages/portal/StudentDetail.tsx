@@ -36,6 +36,7 @@ interface StudentProfile {
   contractStart?: string | null;
   contractEnd?: string | null;
   notes?: string | null;
+  driveFolderUrl?: string | null;
   updatedAt?: string;
 }
 
@@ -78,6 +79,7 @@ const emptyProfile: StudentProfile = {
   contractStart: "",
   contractEnd: "",
   notes: "",
+  driveFolderUrl: "",
 };
 
 function formatDateTime(iso: string, locale: string) {
@@ -286,6 +288,37 @@ export default function StudentDetail() {
                     onChange={(e) => setProfile({ ...profile, englishLevel: e.target.value })}
                   />
                 </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="driveFolderUrl">{t("Pasta no Google Drive", "Google Drive folder")}</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="driveFolderUrl"
+                    type="url"
+                    placeholder="https://drive.google.com/drive/folders/..."
+                    value={profile.driveFolderUrl ?? ""}
+                    onChange={(e) => setProfile({ ...profile, driveFolderUrl: e.target.value })}
+                  />
+                  {profile.driveFolderUrl?.trim() && (
+                    <Button asChild type="button" variant="outline" size="icon" className="shrink-0">
+                      <a
+                        href={profile.driveFolderUrl.trim()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={t("Abrir pasta", "Open folder")}
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t(
+                    "O aluno também vê esse link em \"Meu perfil\". Lembre de compartilhar a pasta com o e-mail dele no Drive.",
+                    "The student also sees this link in \"My profile\". Remember to share the folder with their email in Drive.",
+                  )}
+                </p>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">

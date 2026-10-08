@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, FolderOpen, ExternalLink } from "lucide-react";
 import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 
 interface Profile {
@@ -17,6 +18,7 @@ interface Profile {
   paymentDueDay?: string | null;
   contractStart?: string | null;
   contractEnd?: string | null;
+  driveFolderUrl?: string | null;
 }
 
 const WEEKDAY_LABELS: Record<string, [pt: string, en: string]> = {
@@ -65,6 +67,27 @@ export default function MyProfile() {
         <h1 className="text-2xl font-semibold tracking-tight">{t("Meu perfil", "My profile")}</h1>
         <p className="text-muted-foreground">{t("Seus dados cadastrados pela professora.", "Your details, as registered by your teacher.")}</p>
       </div>
+
+      {profile?.driveFolderUrl && (
+        <Card>
+          <CardContent className="flex flex-wrap items-center justify-between gap-3 pt-6">
+            <div className="flex items-center gap-3">
+              <FolderOpen className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium">{t("Minha pasta no Google Drive", "My Google Drive folder")}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("Materiais e arquivos que a professora separou pra você.", "Materials and files your teacher set aside for you.")}
+                </p>
+              </div>
+            </div>
+            <Button asChild>
+              <a href={profile.driveFolderUrl} target="_blank" rel="noopener noreferrer">
+                {t("Abrir pasta", "Open folder")} <ExternalLink className="ml-1 h-4 w-4" />
+              </a>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

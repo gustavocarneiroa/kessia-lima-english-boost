@@ -61,6 +61,14 @@ const profileBody = z.object({
     .optional()
     .nullable(),
   notes: z.string().trim().max(2000).optional().nullable(),
+  driveFolderUrl: z
+    .string()
+    .trim()
+    .max(1000)
+    .regex(/^https?:\/\/\S+$/)
+    .or(z.literal(""))
+    .optional()
+    .nullable(),
 });
 
 export async function studentRoutes(app: FastifyInstance) {
@@ -249,6 +257,7 @@ export async function studentRoutes(app: FastifyInstance) {
         paymentDueDay: schema.studentProfiles.paymentDueDay,
         contractStart: schema.studentProfiles.contractStart,
         contractEnd: schema.studentProfiles.contractEnd,
+        driveFolderUrl: schema.studentProfiles.driveFolderUrl,
       })
       .from(schema.studentProfiles)
       .where(eq(schema.studentProfiles.userId, session.userId))
@@ -331,7 +340,13 @@ export async function studentRoutes(app: FastifyInstance) {
 
     const parsed = profileBody.safeParse(req.body);
     if (!parsed.success) {
-      return reply.code(400).send({ error: "invalid_body", message: "Dados do perfil inválidos." });
+      const driveLinkInvalid = parsed.error.issues.some((i) => i.path[0] === "driveFolderUrl");
+      return reply.code(400).send({
+        error: "invalid_body",
+        message: driveLinkInvalid
+          ? "O link da pasta do Drive precisa começar com https://"
+          : "Dados do perfil inválidos.",
+      });
     }
 
     const values = {
@@ -350,6 +365,7 @@ export async function studentRoutes(app: FastifyInstance) {
       contractStart: parsed.data.contractStart || null,
       contractEnd: parsed.data.contractEnd || null,
       notes: parsed.data.notes || null,
+      driveFolderUrl: parsed.data.driveFolderUrl || null,
       updatedAt: new Date().toISOString(),
     };
 
