@@ -18,6 +18,10 @@ import { forumRoutes } from "./modules/forum/routes.ts";
 import { noticeRoutes } from "./modules/notices/routes.ts";
 import { practiceResourceRoutes } from "./modules/resources/routes.ts";
 import { flashcardRoutes } from "./modules/flashcards/routes.ts";
+import { quoteRoutes } from "./modules/quotes/routes.ts";
+import { daysOffRoutes } from "./modules/daysOff/routes.ts";
+import { contractRoutes } from "./modules/contracts/routes.ts";
+import { startHolidaySync } from "./lib/holidays.ts";
 
 const app = Fastify({
   logger: { level: env.NODE_ENV === "production" ? "info" : "debug" },
@@ -49,6 +53,9 @@ await app.register(paymentRoutes);
 await app.register(noticeRoutes);
 await app.register(practiceResourceRoutes);
 await app.register(flashcardRoutes);
+await app.register(quoteRoutes);
+await app.register(daysOffRoutes);
+await app.register(contractRoutes);
 
 app.setErrorHandler((err: unknown, req, reply) => {
   req.log.error({ err }, "erro não tratado");
@@ -64,3 +71,5 @@ app.setErrorHandler((err: unknown, req, reply) => {
 });
 
 await app.listen({ port: env.PORT, host: env.HOST });
+
+startHolidaySync(app.log);

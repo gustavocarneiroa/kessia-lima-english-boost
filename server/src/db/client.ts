@@ -248,6 +248,39 @@ sqlite.exec(`
     created_at TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS days_off (
+    id TEXT PRIMARY KEY,
+    start TEXT NOT NULL,
+    end TEXT NOT NULL,
+    label TEXT NOT NULL,
+    kind TEXT NOT NULL CHECK (kind IN ('holiday', 'teacher_day', 'custom')),
+    created_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS days_off_start_idx ON days_off(start);
+
+  CREATE TABLE IF NOT EXISTS student_contracts (
+    id TEXT PRIMARY KEY,
+    student_id TEXT NOT NULL REFERENCES users(id),
+    quote_id TEXT,
+    data TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS student_contracts_student_id_idx ON student_contracts(student_id);
+
+  CREATE TABLE IF NOT EXISTS quotes (
+    id TEXT PRIMARY KEY,
+    student_name TEXT NOT NULL,
+    email TEXT,
+    phone TEXT,
+    total_cents INTEGER NOT NULL,
+    data TEXT NOT NULL,
+    contracts TEXT NOT NULL DEFAULT '[]',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS app_settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL,
@@ -300,6 +333,11 @@ try {
 }
 try {
   sqlite.exec(`ALTER TABLE student_profiles ADD COLUMN drive_folder_url TEXT`);
+} catch {
+  // já existe
+}
+try {
+  sqlite.exec(`ALTER TABLE student_profiles ADD COLUMN class_schedule TEXT`);
 } catch {
   // já existe
 }

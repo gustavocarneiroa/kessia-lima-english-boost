@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   CalendarDays,
+  CalendarRange,
+  Calculator,
   GraduationCap,
   Languages,
   Library,
@@ -60,7 +62,9 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/portal/atividades", icon: Puzzle, label: ["Atividades", "Activities"] },
   { to: "/portal/recursos", icon: Library, label: ["Recursos", "Resources"], tooltip: ["Recursos para praticar", "Practice resources"] },
   { to: "/portal/forum", icon: MessagesSquare, label: ["Fórum", "Forum"] },
+  { to: "/portal/calendario", icon: CalendarRange, label: ["Calendário", "Calendar"] },
   { to: "/portal/financeiro", icon: Wallet, label: ["Financeiro", "Payments"] },
+  { to: "/portal/orcamentos", icon: Calculator, label: ["Orçamentos", "Quotes"], only: "teacher" },
   { to: "/portal/alunos", icon: Users, label: ["Alunos", "Students"], only: "teacher" },
   { to: "/portal/perfil", icon: User, label: ["Meu perfil", "My profile"], only: "student" },
   { to: "/portal/dispositivos", icon: Smartphone, label: ["Dispositivos", "Devices"] },

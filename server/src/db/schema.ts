@@ -27,6 +27,7 @@ export const studentProfiles = sqliteTable("student_profiles", {
   contractEnd: text("contract_end"), // fim do contrato, "YYYY-MM-DD" — null se em andamento
   notes: text("notes"), // observações gerais
   driveFolderUrl: text("drive_folder_url"), // link da pasta do aluno no Google Drive (o aluno também vê)
+  classSchedule: text("class_schedule"), // JSON [{ weekday: 0-6, time: "HH:MM", hours }] — vem do contrato; base do calendário do aluno
   updatedAt: text("updated_at").notNull(),
 });
 
@@ -205,6 +206,45 @@ export const payments = sqliteTable("payments", {
   paidAt: text("paid_at"), // "YYYY-MM-DD" — null = ainda não paga
   boletoPath: text("boleto_path"), // nome do PDF em data/boletos — null = sem boleto anexado
   createdAt: text("created_at").notNull(),
+});
+
+// Dias em que a professora não dá aula — valem pra todos os alunos e aparecem no
+// calendário deles. Feriados nacionais e Dia do Professor entram sozinhos (ver
+// lib/holidays.ts); férias e outras folgas ela adiciona. start === end pra um dia só.
+export const daysOff = sqliteTable("days_off", {
+  id: text("id").primaryKey(),
+  start: text("start").notNull(), // "YYYY-MM-DD"
+  end: text("end").notNull(), // "YYYY-MM-DD"
+  label: text("label").notNull(),
+  kind: text("kind", { enum: ["holiday", "teacher_day", "custom"] }).notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
+// Contrato gerado ao "virar contrato" um orçamento. "data" guarda tudo que vai no
+// texto (dados do aluno, plano, horários, valores) como estava no dia — mudar o
+// cadastro depois não altera um contrato já feito.
+export const studentContracts = sqliteTable("student_contracts", {
+  id: text("id").primaryKey(),
+  studentId: text("student_id").notNull().references(() => users.id),
+  quoteId: text("quote_id"),
+  data: text("data").notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
+// Orçamentos que a professora monta (aba "Orçamentos" do portal). Os campos do
+// formulário e o resultado do cálculo ficam juntos em "data" (JSON), já que só a
+// tela do orçamento lê isso. "contracts" lista os alunos que viraram contrato a
+// partir dele (um orçamento de dupla/trio vira um contrato por aluno).
+export const quotes = sqliteTable("quotes", {
+  id: text("id").primaryKey(),
+  studentName: text("student_name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  totalCents: integer("total_cents").notNull(),
+  data: text("data").notNull(),
+  contracts: text("contracts").notNull().default("[]"), // [{ studentId, convertedAt }]
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
 });
 
 // Quadro de avisos: aparece sempre na tela inicial de todos os alunos. Só a

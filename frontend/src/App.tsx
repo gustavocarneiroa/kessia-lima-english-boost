@@ -27,6 +27,10 @@ import Forum from "./pages/portal/Forum";
 import ForumPost from "./pages/portal/ForumPost";
 import Finance from "./pages/portal/Finance";
 import Resources from "./pages/portal/Resources";
+import Quotes from "./pages/portal/Quotes";
+import QuoteEditor from "./pages/portal/QuoteEditor";
+import Calendar from "./pages/portal/Calendar";
+import ContractView from "./pages/ContractView";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +47,7 @@ const App = () => (
             <Route path="/wordle" element={<Wordle />} />
             <Route path="/login" element={<Login />} />
             <Route path="/redefinir-senha" element={<ResetPassword />} />
+            <Route path="/contrato/:id" element={<ContractView />} />
             <Route path="/portal" element={<PortalLayout />}>
               <Route index element={<PortalOverview />} />
               <Route path="alunos" element={<PortalStudents />} />
@@ -59,6 +64,10 @@ const App = () => (
               <Route path="forum" element={<Forum />} />
               <Route path="forum/:id" element={<ForumPost />} />
               <Route path="financeiro" element={<Finance />} />
+              <Route path="calendario" element={<Calendar />} />
+              <Route path="orcamentos" element={<Quotes />} />
+              <Route path="orcamentos/novo" element={<QuoteEditor />} />
+              <Route path="orcamentos/:id" element={<QuoteEditor />} />
               <Route path="configuracoes" element={<Settings />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

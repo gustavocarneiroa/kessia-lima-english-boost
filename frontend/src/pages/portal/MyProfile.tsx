@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, FolderOpen, ExternalLink } from "lucide-react";
 import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
+import ContractsCard from "./ContractsCard";
 
 interface Profile {
   fullName?: string | null;
@@ -88,6 +89,8 @@ export default function MyProfile() {
           </CardContent>
         </Card>
       )}
+
+      <ContractsCard path="/api/me/contracts" />
 
       <Card>
         <CardHeader>

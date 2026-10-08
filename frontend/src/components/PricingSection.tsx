@@ -9,6 +9,7 @@ import { NumberTicker } from './ui/number-ticket';
 import { siteConfig } from '@/config/siteConfig';
 import { Modal, ModalBody, ModalContent, ModalFooter, useModal } from '@/components/ui/animated-modal';
 import { motion } from 'motion/react';
+import { DURATIONS, PLAN_NAMES, usePricing, type Pricing, type Shift } from '@/lib/pricing';
 
 const PricingSection = () => {
   const { t } = useLanguage();
@@ -33,83 +34,26 @@ const PricingSection = () => {
     return null;
   };
 
-  const morningPlans = [
-    {
-      package: 'Start',
-      classes: 12,
-      months: 3,
-      originalPrice: 840,
-      discountPrice: null,
-      discount: null,
-      isRecommended: false
-    },
-    {
-      package: 'Progress',
-      classes: 24,
-      months: 6,
-      originalPrice: 1680,
-      discountPrice: 1596,
-      discount: '5%',
-      isRecommended: true
-    },
-    {
-      package: 'Advance',
-      classes: 36,
-      months: 9,
-      originalPrice: 2520,
-      discountPrice: 2268,
-      discount: '10%',
-      isRecommended: false
-    },
-    {
-      package: 'Master',
-      classes: 48,
-      months: 12,
-      originalPrice: 3360,
-      discountPrice: 2856,
-      discount: '15%',
-      isRecommended: false
-    }
-  ];
-
-  const nightPlans = [
-    {
-      package: 'Start',
-      classes: 12,
-      months: 3,
-      originalPrice: 1080,
-      discountPrice: null,
-      discount: null,
-      isRecommended: false
-    },
-    {
-      package: 'Progress',
-      classes: 24,
-      months: 6,
-      originalPrice: 2160,
-      discountPrice: 2052,
-      discount: '5%',
-      isRecommended: true
-    },
-    {
-      package: 'Advance',
-      classes: 36,
-      months: 9,
-      originalPrice: 3240,
-      discountPrice: 2916,
-      discount: '10%',
-      isRecommended: false
-    },
-    {
-      package: 'Master',
-      classes: 48,
-      months: 12,
-      originalPrice: 4320,
-      discountPrice: 3672,
-      discount: '15%',
-      isRecommended: false
-    }
-  ];
+  // Preços vêm das Configurações do portal (mesmos valores usados nos orçamentos).
+  // 4 aulas de 1h por mês para cada dia da semana; desconto conforme a duração.
+  const { pricing } = usePricing();
+  const buildPlans = (shift: Shift) =>
+    DURATIONS.map((months) => {
+      const classes = months * 4;
+      const originalPrice = Math.round(classes * pricing[shift].individual);
+      const discountPercent = pricing.durationDiscounts[String(months) as keyof Pricing["durationDiscounts"]];
+      return {
+        package: PLAN_NAMES[months],
+        classes,
+        months,
+        originalPrice,
+        discountPrice: discountPercent > 0 ? Math.round(originalPrice * (1 - discountPercent / 100)) : null,
+        discount: discountPercent > 0 ? `${discountPercent}%` : null,
+        isRecommended: months === 6,
+      };
+    });
+  const morningPlans = buildPlans("day");
+  const nightPlans = buildPlans("night");
 
   const formatPrice = (price: number) => {
     return `R$${price.toLocaleString('pt-BR')}`;

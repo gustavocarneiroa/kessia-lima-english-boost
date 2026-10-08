@@ -94,6 +94,19 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   antigas — **não é o banco do sistema de login**, que é SQLite separado.
 - `frontend/.env` está versionado no git com as chaves do Supabase (chave pública,
   não é segredo) — isso já vinha de antes desta reestruturação.
+- **Orçamentos → contratos** (`/portal/orcamentos`, só professora): recria o antigo
+  gustavocarneiroa.github.io/orcamento. Preços (hora/aula dia/noite × individual/
+  dupla/trio, descontos por duração 3/6/9/12 meses) ficam em Configurações
+  (`app_settings` chave `pricing`, rota pública `GET /api/pricing`) e alimentam
+  também a seção de preços da landing (`PricingSection.tsx`). "Virar contrato" cria/
+  atualiza o aluno, grava `class_schedule` no perfil, gera as parcelas (1ª na
+  assinatura, demais no dia de vencimento) e um `student_contracts` cujo texto é o
+  modelo de contrato da professora (`frontend/src/pages/ContractView.tsx`, rota
+  `/contrato/:id`, fora do layout do portal pra imprimir/salvar PDF).
+- **Dias sem aula** (`days_off`, aba "Calendário"): valem pra todos; o aluno vê no
+  calendário dele. Feriados nacionais (BrasilAPI) + Dia do Professor são importados
+  pelo servidor sempre do ano atual até +2 (`server/src/lib/holidays.ts`, checa ao
+  subir e a cada 6h; cada ano só uma vez — feriado apagado não volta).
 - Sem banco de dados de alunos ainda além de e-mail/senha — qualquer feature nova
   pra aluno (notas, exercícios, agenda etc.) precisa ser desenhada quando for
   pedida, não existe estrutura pronta pra isso.
