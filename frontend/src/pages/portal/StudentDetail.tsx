@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import StudentAssignments from "./StudentAssignments";
-import { Loader2, ArrowLeft, Link as LinkIcon, ClipboardList, ExternalLink, KeyRound, Copy, Check } from "lucide-react";
+import { Loader2, ArrowLeft, Link as LinkIcon, ClipboardList, ExternalLink, KeyRound, Copy, Check, Archive, ArchiveRestore } from "lucide-react";
 
 interface Student {
   id: string;
@@ -18,6 +18,7 @@ interface Student {
   fullName?: string | null;
   createdAt: string;
   hasLoggedIn: boolean;
+  archivedAt?: string | null;
 }
 
 interface StudentProfile {
@@ -100,6 +101,7 @@ export default function StudentDetail() {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
   const [resetCopied, setResetCopied] = useState(false);
+  const [archiving, setArchiving] = useState(false);
 
   const [profile, setProfile] = useState<StudentProfile>(emptyProfile);
   const [profileLoading, setProfileLoading] = useState(false);
@@ -137,6 +139,30 @@ export default function StudentDetail() {
       })
       .finally(() => setLessonsLoading(false));
   }, [id]);
+
+  async function toggleArchived() {
+    if (!id || !student) return;
+    if (
+      !student.archivedAt &&
+      !window.confirm(
+        t(
+          "Arquivar este aluno? Ele não vai mais conseguir entrar no portal, mas todo o histórico continua guardado.",
+          "Archive this student? They won't be able to log in anymore, but their whole history is kept.",
+        ),
+      )
+    )
+      return;
+    setArchiving(true);
+    try {
+      const res = await api.post<{ archivedAt: string | null }>(
+        `/api/students/${id}/${student.archivedAt ? "unarchive" : "archive"}`,
+      );
+      setStudent((prev) => (prev ? { ...prev, archivedAt: res.archivedAt } : prev));
+      if (res.archivedAt) setResetLink(null);
+    } finally {
+      setArchiving(false);
+    }
+  }
 
   async function generateResetLink() {
     if (!id) return;
@@ -204,12 +230,30 @@ export default function StudentDetail() {
         {student?.fullName && <p className="text-sm text-muted-foreground">{student.email}</p>}
         {student && (
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <Badge variant={student.hasLoggedIn ? "default" : "secondary"}>
-              {student.hasLoggedIn ? t("Já fez login", "Has logged in") : t("Ainda não fez login", "Hasn't logged in yet")}
-            </Badge>
-            <Button variant="outline" size="sm" className="gap-1.5" onClick={generateResetLink} disabled={resetLoading}>
-              {resetLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <KeyRound className="h-3.5 w-3.5" />}
-              {t("Gerar link de redefinição de senha", "Generate password reset link")}
+            {student.archivedAt ? (
+              <Badge variant="outline">
+                {t("Arquivado em", "Archived on")} {new Date(student.archivedAt).toLocaleDateString(locale)}
+              </Badge>
+            ) : (
+              <Badge variant={student.hasLoggedIn ? "default" : "secondary"}>
+                {student.hasLoggedIn ? t("Já fez login", "Has logged in") : t("Ainda não fez login", "Hasn't logged in yet")}
+              </Badge>
+            )}
+            {!student.archivedAt && (
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={generateResetLink} disabled={resetLoading}>
+                {resetLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <KeyRound className="h-3.5 w-3.5" />}
+                {t("Gerar link de redefinição de senha", "Generate password reset link")}
+              </Button>
+            )}
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={toggleArchived} disabled={archiving}>
+              {archiving ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : student.archivedAt ? (
+                <ArchiveRestore className="h-3.5 w-3.5" />
+              ) : (
+                <Archive className="h-3.5 w-3.5" />
+              )}
+              {student.archivedAt ? t("Desarquivar", "Unarchive") : t("Arquivar aluno", "Archive student")}
             </Button>
           </div>
         )}

@@ -1,4 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { eq } from "drizzle-orm";
+import { db, schema } from "../db/client.ts";
 import { SESSION_COOKIE, verifySession, type SessionPayload } from "./jwt.ts";
 
 declare module "fastify" {
@@ -12,8 +14,19 @@ export async function loadSession(req: FastifyRequest) {
   if (!token) return;
   const session = await verifySession(token);
   if (!session) return;
+  if (session.role === "student") {
+    // aluno arquivado (ou excluído) perde o acesso na hora, mesmo com sessão ainda válida
+    const user = db
+      .select({ archivedAt: schema.users.archivedAt })
+      .from(schema.users)
+      .where(eq(schema.users.id, session.userId))
+      .get();
+    if (!user || user.archivedAt) return;
+  }
   req.session = session;
 }
+
+export const ARCHIVED_MESSAGE = "Seu acesso ao portal foi encerrado. Se achar que é um engano, fale com a professora.";
 
 export async function requireAuth(req: FastifyRequest, reply: FastifyReply) {
   if (!req.session) {

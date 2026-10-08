@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { createHash, randomBytes } from "node:crypto";
-import { and, eq, gt, ne, sql } from "drizzle-orm";
+import { and, eq, gt, isNotNull, isNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
 import { requireAuth, requireTeacher } from "../../auth/guards.ts";
@@ -82,24 +82,37 @@ export async function studentRoutes(app: FastifyInstance) {
       })
       .from(schema.studentProfiles)
       .innerJoin(schema.users, eq(schema.users.id, schema.studentProfiles.userId))
-      .where(sql`strftime('%m-%d', ${schema.studentProfiles.birthDate}) = strftime('%m-%d', 'now')`)
+      .where(
+        and(
+          sql`strftime('%m-%d', ${schema.studentProfiles.birthDate}) = strftime('%m-%d', 'now')`,
+          isNull(schema.users.archivedAt),
+        ),
+      )
       .all();
 
     return rows.map((r) => ({ id: r.id, email: r.email, fullName: r.fullName, birthDate: r.birthDate }));
   });
 
   app.get("/api/students", { preHandler: requireTeacher }, async (req) => {
+    // Por padrão só os ativos; "?archived=1" lista os arquivados (aba "Arquivados").
+    const query = req.query as Record<string, unknown>;
+    const filter = and(
+      eq(schema.users.role, "student"),
+      query.archived === "1" ? isNotNull(schema.users.archivedAt) : isNull(schema.users.archivedAt),
+    );
+
     const base = db
       .select({
         id: schema.users.id,
         email: schema.users.email,
         createdAt: schema.users.createdAt,
         passwordHash: schema.users.passwordHash,
+        archivedAt: schema.users.archivedAt,
         fullName: schema.studentProfiles.fullName,
       })
       .from(schema.users)
       .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.users.id))
-      .where(eq(schema.users.role, "student"))
+      .where(filter)
       .orderBy(sql`coalesce(${schema.studentProfiles.fullName}, ${schema.users.email}) collate nocase`);
 
     const toPublic = (s: {
@@ -107,6 +120,7 @@ export async function studentRoutes(app: FastifyInstance) {
       email: string;
       createdAt: string;
       passwordHash: string | null;
+      archivedAt: string | null;
       fullName: string | null;
     }) => ({
       id: s.id,
@@ -114,17 +128,17 @@ export async function studentRoutes(app: FastifyInstance) {
       fullName: s.fullName,
       createdAt: s.createdAt,
       hasLoggedIn: s.passwordHash !== null,
+      archivedAt: s.archivedAt,
     });
 
     // Sem "page" na query: devolve a lista inteira (usado pelos seletores de aluno em
     // aulas/atividades/vocabulário). Com "page": pagina, usado pela tela de listagem.
-    const query = req.query as Record<string, unknown>;
     if (query.page === undefined) {
       return base.all().map(toPublic);
     }
 
     const { page, pageSize, offset } = parsePagination(query);
-    const total = await db.$count(schema.users, eq(schema.users.role, "student"));
+    const total = await db.$count(schema.users, filter);
     const items = base.limit(pageSize).offset(offset).all().map(toPublic);
     return { items, total, page, pageSize };
   });
@@ -146,7 +160,32 @@ export async function studentRoutes(app: FastifyInstance) {
       fullName: profile?.fullName ?? null,
       createdAt: student.createdAt,
       hasLoggedIn: student.passwordHash !== null,
+      archivedAt: student.archivedAt,
     };
+  });
+
+  // Arquivar: o aluno não entra mais no portal e some das listas, mas nada é apagado.
+  app.post("/api/students/:id/archive", { preHandler: requireTeacher }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const student = db.select().from(schema.users).where(eq(schema.users.id, id)).get();
+    if (!student || student.role !== "student") {
+      return reply.code(404).send({ error: "not_found", message: "Aluno não encontrado." });
+    }
+    const archivedAt = student.archivedAt ?? new Date().toISOString();
+    db.update(schema.users).set({ archivedAt }).where(eq(schema.users.id, id)).run();
+    // link de redefinição de senha pendente não deve continuar valendo
+    db.delete(schema.passwordResetTokens).where(eq(schema.passwordResetTokens.userId, id)).run();
+    return { archivedAt };
+  });
+
+  app.post("/api/students/:id/unarchive", { preHandler: requireTeacher }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const student = db.select().from(schema.users).where(eq(schema.users.id, id)).get();
+    if (!student || student.role !== "student") {
+      return reply.code(404).send({ error: "not_found", message: "Aluno não encontrado." });
+    }
+    db.update(schema.users).set({ archivedAt: null }).where(eq(schema.users.id, id)).run();
+    return { archivedAt: null };
   });
 
   app.post("/api/students", { preHandler: requireTeacher }, async (req, reply) => {
@@ -159,7 +198,12 @@ export async function studentRoutes(app: FastifyInstance) {
 
     const existing = db.select().from(schema.users).where(eq(schema.users.email, email)).get();
     if (existing) {
-      return reply.code(409).send({ error: "already_exists", message: "Esse e-mail já está cadastrado." });
+      return reply.code(409).send({
+        error: "already_exists",
+        message: existing.archivedAt
+          ? "Esse e-mail é de um aluno arquivado. Desarquive ele na aba \"Arquivados\"."
+          : "Esse e-mail já está cadastrado.",
+      });
     }
 
     const student = {

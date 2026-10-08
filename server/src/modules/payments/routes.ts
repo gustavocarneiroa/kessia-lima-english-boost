@@ -185,7 +185,7 @@ export async function paymentRoutes(app: FastifyInstance) {
       .select({ id: schema.users.id, email: schema.users.email, profile: schema.studentProfiles })
       .from(schema.users)
       .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.users.id))
-      .where(eq(schema.users.role, "student"))
+      .where(and(eq(schema.users.role, "student"), isNull(schema.users.archivedAt))) // arquivado não ganha mensalidade nova
       .all();
 
     const created: string[] = [];

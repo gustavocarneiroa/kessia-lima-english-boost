@@ -7,6 +7,7 @@ export const users = sqliteTable("users", {
   role: text("role", { enum: ["teacher", "student"] }).notNull(),
   createdAt: text("created_at").notNull(),
   newContentSeenAt: text("new_content_seen_at"), // último momento em que o aluno viu o aviso de novidades na tela inicial
+  archivedAt: text("archived_at"), // aluno arquivado (contrato encerrado): não entra mais no portal, mas os dados ficam
 });
 
 export const studentProfiles = sqliteTable("student_profiles", {

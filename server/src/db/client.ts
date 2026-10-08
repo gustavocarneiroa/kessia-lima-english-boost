@@ -303,6 +303,11 @@ try {
 } catch {
   // já existe
 }
+try {
+  sqlite.exec(`ALTER TABLE users ADD COLUMN archived_at TEXT`);
+} catch {
+  // já existe
+}
 
 try {
   sqlite.exec(`ALTER TABLE activity_answers ADD COLUMN manual_grades TEXT`);

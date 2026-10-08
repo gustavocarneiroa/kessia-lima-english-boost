@@ -9,7 +9,7 @@ import {
 } from "@simplewebauthn/server";
 import { db, schema } from "../../db/client.ts";
 import { env, corsOrigins } from "../../env.ts";
-import { requireAuth } from "../../auth/guards.ts";
+import { requireAuth, ARCHIVED_MESSAGE } from "../../auth/guards.ts";
 import { signSession, sessionCookieOptions, SESSION_COOKIE } from "../../auth/jwt.ts";
 import { saveChallenge, takeChallenge } from "../../lib/challenge-store.ts";
 
@@ -100,6 +100,7 @@ export async function webauthnRoutes(app: FastifyInstance) {
     const email = parsed.data.email.trim().toLowerCase();
     const user = db.select().from(schema.users).where(eq(schema.users.email, email)).get();
     if (!user) return reply.code(404).send({ error: "not_found", message: "E-mail não cadastrado." });
+    if (user.archivedAt) return reply.code(403).send({ error: "archived", message: ARCHIVED_MESSAGE });
 
     const userCredentials = db.select().from(schema.credentials).where(eq(schema.credentials.userId, user.id)).all();
     if (userCredentials.length === 0) {
@@ -130,6 +131,7 @@ export async function webauthnRoutes(app: FastifyInstance) {
 
     const user = db.select().from(schema.users).where(eq(schema.users.email, email)).get();
     if (!user) return reply.code(404).send({ error: "not_found" });
+    if (user.archivedAt) return reply.code(403).send({ error: "archived", message: ARCHIVED_MESSAGE });
 
     const credentialId = (parsed.data.response as { id?: string }).id;
     const credential = credentialId

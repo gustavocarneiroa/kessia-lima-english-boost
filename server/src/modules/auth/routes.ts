@@ -5,7 +5,7 @@ import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
 import { hashPassword, verifyPassword } from "../../lib/password.ts";
 import { signSession, sessionCookieOptions, SESSION_COOKIE } from "../../auth/jwt.ts";
-import { requireAuth } from "../../auth/guards.ts";
+import { requireAuth, ARCHIVED_MESSAGE } from "../../auth/guards.ts";
 
 const loginBody = z.object({
   email: z.string().email(),
@@ -36,6 +36,9 @@ export async function authRoutes(app: FastifyInstance) {
         error: "not_found",
         message: "E-mail não cadastrado. Peça para a professora te adicionar no portal.",
       });
+    }
+    if (user.archivedAt) {
+      return reply.code(403).send({ error: "archived", message: ARCHIVED_MESSAGE });
     }
 
     let firstLogin = false;
