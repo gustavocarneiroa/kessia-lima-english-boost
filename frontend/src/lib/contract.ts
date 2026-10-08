@@ -151,3 +151,35 @@ export function formatLongDate(key: string) {
   const month = new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("pt-BR", { month: "long", timeZone: "UTC" });
   return `${d} de ${month.charAt(0).toUpperCase()}${month.slice(1)} de ${y}`;
 }
+
+// Contrato como o servidor devolve (server/src/modules/contracts/routes.ts).
+export interface ContractRecord {
+  id: string;
+  studentId: string;
+  data: ContractData;
+  signed: boolean;
+  signedUrl: string | null; // modo manual: link colado pela professora
+  signedAt: string | null;
+  // ZapSign: null = contrato do modo manual
+  zapsignStatus: "awaiting_teacher" | "awaiting_student" | "signed" | "refused" | null;
+  teacherSignedAt: string | null;
+  studentSignedAt: string | null;
+  hasSignedPdf: boolean;
+  teacherSignUrl: string | null; // só vem pra professora
+  studentSignUrl: string | null; // só enquanto é a vez do aluno
+  blockAfter: string | null;
+  createdAt: string;
+}
+
+export const CONTRACT_STATUS_LABELS: Record<string, [pt: string, en: string]> = {
+  awaiting_teacher: ["Aguardando a assinatura da teacher", "Awaiting the teacher's signature"],
+  awaiting_student: ["Aguardando a assinatura do aluno", "Awaiting the student's signature"],
+  signed: ["Assinado", "Signed"],
+  refused: ["Recusado", "Refused"],
+  manual_pending: ["Aguardando assinatura", "Awaiting signature"],
+};
+
+export function contractStatusKey(c: Pick<ContractRecord, "signed" | "zapsignStatus">) {
+  if (c.signed) return "signed";
+  return c.zapsignStatus ?? "manual_pending";
+}

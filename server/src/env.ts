@@ -27,6 +27,14 @@ const schema = z.object({
   // Chave da API do Pexels, usada pra buscar a imagem ilustrativa de cada card (pexels.com/api)
   // Opcional por enquanto: sem ela a busca de imagem simplesmente não acontece.
   PEXELS_API_KEY: z.string().min(1).optional(),
+
+  // Assinatura de contratos pelo ZapSign. Sem o token, o portal continua no modo
+  // manual (a professora cola o link do contrato assinado).
+  ZAPSIGN_API_TOKEN: z.string().min(1).optional(),
+  // Produção: https://api.zapsign.com.br — testes: https://sandbox.api.zapsign.com.br
+  ZAPSIGN_API_URL: z.string().url().default("https://api.zapsign.com.br"),
+  // Endereço público deste servidor — o ZapSign avisa as assinaturas em <isso>/api/zapsign/webhook
+  PUBLIC_API_ORIGIN: z.string().url().default("https://api.teacherkessialima.com.br"),
 });
 
 const parsed = schema.safeParse(process.env);

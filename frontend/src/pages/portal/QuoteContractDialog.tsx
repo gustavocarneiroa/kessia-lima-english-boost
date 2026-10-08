@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, ApiError } from "@/lib/api";
 import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
+import ContractDocument from "@/components/ContractDocument";
+import { contractPdfBase64 } from "@/lib/contractPdf";
 
 export interface QuoteContract {
   studentId: string;
@@ -51,6 +53,15 @@ export default function QuoteContractDialog({
   const [signDate, setSignDate] = useState(todayKey());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [zapsignEnabled, setZapsignEnabled] = useState(false);
+  const pdfRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    api
+      .get<{ enabled: boolean }>("/api/settings/zapsign")
+      .then((r) => setZapsignEnabled(r.enabled))
+      .catch(() => setZapsignEnabled(false));
+  }, []);
 
   const schedule = form.days
     .map((d, weekday) => ({ weekday, time: d.time, hours: d.hours }))
@@ -75,19 +86,9 @@ export default function QuoteContractDialog({
     return planInstallments(signDate, dueDay, installments, Math.round(result.installmentTotal * 100));
   }, [paymentMode, dueDay, validDueDay, installments, signDate, form.startDate, form.endDate, result]);
 
-  async function submit() {
-    setError(null);
-    if (missingTime.length) {
-      setError(t(`Falta o horário de: ${missingTime.join(", ")}.`, `Missing the time for: ${missingTime.join(", ")}.`));
-      return;
-    }
-    if (!validDueDay) {
-      setError(t("Dia de vencimento precisa ser entre 1 e 31.", "Due day must be between 1 and 31."));
-      return;
-    }
-    const totalCents = payments.reduce((acc, p) => acc + p.amountCents, 0);
-    const installmentCents = paymentMode === "upfront" ? totalCents : payments[0]?.amountCents ?? 0;
-    const contract: ContractData = {
+  const totalCents = payments.reduce((acc, p) => acc + p.amountCents, 0);
+  const installmentCents = paymentMode === "upfront" ? totalCents : payments[0]?.amountCents ?? 0;
+  const contract: ContractData = {
       student: {
         fullName: student.fullName.trim(),
         document: student.document.trim(),
@@ -111,9 +112,27 @@ export default function QuoteContractDialog({
       signDate,
     };
 
+  async function submit() {
+    setError(null);
+    if (missingTime.length) {
+      setError(t(`Falta o horário de: ${missingTime.join(", ")}.`, `Missing the time for: ${missingTime.join(", ")}.`));
+      return;
+    }
+    if (!validDueDay) {
+      setError(t("Dia de vencimento precisa ser entre 1 e 31.", "Due day must be between 1 and 31."));
+      return;
+    }
+
     setSaving(true);
     try {
+      // Com o ZapSign ligado, o PDF (montado a partir da cópia escondida abaixo) vai junto.
+      let pdfBase64: string | undefined;
+      if (zapsignEnabled) {
+        if (!pdfRef.current) throw new Error("pdf");
+        pdfBase64 = await contractPdfBase64(pdfRef.current);
+      }
       const res = await api.post<{ studentId: string; contractId: string; created: boolean }>(`/api/quotes/${quoteId}/convert`, {
+        pdfBase64,
         email: contract.student.email,
         fullName: contract.student.fullName || null,
         phone: contract.student.phone || null,
@@ -152,10 +171,15 @@ export default function QuoteContractDialog({
         <DialogHeader>
           <DialogTitle>{t("Virar contrato", "Make contract")}</DialogTitle>
           <DialogDescription>
-            {t(
-              "Cadastra o aluno no portal (ou atualiza, se o e-mail já existir), salva os horários e o contrato no perfil dele e cria as cobranças no Financeiro. Depois você abre o contrato pronto pra imprimir ou salvar em PDF.",
-              "Registers the student (or updates them if the email already exists), saves the schedule and contract on their profile and creates the charges in Payments. Then you open the contract, ready to print or save as PDF.",
-            )}
+            {zapsignEnabled
+              ? t(
+                  "Cadastra o aluno no portal (ou atualiza, se o e-mail já existir), cria as cobranças no Financeiro e manda o contrato pro ZapSign. Em seguida abre a tela pra você assinar; depois o ZapSign manda o e-mail pro aluno assinar. O portal do aluno só libera depois que ele assinar.",
+                  "Registers the student (or updates them), creates the charges and sends the contract to ZapSign. Then you sign right away; after that ZapSign emails the student to sign. The student's portal unlocks once they sign.",
+                )
+              : t(
+                  "Cadastra o aluno no portal (ou atualiza, se o e-mail já existir), salva os horários e o contrato no perfil dele e cria as cobranças no Financeiro. Depois você abre o contrato pronto pra imprimir ou salvar em PDF.",
+                  "Registers the student (or updates them if the email already exists), saves the schedule and contract on their profile and creates the charges in Payments. Then you open the contract, ready to print or save as PDF.",
+                )}
           </DialogDescription>
         </DialogHeader>
 
@@ -257,9 +281,15 @@ export default function QuoteContractDialog({
             className="gap-2"
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            {t("Criar contrato", "Create contract")}
+            {zapsignEnabled ? t("Criar e assinar no ZapSign", "Create and sign on ZapSign") : t("Criar contrato", "Create contract")}
           </Button>
         </DialogFooter>
+        {zapsignEnabled && (
+          // cópia escondida do contrato, só pra montar o PDF que vai pro ZapSign
+          <div aria-hidden className="pointer-events-none fixed left-[-10000px] top-0 w-[794px]" ref={pdfRef}>
+            <ContractDocument data={contract} />
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

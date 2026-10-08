@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
+import ContractGate from "./portal/ContractGate";
 
 interface NavItem {
   to: string;
@@ -202,6 +203,7 @@ export default function PortalLayout() {
 
   return (
     <PortalPrefsProvider>
+      <ContractGate enabled={user.role === "student"} onLogout={handleLogout}>
       <SidebarProvider>
         <PortalSidebar user={user} onLogout={handleLogout} />
 
@@ -215,6 +217,7 @@ export default function PortalLayout() {
           </div>
         </SidebarInset>
       </SidebarProvider>
+      </ContractGate>
     </PortalPrefsProvider>
   );
 }

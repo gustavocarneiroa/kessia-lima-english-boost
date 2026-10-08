@@ -63,3 +63,9 @@ export async function fetchBoletoBlob(paymentId: string): Promise<Blob> {
   if (!res.ok) throw new ApiError(res.status, "boleto_error", "Não foi possível baixar o boleto.");
   return res.blob();
 }
+
+export async function fetchSignedContractBlob(contractId: string): Promise<Blob> {
+  const res = await fetch(`${API_URL}/api/contracts/${contractId}/signed-pdf`, { credentials: "include" });
+  if (!res.ok) throw new ApiError(res.status, "contract_error", "Não foi possível baixar o contrato assinado.");
+  return res.blob();
+}

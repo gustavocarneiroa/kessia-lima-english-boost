@@ -4,6 +4,16 @@ import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
 import { requireTeacher } from "../../auth/guards.ts";
 import { parsePagination } from "../../lib/pagination.ts";
+import { createContractDocument, zapsignEnabled } from "../../lib/zapsign.ts";
+import { env } from "../../env.ts";
+
+// Quem assina pela professora no ZapSign (mesmo nome do contrato).
+const TEACHER_SIGNER_NAME = "Kelma Késsia Lima Carneiro";
+
+function formatDateBr(key: string) {
+  const [y, m, d] = key.split("-");
+  return `${d}/${m}/${y}`;
+}
 
 const dateKey = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
@@ -38,6 +48,8 @@ const convertBody = z.object({
     .max(7),
   // Tudo que vai no texto do contrato (dados do aluno, plano, valores) — só a tela do contrato lê.
   contract: z.record(z.unknown()),
+  // PDF do contrato montado na tela (base64, sem o prefixo data:) — vai pro ZapSign.
+  pdfBase64: z.string().max(7_000_000).optional(),
   installmentValue: z.string().trim().max(50),
   paymentDueDay: z.string().regex(/^([1-9]|[12]\d|3[01])$/),
   payments: z
@@ -193,6 +205,40 @@ export async function quoteRoutes(app: FastifyInstance) {
     const contractId = crypto.randomUUID();
     const firstClass = input.classSchedule[0];
 
+    // Renovação: o portal só bloqueia depois que o contrato anterior acabar.
+    const previousEnd = existing
+      ? db
+          .select({ end: schema.studentProfiles.contractEnd })
+          .from(schema.studentProfiles)
+          .where(eq(schema.studentProfiles.userId, studentId))
+          .get()?.end ?? null
+      : null;
+
+    // Com o ZapSign ligado, o documento é criado lá antes de gravar qualquer coisa
+    // aqui — se o ZapSign recusar, nada fica pela metade no portal.
+    let zapsign: Awaited<ReturnType<typeof createContractDocument>> | null = null;
+    if (zapsignEnabled()) {
+      if (!input.pdfBase64) {
+        return reply.code(400).send({ error: "invalid_body", message: "Não consegui montar o PDF do contrato. Tente de novo." });
+      }
+      const studentName = input.fullName || email;
+      try {
+        zapsign = await createContractDocument({
+          contractId,
+          name: `Contrato - ${studentName} (${formatDateBr(input.contractStart)} a ${formatDateBr(input.contractEnd)})`,
+          pdfBase64: input.pdfBase64,
+          teacher: { name: TEACHER_SIGNER_NAME, email: env.ADMIN_EMAIL },
+          student: { name: studentName, email },
+        });
+      } catch (err) {
+        req.log.error({ err }, "[zapsign] falha ao criar documento");
+        return reply.code(502).send({
+          error: "zapsign_error",
+          message: "O ZapSign não aceitou o contrato agora. Nada foi criado — tente de novo em instantes.",
+        });
+      }
+    }
+
     db.transaction((tx) => {
       if (!existing) {
         tx.insert(schema.users)
@@ -240,7 +286,20 @@ export async function quoteRoutes(app: FastifyInstance) {
       }
 
       tx.insert(schema.studentContracts)
-        .values({ id: contractId, studentId, quoteId: id, data: JSON.stringify(input.contract), createdAt: now })
+        .values({
+          id: contractId,
+          studentId,
+          quoteId: id,
+          data: JSON.stringify(input.contract),
+          createdAt: now,
+          ...(zapsign && {
+            zapsignStatus: "awaiting_teacher" as const,
+            zapsignDocToken: zapsign.docToken,
+            teacherSignUrl: zapsign.teacherSignUrl,
+            studentSignUrl: zapsign.studentSignUrl,
+            blockAfter: previousEnd,
+          }),
+        })
         .run();
 
       contracts.push({ studentId, convertedAt: now });
@@ -250,6 +309,6 @@ export async function quoteRoutes(app: FastifyInstance) {
         .run();
     });
 
-    return { studentId, contractId, created: !existing, unarchived: !!existing?.archivedAt };
+    return { studentId, contractId, created: !existing, unarchived: !!existing?.archivedAt, zapsign: !!zapsign };
   });
 }

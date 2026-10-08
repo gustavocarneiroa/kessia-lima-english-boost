@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireTeacher } from "../../auth/guards.ts";
 import { clearOpenAiApiKey, getOpenAiApiKey, setOpenAiApiKey } from "../../lib/settings.ts";
 import { DEFAULT_PRICING, getPricing, pricingSchema, setPricing } from "../../lib/pricing.ts";
+import { zapsignEnabled } from "../../lib/zapsign.ts";
 
 const saveOpenAiKeyBody = z.object({
   apiKey: z.string().trim().min(20).max(300),
@@ -26,6 +27,11 @@ export async function settingsRoutes(app: FastifyInstance) {
   app.delete("/api/settings/openai-key", { preHandler: requireTeacher }, async () => {
     clearOpenAiApiKey();
     return { configured: false };
+  });
+
+  // O token do ZapSign fica só no servidor (variável de ambiente); a tela só precisa saber se está ligado.
+  app.get("/api/settings/zapsign", { preHandler: requireTeacher }, async () => {
+    return { enabled: zapsignEnabled() };
   });
 
   // Público: a landing page usa pra mostrar os preços dos planos.

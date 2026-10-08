@@ -336,10 +336,22 @@ try {
 } catch {
   // já existe
 }
-try {
-  sqlite.exec(`ALTER TABLE student_contracts ADD COLUMN signed_url TEXT`);
-} catch {
-  // já existe
+for (const column of [
+  "signed_url",
+  "zapsign_status",
+  "zapsign_doc_token",
+  "teacher_sign_url",
+  "student_sign_url",
+  "teacher_signed_at",
+  "student_signed_at",
+  "signed_pdf_path",
+  "block_after",
+]) {
+  try {
+    sqlite.exec(`ALTER TABLE student_contracts ADD COLUMN ${column} TEXT`);
+  } catch {
+    // já existe
+  }
 }
 try {
   sqlite.exec(`ALTER TABLE student_contracts ADD COLUMN signed_at TEXT`);

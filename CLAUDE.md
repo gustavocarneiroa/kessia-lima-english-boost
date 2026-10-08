@@ -103,6 +103,18 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   assinatura, demais no dia de vencimento) e um `student_contracts` cujo texto é o
   modelo de contrato da professora (`frontend/src/pages/ContractView.tsx`, rota
   `/contrato/:id`, fora do layout do portal pra imprimir/salvar PDF).
+- **Assinatura pelo ZapSign** (`server/src/lib/zapsign.ts`, ligada só se
+  `ZAPSIGN_API_TOKEN` existir no `.env` do servidor; sem ele fica o modo manual de
+  colar o link do assinado): "Virar contrato" monta o PDF no navegador
+  (`lib/contractPdf.ts`) e cria o documento no ZapSign com 2 signatários em ordem —
+  professora (assinatura na tela, assina na hora num iframe em `/contrato/:id`) e
+  aluno (`tokenEmail`, recebe e-mail do ZapSign). Estado vem do ZapSign pelo webhook
+  `POST /api/zapsign/webhook` (cadastrado sozinho ao subir, com cabeçalho secreto) e
+  por `POST /api/contracts/:id/sync` (as telas de assinatura chamam a cada 5s). Ao
+  assinar pelos dois, guarda o PDF assinado em `data/contratos`. Portal do aluno fica
+  bloqueado (`ContractGate.tsx` + `GET /api/me/contract-gate`) enquanto houver
+  contrato do ZapSign não assinado — na renovação, só depois do fim do contrato
+  anterior (`block_after`). Testes: `ZAPSIGN_API_URL=https://sandbox.api.zapsign.com.br`.
 - **Dias sem aula** (`days_off`, aba "Calendário"): valem pra todos; o aluno vê no
   calendário dele. Feriados nacionais (BrasilAPI) + Dia do Professor são importados
   pelo servidor sempre do ano atual até +2 (`server/src/lib/holidays.ts`, checa ao

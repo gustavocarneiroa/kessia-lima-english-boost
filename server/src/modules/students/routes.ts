@@ -7,6 +7,8 @@ import { requireAuth, requireTeacher } from "../../auth/guards.ts";
 import { parsePagination } from "../../lib/pagination.ts";
 import { deleteForumContentByAuthor } from "../forum/routes.ts";
 import { removeBoletoPdf } from "../../lib/boleto.ts";
+import { removeSignedPdf } from "../../lib/zapsign.ts";
+import { signedPdfPathsOf } from "../contracts/routes.ts";
 import { env } from "../../env.ts";
 
 const addStudentBody = z.object({
@@ -236,6 +238,8 @@ export async function studentRoutes(app: FastifyInstance) {
       .where(eq(schema.payments.studentId, id))
       .all();
 
+    const contractPdfs = signedPdfPathsOf(id);
+
     // Tudo que referencia users(id) precisa sair antes (foreign_keys = ON) — numa
     // transação só, pra não deixar o aluno pela metade se algo falhar.
     db.transaction((tx) => {
@@ -258,6 +262,7 @@ export async function studentRoutes(app: FastifyInstance) {
     });
     // PDFs só saem depois que o banco confirmou — se a transação falhar, os boletos continuam lá.
     boletoPaths.forEach((b) => removeBoletoPdf(b.path));
+    contractPdfs.forEach((p) => removeSignedPdf(p));
     return reply.code(204).send();
   });
 

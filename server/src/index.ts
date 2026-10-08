@@ -22,6 +22,7 @@ import { quoteRoutes } from "./modules/quotes/routes.ts";
 import { daysOffRoutes } from "./modules/daysOff/routes.ts";
 import { contractRoutes } from "./modules/contracts/routes.ts";
 import { startHolidaySync } from "./lib/holidays.ts";
+import { ensureWebhook } from "./lib/zapsign.ts";
 
 const app = Fastify({
   logger: { level: env.NODE_ENV === "production" ? "info" : "debug" },
@@ -73,3 +74,4 @@ app.setErrorHandler((err: unknown, req, reply) => {
 await app.listen({ port: env.PORT, host: env.HOST });
 
 startHolidaySync(app.log);
+void ensureWebhook(app.log);

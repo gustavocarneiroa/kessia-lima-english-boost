@@ -3,29 +3,33 @@ import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 import { formatDateBr } from "@/lib/quote";
-import { formatCents, type ContractData } from "@/lib/contract";
+import { CONTRACT_STATUS_LABELS, contractStatusKey, formatCents, type ContractRecord } from "@/lib/contract";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText } from "lucide-react";
 
-export interface ContractItem {
-  id: string;
-  data: ContractData;
-  signedUrl: string | null;
-  signedAt: string | null;
-  createdAt: string;
+export function ContractStatusBadge({ contract }: { contract: Pick<ContractRecord, "signed" | "zapsignStatus"> }) {
+  const { t } = usePortalPrefs();
+  const key = contractStatusKey(contract);
+  if (key === "signed") return <Badge className="bg-green-600 hover:bg-green-600">{t(...CONTRACT_STATUS_LABELS.signed)}</Badge>;
+  if (key === "refused") return <Badge variant="destructive">{t(...CONTRACT_STATUS_LABELS.refused)}</Badge>;
+  return (
+    <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-400">
+      {t(...CONTRACT_STATUS_LABELS[key])}
+    </Badge>
+  );
 }
 
 // Lista de contratos (professora: de um aluno; aluno: os dele), do mais novo pro mais
-// antigo. Cada um abre a página do contrato: PDF pra baixar ou, se já tiver o link do
-// ZapSign, o contrato assinado. Não aparece se não houver nenhum.
+// antigo. Cada um abre a página do contrato: assinar, baixar o PDF ou o assinado.
+// Não aparece se não houver nenhum.
 export default function ContractsCard({ path }: { path: string }) {
   const { t } = usePortalPrefs();
-  const [items, setItems] = useState<ContractItem[]>([]);
+  const [items, setItems] = useState<ContractRecord[]>([]);
 
   useEffect(() => {
     api
-      .get<ContractItem[]>(path)
+      .get<ContractRecord[]>(path)
       .then(setItems)
       .catch(() => setItems([]));
   }, [path]);
@@ -38,8 +42,8 @@ export default function ContractsCard({ path }: { path: string }) {
         <CardTitle className="text-base">{t("Contratos", "Contracts")}</CardTitle>
         <CardDescription>
           {t(
-            "Abra um contrato pra baixar o PDF ou ver a versão assinada no ZapSign.",
-            "Open a contract to download the PDF or see the signed version on ZapSign.",
+            "Abra um contrato pra assinar, baixar o PDF ou baixar a versão assinada.",
+            "Open a contract to sign it, download the PDF or the signed version.",
           )}
         </CardDescription>
       </CardHeader>
@@ -57,13 +61,7 @@ export default function ContractsCard({ path }: { path: string }) {
                     ? `${t("à vista", "upfront")} ${formatCents(c.data.totalCents)}`
                     : `${c.data.installments}x ${formatCents(c.data.installmentCents)}`}
                 </span>
-                {c.signedUrl ? (
-                  <Badge className="bg-green-600 hover:bg-green-600">{t("Assinado", "Signed")}</Badge>
-                ) : (
-                  <Badge variant="outline" className="border-amber-500 text-amber-700 dark:text-amber-400">
-                    {t("Aguardando assinatura", "Awaiting signature")}
-                  </Badge>
-                )}
+                <ContractStatusBadge contract={c} />
               </Link>
             </li>
           ))}

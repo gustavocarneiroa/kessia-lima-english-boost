@@ -232,6 +232,18 @@ export const studentContracts = sqliteTable("student_contracts", {
   // "aguardando assinatura" (aparece na tela inicial do aluno e da professora).
   signedUrl: text("signed_url"),
   signedAt: text("signed_at"),
+  // Assinatura pelo ZapSign (lib/zapsign.ts). status null = contrato do modo manual
+  // (link colado). Senão: awaiting_teacher → awaiting_student → signed (ou refused).
+  zapsignStatus: text("zapsign_status", { enum: ["awaiting_teacher", "awaiting_student", "signed", "refused"] }),
+  zapsignDocToken: text("zapsign_doc_token"),
+  teacherSignUrl: text("teacher_sign_url"),
+  studentSignUrl: text("student_sign_url"),
+  teacherSignedAt: text("teacher_signed_at"),
+  studentSignedAt: text("student_signed_at"),
+  signedPdfPath: text("signed_pdf_path"), // cópia do PDF assinado, guardada em data/contratos
+  // Enquanto não assinado, o portal do aluno fica bloqueado a partir do dia seguinte
+  // a esta data (fim do contrato anterior, na renovação). null = bloqueia já (aluno novo).
+  blockAfter: text("block_after"),
   createdAt: text("created_at").notNull(),
 });
 
