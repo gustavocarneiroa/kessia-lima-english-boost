@@ -9,6 +9,7 @@ import { env } from "../../env.ts";
 
 // Quem assina pela professora no ZapSign (mesmo nome do contrato).
 const TEACHER_SIGNER_NAME = "Kelma Késsia Lima Carneiro";
+const TEACHER_SIGNER_PHONE = "(85) 99736-2806";
 
 function formatDateBr(key: string) {
   const [y, m, d] = key.split("-");
@@ -227,8 +228,8 @@ export async function quoteRoutes(app: FastifyInstance) {
           contractId,
           name: `Contrato - ${studentName} (${formatDateBr(input.contractStart)} a ${formatDateBr(input.contractEnd)})`,
           pdfBase64: input.pdfBase64,
-          teacher: { name: TEACHER_SIGNER_NAME, email: env.ADMIN_EMAIL },
-          student: { name: studentName, email },
+          teacher: { name: TEACHER_SIGNER_NAME, email: env.ADMIN_EMAIL, phone: TEACHER_SIGNER_PHONE },
+          student: { name: studentName, email, phone: input.phone },
         });
       } catch (err) {
         req.log.error({ err }, "[zapsign] falha ao criar documento");

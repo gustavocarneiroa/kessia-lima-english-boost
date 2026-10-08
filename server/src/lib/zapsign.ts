@@ -63,6 +63,12 @@ interface ZapSignDoc {
   signers: ZapSignSigner[];
 }
 
+// Celular já preenchido na tela do ZapSign ("(85) 99999-9999" → 55 + 85999999999).
+function phoneFields(phone: string | null | undefined) {
+  const digits = (phone ?? "").replace(/D/g, "");
+  return digits.length >= 10 ? { phone_country: "55", phone_number: digits } : {};
+}
+
 export const TEACHER_SIGNER_ID = "teacher";
 export const STUDENT_SIGNER_ID = "student";
 
@@ -70,8 +76,8 @@ export async function createContractDocument(input: {
   contractId: string;
   name: string;
   pdfBase64: string;
-  teacher: { name: string; email: string };
-  student: { name: string; email: string };
+  teacher: { name: string; email: string; phone?: string | null };
+  student: { name: string; email: string; phone?: string | null };
 }) {
   const doc = await call<ZapSignDoc>("POST", "/api/v1/docs/", {
     name: input.name,
@@ -83,6 +89,7 @@ export async function createContractDocument(input: {
       {
         name: input.teacher.name,
         email: input.teacher.email,
+        ...phoneFields(input.teacher.phone),
         auth_mode: "assinaturaTela",
         send_automatic_email: false, // ela assina na hora, dentro do portal
         order_group: 1,
@@ -93,6 +100,7 @@ export async function createContractDocument(input: {
       {
         name: input.student.name,
         email: input.student.email,
+        ...phoneFields(input.student.phone),
         auth_mode: "tokenEmail", // assinatura + código enviado ao e-mail do aluno
         send_automatic_email: true, // o ZapSign avisa o aluno quando chegar a vez dele
         order_group: 2,
