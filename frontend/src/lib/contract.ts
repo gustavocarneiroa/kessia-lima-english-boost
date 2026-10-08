@@ -7,7 +7,7 @@ export const CONTRACTOR = {
   businessName: "Teacher Késsia Lima",
   responsible: "Kelma Késsia Lima Carneiro",
   cnpj: "46.473.017/0001-67",
-  email: "kessia.lima@teacherkessialima.com",
+  email: "kessia.lima@teacherkessialima.com.br",
   phone: "(85) 99736-2806",
   bank: ["Cora SCD - 403 / Agência - 0001", "Conta corrente - 4993951-6"],
 };
