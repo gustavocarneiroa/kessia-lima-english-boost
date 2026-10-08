@@ -228,6 +228,10 @@ export const studentContracts = sqliteTable("student_contracts", {
   studentId: text("student_id").notNull().references(() => users.id),
   quoteId: text("quote_id"),
   data: text("data").notNull(),
+  // Link do contrato assinado no ZapSign. Enquanto for null o contrato está
+  // "aguardando assinatura" (aparece na tela inicial do aluno e da professora).
+  signedUrl: text("signed_url"),
+  signedAt: text("signed_at"),
   createdAt: text("created_at").notNull(),
 });
 

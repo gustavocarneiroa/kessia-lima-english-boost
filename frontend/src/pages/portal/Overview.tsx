@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useWordle, useWordleLeaderboard } from "@/hooks/useWordle";
 import NoticeBoard from "./NoticeBoard";
+import PendingContractsCard from "./PendingContractsCard";
 
 
 interface Birthday {
@@ -143,6 +144,8 @@ export default function Overview() {
         {isTeacher ? t("Olá, professora!", "Hi, teacher!") : t("Olá, aluno(a)!", "Hi there!")}
       </h1>
       <p className="text-muted-foreground">{user.email}</p>
+
+      <PendingContractsCard isTeacher={isTeacher} />
 
       <NoticeBoard isTeacher={isTeacher} />
 

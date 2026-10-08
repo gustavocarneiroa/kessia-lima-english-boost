@@ -337,6 +337,16 @@ try {
   // já existe
 }
 try {
+  sqlite.exec(`ALTER TABLE student_contracts ADD COLUMN signed_url TEXT`);
+} catch {
+  // já existe
+}
+try {
+  sqlite.exec(`ALTER TABLE student_contracts ADD COLUMN signed_at TEXT`);
+} catch {
+  // já existe
+}
+try {
   sqlite.exec(`ALTER TABLE student_profiles ADD COLUMN class_schedule TEXT`);
 } catch {
   // já existe

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,23 +20,67 @@ import {
   type ContractData,
 } from "@/lib/contract";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Loader2, Printer } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, CheckCircle2, Download, ExternalLink, Loader2, PenLine, Printer } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 interface ContractResponse {
   id: string;
   studentId: string;
   data: ContractData;
+  signedUrl: string | null;
+  signedAt: string | null;
   createdAt: string;
 }
 
-// Página fora do layout do portal (sem menu lateral) pra imprimir/salvar em PDF limpo.
+function contractFileName(data: ContractData) {
+  const d = (key: string) => formatDateBr(key).replace(/\//g, "-");
+  return `${data.student.fullName} - CONTRATO (${d(data.startDate)} a ${d(data.endDate)}).pdf`;
+}
+
+// Monta o PDF a partir das páginas do contrato na tela (uma imagem por folha A4).
+// As bibliotecas só são baixadas quando alguém clica em "Baixar PDF".
+async function downloadContractPdf(root: HTMLElement, fileName: string) {
+  const [{ default: html2canvas }, { jsPDF }] = await Promise.all([import("html2canvas"), import("jspdf")]);
+  const pdf = new jsPDF({ unit: "mm", format: "a4" });
+  const pages = [...root.querySelectorAll<HTMLElement>("[data-pdf-page]")];
+
+  for (let i = 0; i < pages.length; i++) {
+    const canvas = await html2canvas(pages[i], {
+      scale: 2,
+      backgroundColor: "#ffffff",
+      windowWidth: 1024,
+      // no celular a tela é estreita: monta sempre na largura de uma folha A4
+      onclone: (doc) => {
+        const clone = doc.querySelector<HTMLElement>("[data-contract-root]");
+        if (clone) {
+          clone.style.width = "794px";
+          clone.style.maxWidth = "none";
+        }
+      },
+    });
+    let width = 210;
+    let height = (canvas.height * width) / canvas.width;
+    if (height > 297) {
+      width = (width * 297) / height;
+      height = 297;
+    }
+    if (i > 0) pdf.addPage();
+    pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", (210 - width) / 2, 0, width, height);
+  }
+  pdf.save(fileName);
+}
+
+// Página fora do layout do portal (sem menu lateral) pra baixar/imprimir o contrato limpo.
 export default function ContractView() {
   const { id } = useParams<{ id: string }>();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [contract, setContract] = useState<ContractResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const documentRef = useRef<HTMLDivElement>(null);
+  const isTeacher = user?.role === "teacher";
 
   useEffect(() => {
     if (!loading && !user) navigate("/login");
@@ -48,37 +92,161 @@ export default function ContractView() {
       .get<ContractResponse>(`/api/contracts/${id}`)
       .then((c) => {
         setContract(c);
-        document.title = `${c.data.student.fullName} - CONTRATO (${formatDateBr(c.data.startDate)} até ${formatDateBr(c.data.endDate)})`;
+        document.title = contractFileName(c.data).replace(/\.pdf$/, "");
       })
       .catch((err) => setError(err instanceof ApiError ? err.message : "Não foi possível abrir o contrato."));
   }, [id, user]);
 
-  const backTo = user?.role === "teacher" && contract ? `/portal/alunos/${contract.studentId}` : "/portal/perfil";
+  async function download() {
+    if (!contract || !documentRef.current) return;
+    setError(null);
+    setDownloading(true);
+    try {
+      await downloadContractPdf(documentRef.current, contractFileName(contract.data));
+    } catch {
+      setError('Não foi possível montar o PDF. Tente "Imprimir" e escolha "Salvar como PDF".');
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  const backTo = isTeacher && contract ? `/portal/alunos/${contract.studentId}` : "/portal";
+  const signed = !!contract?.signedUrl;
 
   return (
     <div className="min-h-screen bg-neutral-200 py-6 text-neutral-900 print:bg-white print:py-0">
-      <div className="mx-auto mb-4 flex max-w-[210mm] items-center justify-between gap-2 px-4 print:hidden">
+      <div className="mx-auto mb-4 flex max-w-[210mm] flex-wrap items-center justify-between gap-2 px-4 print:hidden">
         <Link to={backTo} className="inline-flex items-center gap-1 text-sm text-neutral-600 hover:text-neutral-900">
           <ArrowLeft className="h-4 w-4" />
           Voltar ao portal
         </Link>
-        {contract && (
-          <Button onClick={() => window.print()} className="gap-2">
-            <Printer className="h-4 w-4" />
-            Imprimir / salvar PDF
-          </Button>
+        {contract && !signed && (
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => window.print()} className="gap-2 bg-white">
+              <Printer className="h-4 w-4" />
+              Imprimir
+            </Button>
+            <Button onClick={() => void download()} disabled={downloading} className="gap-2">
+              {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+              {downloading ? "Montando o PDF..." : "Baixar PDF"}
+            </Button>
+          </div>
         )}
       </div>
 
-      {error ? (
-        <p className="text-center text-sm text-red-600">{error}</p>
-      ) : !contract ? (
-        <div className="flex justify-center py-10 text-neutral-500">
-          <Loader2 className="h-6 w-6 animate-spin" />
-        </div>
+      {contract && isTeacher && <SignedLinkPanel contract={contract} onChange={setContract} />}
+
+      {error && <p className="mb-4 px-4 text-center text-sm text-red-600 print:hidden">{error}</p>}
+      {!contract ? (
+        !error && (
+          <div className="flex justify-center py-10 text-neutral-500">
+            <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+        )
+      ) : signed ? (
+        <SignedCard contract={contract} />
       ) : (
-        <ContractDocument data={contract.data} />
+        <>
+          {!isTeacher && (
+            <p className="mx-auto mb-4 max-w-[210mm] px-4 text-sm text-neutral-700 print:hidden">
+              Este contrato está <b>aguardando assinatura</b>. A teacher vai te mandar o link pra assinar pelo ZapSign;
+              depois disso, o contrato assinado aparece aqui.
+            </p>
+          )}
+          <div ref={documentRef}>
+            <ContractDocument data={contract.data} />
+          </div>
+        </>
       )}
+    </div>
+  );
+}
+
+function SignedCard({ contract }: { contract: ContractResponse }) {
+  return (
+    <div className="mx-auto max-w-[210mm] px-4">
+      <div className="space-y-4 rounded-lg bg-white p-6 shadow">
+        <div className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-6 w-6 shrink-0 text-green-600" />
+          <div>
+            <h1 className="text-lg font-semibold">Contrato assinado</h1>
+            <p className="text-sm text-neutral-600">
+              {contract.data.student.fullName} · {formatDateBr(contract.data.startDate)} a {formatDateBr(contract.data.endDate)}
+            </p>
+            <p className="mt-2 text-sm text-neutral-700">
+              A versão assinada fica no ZapSign. Lá dá pra ver e baixar o PDF com as assinaturas.
+            </p>
+          </div>
+        </div>
+        <Button asChild className="gap-2">
+          <a href={contract.signedUrl!} target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="h-4 w-4" />
+            Abrir contrato assinado no ZapSign
+          </a>
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// Só a professora vê: colar, trocar ou remover o link do ZapSign.
+function SignedLinkPanel({ contract, onChange }: { contract: ContractResponse; onChange: (c: ContractResponse) => void }) {
+  const [url, setUrl] = useState(contract.signedUrl ?? "");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setMessage(null);
+    setSaving(true);
+    try {
+      const res = await api.put<ContractResponse>(`/api/contracts/${contract.id}/signed-link`, { url: url.trim() });
+      onChange({ ...contract, signedUrl: res.signedUrl, signedAt: res.signedAt });
+      setMessage("Link salvo. O aluno já vê o contrato assinado e o aviso de assinatura sumiu da tela inicial.");
+    } catch (err) {
+      setMessage(err instanceof ApiError ? err.message : "Não foi possível salvar o link.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function remove() {
+    setMessage(null);
+    setSaving(true);
+    try {
+      const res = await api.delete<ContractResponse>(`/api/contracts/${contract.id}/signed-link`);
+      onChange({ ...contract, signedUrl: res.signedUrl, signedAt: res.signedAt });
+      setUrl("");
+      setMessage("Link removido. O contrato voltou a ficar aguardando assinatura.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="mx-auto mb-4 max-w-[210mm] px-4 print:hidden">
+      <form onSubmit={save} className="space-y-2 rounded-lg border border-neutral-300 bg-white p-4">
+        <p className="flex items-center gap-2 text-sm font-medium">
+          <PenLine className="h-4 w-4" />
+          {contract.signedUrl ? "Link do contrato assinado (ZapSign)" : "Já foi assinado? Cole aqui o link do ZapSign"}
+        </p>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Input type="url" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://app.zapsign.com.br/..." required />
+          <Button type="submit" disabled={saving || !url.trim() || url.trim() === contract.signedUrl} className="gap-2">
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            Salvar
+          </Button>
+          {contract.signedUrl && (
+            <Button type="button" variant="outline" onClick={() => void remove()} disabled={saving}>
+              Remover
+            </Button>
+          )}
+        </div>
+        <p className="text-xs text-neutral-500">
+          Com o link salvo, você e o aluno passam a ver o contrato assinado no ZapSign no lugar do PDF montado.
+        </p>
+        {message && <p className="text-sm text-neutral-700">{message}</p>}
+      </form>
     </div>
   );
 }
@@ -95,7 +263,7 @@ function Box({ title, children }: { title: string; children: ReactNode }) {
   return (
     <fieldset className="rounded-md border-2 border-neutral-900 px-4 pb-3 pt-1">
       <legend className="px-1 text-sm font-bold">{title}</legend>
-      <div className="space-y-0.5 text-[13px] leading-snug">{children}</div>
+      <div className="space-y-0.5 break-words text-[13px] leading-snug">{children}</div>
     </fieldset>
   );
 }
@@ -138,13 +306,13 @@ function ContractDocument({ data }: { data: ContractData }) {
   const upfront = data.paymentMode === "upfront";
 
   return (
-    <div className="mx-auto max-w-[210mm] bg-white shadow-lg print:max-w-none print:shadow-none">
+    <div data-contract-root className="mx-auto max-w-[210mm] bg-white shadow-lg print:max-w-none print:shadow-none">
       <style>{`@page { size: A4; margin: 0; } @media print { body { background: white; } }`}</style>
 
       {/* Página 1: partes e plano */}
-      <div className="break-after-page">
+      <div data-pdf-page className="break-after-page">
         <div className="h-12 bg-neutral-900 print:[-webkit-print-color-adjust:exact] print:[print-color-adjust:exact]" />
-        <div className="space-y-5 px-[18mm] py-8">
+        <div className="space-y-5 px-5 sm:px-[18mm] py-8">
           <div className="flex items-start justify-between gap-4">
             <div className="border-l-4 border-neutral-900 pl-4">
               <h1 className="text-2xl font-bold">CONTRATO</h1>
@@ -202,7 +370,7 @@ function ContractDocument({ data }: { data: ContractData }) {
 
           <div className="space-y-4 rounded-md border-2 border-neutral-900 px-5 py-5">
             <h2 className="text-center text-2xl font-extrabold">DO PLANO CONTRATADO</h2>
-            <div className="grid grid-cols-[9.5rem_1fr] gap-x-3 gap-y-4 text-[13px] leading-snug">
+            <div className="grid gap-x-3 gap-y-2 text-[13px] leading-snug sm:grid-cols-[9.5rem_1fr] sm:gap-y-4">
               <p className="font-bold">Plano Contratado:</p>
               <p className="text-justify">
                 {GROUP_PLAN[data.groupType]} com <b>{perWeekText}</b> por semana, {perWeek === 1 ? "sendo ela na" : "sendo elas na"}{" "}
@@ -226,9 +394,9 @@ function ContractDocument({ data }: { data: ContractData }) {
       </div>
 
       {/* Páginas seguintes: cláusulas */}
-      <div className="break-after-page">
+      <div data-pdf-page className="break-after-page">
         <Header />
-        <div className="space-y-6 px-[18mm] py-8">
+        <div className="space-y-6 px-5 sm:px-[18mm] py-8">
           <Clause n={1} title="Objeto do contrato">
             <Item n="1.1.">
               <p>
@@ -283,9 +451,9 @@ function ContractDocument({ data }: { data: ContractData }) {
         </div>
       </div>
 
-      <div className="break-after-page">
+      <div data-pdf-page className="break-after-page">
         <Header />
-        <div className="space-y-6 px-[18mm] py-8">
+        <div className="space-y-6 px-5 sm:px-[18mm] py-8">
           <Clause n={4} title="Cancelamento ou remarcação de aula">
             <Item n="4.1.">
               <p>
@@ -347,9 +515,9 @@ function ContractDocument({ data }: { data: ContractData }) {
         </div>
       </div>
 
-      <div>
+      <div data-pdf-page>
         <Header />
-        <div className="space-y-6 px-[18mm] py-8">
+        <div className="space-y-6 px-5 sm:px-[18mm] py-8">
           <Clause n={8} title="Pagamento">
             <Item n="8.1.">
               {upfront ? (
