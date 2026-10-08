@@ -39,6 +39,7 @@ jobs:
           WEBAUTHN_RP_NAME: ${{ secrets.WEBAUTHN_RP_NAME }}
           MERRIAM_WEBSTER_LEARNERS_KEY: ${{ secrets.MERRIAM_WEBSTER_LEARNERS_KEY }}
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          ZAPSIGN_API_TOKEN: ${{ secrets.ZAPSIGN_API_TOKEN }}
         run: |
           umask 077
           : > "$RUNNER_TEMP/server.env"
@@ -66,6 +67,7 @@ jobs:
           write WEBAUTHN_RP_NAME "$WEBAUTHN_RP_NAME" yes
           write MERRIAM_WEBSTER_LEARNERS_KEY "$MERRIAM_WEBSTER_LEARNERS_KEY" yes
           write PEXELS_API_KEY "$PEXELS_API_KEY" no
+          write ZAPSIGN_API_TOKEN "$ZAPSIGN_API_TOKEN" yes
           scp -i ~/.ssh/deploy_key "$RUNNER_TEMP/server.env" kessia@45.90.123.41:/home/kessia/server.env
           ssh -i ~/.ssh/deploy_key kessia@45.90.123.41 'bash -s' <<'REMOTE'
           set -euo pipefail
