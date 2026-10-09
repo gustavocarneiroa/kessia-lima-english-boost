@@ -158,7 +158,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
       const res = await api.post<{ questions: GeneratedQuestion[] }>("/api/activities/generate-questions", {
         transcript,
         level,
-        count: 5,
+        count: 10,
       });
       setQuestions(res.questions.map((q) => ({ prompt: q.prompt, options: q.options, correctIndex: q.correctIndex })));
     } catch (err) {

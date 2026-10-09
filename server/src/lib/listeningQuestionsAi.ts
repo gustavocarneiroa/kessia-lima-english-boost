@@ -58,7 +58,7 @@ export async function generateListeningQuestions(
         {
           role: "user",
           content:
-            `Crie ${count} perguntas de múltipla escolha sobre o conteúdo do vídeo abaixo (transcrição), ` +
+            `Crie exatamente ${count} perguntas (nem menos) de múltipla escolha sobre o conteúdo do vídeo abaixo (transcrição), ` +
             `apropriadas para um aluno de nível ${LEVEL_LABEL[level]}. ` +
             "Cada pergunta deve ter 4 opções (exceto quando não fizer sentido, aí use ao menos 2), sendo só uma correta. " +
             "Foque no que é dito no vídeo (fatos, ordem dos eventos, vocabulário usado), não em opinião.\n\n" +
