@@ -94,7 +94,7 @@ const gradeBody = z.object({
 });
 
 const generateQuestionsBody = z.object({
-  transcript: z.string().trim().min(20).max(20_000),
+  transcript: z.string().trim().min(20).max(500_000),
   level: z.enum(["beginner", "intermediate", "advanced"]),
   count: z.number().int().min(10).max(20).default(10),
 });
