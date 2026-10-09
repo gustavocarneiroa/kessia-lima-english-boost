@@ -51,11 +51,6 @@ function serializeGuess(row: typeof schema.wordleGuesses.$inferSelect) {
 }
 
 const guessBody = z.object({ guess: z.string().trim().toUpperCase() });
-const finishBody = z.object({
-  won: z.boolean(),
-  guessesUsed: z.number().int().min(1).max(MAX_GUESSES),
-  hintUsed: z.boolean(),
-});
 
 export async function wordleRoutes(app: FastifyInstance) {
   app.get("/api/wordle/today", { preHandler: requireAuth }, async (req) => {
@@ -88,8 +83,14 @@ export async function wordleRoutes(app: FastifyInstance) {
 
   // Dica só é enviada quando o aluno pede — assim não dá pra "descobrir" ela
   // olhando a resposta de /today antes de clicar em "Ver dica".
-  app.get("/api/wordle/hint", { preHandler: requireAuth }, async () => {
-    const { hint } = getWordOfTheDay(todayDateKey());
+  // Fica registrado que a dica foi vista — é isso que conta na hora dos pontos.
+  app.get("/api/wordle/hint", { preHandler: requireAuth }, async (req) => {
+    const date = todayDateKey();
+    db.insert(schema.wordleHints)
+      .values({ studentId: req.session!.userId, date, createdAt: new Date().toISOString() })
+      .onConflictDoNothing()
+      .run();
+    const { hint } = getWordOfTheDay(date);
     return { hint };
   });
 
@@ -157,11 +158,9 @@ export async function wordleRoutes(app: FastifyInstance) {
     };
   });
 
+  // O resultado sai das tentativas que o servidor registrou, não do que o navegador manda
+  // — senão dava pra mandar "acertei de primeira, sem dica" sem nem jogar.
   app.post("/api/wordle/finish", { preHandler: requireAuth }, async (req, reply) => {
-    const parsed = finishBody.safeParse(req.body);
-    if (!parsed.success) {
-      return reply.code(400).send({ error: "invalid_body", message: "Dados inválidos." });
-    }
     const date = todayDateKey();
     const studentId = req.session!.userId;
 
@@ -174,7 +173,24 @@ export async function wordleRoutes(app: FastifyInstance) {
       return { won: existing.won, guessesUsed: existing.guessesUsed, hintUsed: existing.hintUsed, points: existing.points };
     }
 
-    const { won, guessesUsed, hintUsed } = parsed.data;
+    const { word } = getWordOfTheDay(date);
+    const guesses = db
+      .select({ word: schema.wordleGuesses.word })
+      .from(schema.wordleGuesses)
+      .where(and(eq(schema.wordleGuesses.studentId, studentId), eq(schema.wordleGuesses.date, date)))
+      .orderBy(asc(schema.wordleGuesses.guessIndex))
+      .all();
+    const winIndex = guesses.findIndex((g) => g.word === word);
+    const won = winIndex !== -1;
+    if (!won && guesses.length < MAX_GUESSES) {
+      return reply.code(409).send({ error: "not_finished", message: "O jogo de hoje ainda não terminou." });
+    }
+    const guessesUsed = won ? winIndex + 1 : guesses.length;
+    const hintUsed = !!db
+      .select()
+      .from(schema.wordleHints)
+      .where(and(eq(schema.wordleHints.studentId, studentId), eq(schema.wordleHints.date, date)))
+      .get();
     const points = calculatePoints(won, guessesUsed, hintUsed);
     db.insert(schema.wordleGames)
       .values({

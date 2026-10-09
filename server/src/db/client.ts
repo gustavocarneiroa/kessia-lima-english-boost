@@ -399,6 +399,24 @@ try {
   // já existe
 }
 
+// Sobe 1 cada vez que a senha é trocada ou a pessoa pede "sair de todos os aparelhos":
+// sessões com a versão antiga deixam de valer na hora.
+try {
+  sqlite.exec(`ALTER TABLE users ADD COLUMN session_version INTEGER NOT NULL DEFAULT 0`);
+} catch {
+  // já existe
+}
+
+// Quem pediu a dica do Wordle no dia — o servidor calcula os pontos, não o navegador.
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS wordle_hints (
+    student_id TEXT NOT NULL REFERENCES users(id),
+    date TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (student_id, date)
+  );
+`);
+
 // activities: a tabela já existia em produção com CHECK mais restritivo (sem
 // "listening" antes, sem "quiz" agora) — SQLite não permite alterar CHECK com
 // ALTER TABLE, então reconstruímos a tabela (idempotente: só roda se o CHECK

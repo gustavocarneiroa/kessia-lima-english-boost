@@ -1,5 +1,4 @@
 import type { FastifyInstance } from "fastify";
-import { createHash, randomBytes } from "node:crypto";
 import { and, eq, gt, isNotNull, isNull, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
@@ -9,7 +8,7 @@ import { deleteForumContentByAuthor } from "../forum/routes.ts";
 import { removeBoletoPdf } from "../../lib/boleto.ts";
 import { removeSignedPdf } from "../../lib/zapsign.ts";
 import { signedPdfPathsOf } from "../contracts/routes.ts";
-import { env } from "../../env.ts";
+import { createPasswordLink } from "../../lib/password-link.ts";
 
 const addStudentBody = z.object({
   email: z.string().email(),
@@ -216,8 +215,17 @@ export async function studentRoutes(app: FastifyInstance) {
       createdAt: new Date().toISOString(),
     };
     db.insert(schema.users).values(student).run();
+    // o aluno cria a senha por esse link (ninguém mais consegue "pegar" a conta antes dele)
+    const invite = createPasswordLink(student);
 
-    return reply.code(201).send({ id: student.id, email: student.email, createdAt: student.createdAt, hasLoggedIn: false });
+    return reply.code(201).send({
+      id: student.id,
+      email: student.email,
+      createdAt: student.createdAt,
+      hasLoggedIn: false,
+      inviteLink: invite.link,
+      inviteExpiresAt: invite.expiresAt,
+    });
   });
 
   app.delete("/api/students/:id", { preHandler: requireTeacher }, async (req, reply) => {
@@ -252,6 +260,7 @@ export async function studentRoutes(app: FastifyInstance) {
       tx.delete(schema.learningTopicCompletions).where(eq(schema.learningTopicCompletions.studentId, id)).run();
       tx.delete(schema.wordleGames).where(eq(schema.wordleGames.studentId, id)).run();
       tx.delete(schema.wordleGuesses).where(eq(schema.wordleGuesses.studentId, id)).run();
+      tx.delete(schema.wordleHints).where(eq(schema.wordleHints.studentId, id)).run();
       tx.delete(schema.lessons).where(eq(schema.lessons.studentId, id)).run();
       tx.delete(schema.payments).where(eq(schema.payments.studentId, id)).run();
       tx.delete(schema.studentFlashcards).where(eq(schema.studentFlashcards.studentId, id)).run();
@@ -273,18 +282,7 @@ export async function studentRoutes(app: FastifyInstance) {
       return reply.code(404).send({ error: "not_found", message: "Aluno não encontrado." });
     }
 
-    // limpa links antigos ainda não usados desse aluno — só o mais recente vale
-    db.delete(schema.passwordResetTokens).where(eq(schema.passwordResetTokens.userId, id)).run();
-
-    const token = randomBytes(32).toString("hex");
-    const tokenHash = createHash("sha256").update(token).digest("hex");
-    const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
-    db.insert(schema.passwordResetTokens)
-      .values({ tokenHash, userId: id, expiresAt, createdAt: new Date().toISOString() })
-      .run();
-
-    const link = `${env.PUBLIC_WEB_ORIGIN}/redefinir-senha?token=${token}`;
-    return { link, expiresAt };
+    return createPasswordLink(student);
   });
 
   app.get("/api/me/profile", { preHandler: requireAuth }, async (req, reply) => {

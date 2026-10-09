@@ -11,7 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import StudentAssignments from "./StudentAssignments";
 import ContractsCard from "./ContractsCard";
-import { Loader2, ArrowLeft, Link as LinkIcon, ClipboardList, ExternalLink, KeyRound, Copy, Check, Archive, ArchiveRestore } from "lucide-react";
+import PasswordLinkBox from "@/components/PasswordLinkBox";
+import { Loader2, ArrowLeft, Link as LinkIcon, ClipboardList, ExternalLink, KeyRound, Archive, ArchiveRestore } from "lucide-react";
 
 interface Student {
   id: string;
@@ -98,10 +99,9 @@ export default function StudentDetail() {
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const [resetLink, setResetLink] = useState<string | null>(null);
+  const [resetLink, setResetLink] = useState<{ link: string; invite: boolean } | null>(null);
   const [resetLoading, setResetLoading] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
-  const [resetCopied, setResetCopied] = useState(false);
   const [archiving, setArchiving] = useState(false);
 
   const [profile, setProfile] = useState<StudentProfile>(emptyProfile);
@@ -169,24 +169,13 @@ export default function StudentDetail() {
     if (!id) return;
     setResetLoading(true);
     setResetError(null);
-    setResetCopied(false);
     try {
-      const res = await api.post<{ link: string }>(`/api/students/${id}/reset-link`);
-      setResetLink(res.link);
+      const res = await api.post<{ link: string; invite: boolean }>(`/api/students/${id}/reset-link`);
+      setResetLink({ link: res.link, invite: res.invite });
     } catch (err) {
       setResetError(err instanceof ApiError ? err.message : t("Não foi possível gerar o link.", "Couldn't generate the link."));
     } finally {
       setResetLoading(false);
-    }
-  }
-
-  async function copyResetLink() {
-    if (!resetLink) return;
-    try {
-      await navigator.clipboard.writeText(resetLink);
-      setResetCopied(true);
-    } catch {
-      // clipboard indisponível — o link continua selecionável no campo
     }
   }
 
@@ -243,7 +232,9 @@ export default function StudentDetail() {
             {!student.archivedAt && (
               <Button variant="outline" size="sm" className="gap-1.5" onClick={generateResetLink} disabled={resetLoading}>
                 {resetLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <KeyRound className="h-3.5 w-3.5" />}
-                {t("Gerar link de redefinição de senha", "Generate password reset link")}
+                {student.hasLoggedIn
+                  ? t("Gerar link de redefinição de senha", "Generate password reset link")
+                  : t("Gerar link de convite", "Generate invite link")}
               </Button>
             )}
             <Button variant="outline" size="sm" className="gap-1.5" onClick={toggleArchived} disabled={archiving}>
@@ -259,22 +250,7 @@ export default function StudentDetail() {
           </div>
         )}
         {resetError && <p className="text-sm text-destructive">{resetError}</p>}
-        {resetLink && (
-          <div className="mt-2 max-w-lg space-y-1.5 rounded-md border bg-muted/40 p-3">
-            <p className="text-xs text-muted-foreground">
-              {t(
-                "Envie este link pro aluno (WhatsApp, por exemplo). Ele vale por 48 horas e só funciona uma vez.",
-                "Send this link to the student (on WhatsApp, for example). It's valid for 48 hours and only works once.",
-              )}
-            </p>
-            <div className="flex items-center gap-2">
-              <Input readOnly value={resetLink} onFocus={(e) => e.target.select()} className="text-xs" />
-              <Button type="button" variant="secondary" size="icon" onClick={copyResetLink} aria-label={t("Copiar link", "Copy link")}>
-                {resetCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
-        )}
+        {resetLink && <PasswordLinkBox link={resetLink.link} invite={resetLink.invite} />}
       </div>
 
       {id && <StudentAssignments studentId={id} />}

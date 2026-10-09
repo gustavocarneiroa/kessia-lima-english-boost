@@ -33,9 +33,11 @@ Tem duas partes:
    cadastrados. Hoje faz só isto:
    - A professora entra com `kessialima@teacherkessialima.com.br`. Na primeira vez
      que ela loga, a senha que ela digitar vira a senha dela dali pra frente.
-   - Ela pode cadastrar o e-mail de um aluno na tela do portal. Quando esse aluno
-     tentar entrar pela primeira vez com aquele e-mail, a senha que ele digitar
-     também vira a senha dele.
+   - Ela pode cadastrar o e-mail de um aluno na tela do portal. Na hora aparece um
+     **link de convite** (vale 7 dias, uma vez só) que ela manda pro aluno; é por ele
+     que o aluno cria a senha. Aluno sem senha não consegue entrar pelo login comum
+     (evita que alguém que saiba o e-mail "pegue" a conta antes). Link novo: página
+     do aluno → "Gerar link de convite" / "Gerar link de redefinição de senha".
    - Depois de logado, dá pra "adicionar este dispositivo" — assim da próxima vez
      entra com a digital/reconhecimento facial/PIN do celular ou computador, sem
      digitar senha.
@@ -119,6 +121,16 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   calendário dele. Feriados nacionais (BrasilAPI) + Dia do Professor são importados
   pelo servidor sempre do ano atual até +2 (`server/src/lib/holidays.ts`, checa ao
   subir e a cada 6h; cada ano só uma vez — feriado apagado não volta).
+- **Segurança do login** (out/2026 — muitos alunos são desenvolvedores): limite de
+  tentativas erradas por e-mail e por IP (`server/src/lib/rate-limit.ts`, em memória;
+  `trustProxy: "loopback"` pra o IP não poder ser forjado pelo cabeçalho); sessão
+  carrega `users.session_version` — trocar senha ou "Sair de todos os aparelhos"
+  (`POST /api/auth/logout-all`) sobe a versão e derruba as sessões antigas; papel/e-mail
+  da sessão sempre relidos do banco (`loadSession`). Senha nova: mínimo 8. Convite/
+  redefinição em `server/src/lib/password-link.ts`. Wordle: pontos calculados no
+  servidor a partir das tentativas gravadas + `wordle_hints` (nunca confiar no corpo
+  de `/api/wordle/finish`). Cabeçalhos de segurança na API (`index.ts`) e no site
+  (`frontend/public/_headers`).
 - Sem banco de dados de alunos ainda além de e-mail/senha — qualquer feature nova
   pra aluno (notas, exercícios, agenda etc.) precisa ser desenhada quando for
   pedida, não existe estrutura pronta pra isso.

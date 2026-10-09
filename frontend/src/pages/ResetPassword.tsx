@@ -10,6 +10,7 @@ import logo from "@/assets/logo.png";
 export default function ResetPassword() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token") ?? "";
+  const invite = searchParams.get("convite") === "1";
   const navigate = useNavigate();
 
   const [password, setPassword] = useState("");
@@ -51,7 +52,7 @@ export default function ResetPassword() {
               <img src={logo} alt="Teacher Kessia Lima" className="h-10 w-auto" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-white">Redefinir senha</h1>
+              <h1 className="text-xl font-semibold text-white">{invite ? "Criar sua senha" : "Redefinir senha"}</h1>
               <p className="mt-1 text-sm text-white/60">Teacher Kessia Lima</p>
             </div>
           </div>
@@ -63,11 +64,16 @@ export default function ResetPassword() {
               </p>
             ) : done ? (
               <p className="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
-                Senha trocada com sucesso! Levando você para o login...
+                {invite ? "Senha criada com sucesso!" : "Senha trocada com sucesso!"} Levando você para o login...
               </p>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
-                <p className="text-sm leading-relaxed text-white/70">Escolha sua nova senha de acesso.</p>
+                <p className="text-sm leading-relaxed text-white/70">
+                  {invite
+                    ? "Bem-vindo(a) ao portal! Escolha a senha que você vai usar pra entrar."
+                    : "Escolha sua nova senha de acesso."}{" "}
+                  Use pelo menos 8 caracteres.
+                </p>
                 <div className="space-y-1.5">
                   <Label htmlFor="password" className="text-white/80">
                     Nova senha
@@ -78,7 +84,7 @@ export default function ResetPassword() {
                       type={showPassword ? "text" : "password"}
                       autoComplete="new-password"
                       required
-                      minLength={6}
+                      minLength={8}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="border-white/15 bg-white/5 pr-10 text-white placeholder:text-white/30 focus-visible:ring-[#b196de]"
@@ -102,7 +108,7 @@ export default function ResetPassword() {
                     type={showPassword ? "text" : "password"}
                     autoComplete="new-password"
                     required
-                    minLength={6}
+                    minLength={8}
                     value={confirm}
                     onChange={(e) => setConfirm(e.target.value)}
                     className="border-white/15 bg-white/5 text-white placeholder:text-white/30 focus-visible:ring-[#b196de]"
@@ -116,7 +122,7 @@ export default function ResetPassword() {
                   disabled={loading}
                   className="w-full bg-gradient-to-r from-[#b196de] to-[#6648bd] text-white hover:opacity-90"
                 >
-                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Trocar senha"}
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : invite ? "Criar senha" : "Trocar senha"}
                 </Button>
               </form>
             )}

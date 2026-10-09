@@ -8,6 +8,7 @@ export const users = sqliteTable("users", {
   createdAt: text("created_at").notNull(),
   newContentSeenAt: text("new_content_seen_at"), // último momento em que o aluno viu o aviso de novidades na tela inicial
   archivedAt: text("archived_at"), // aluno arquivado (contrato encerrado): não entra mais no portal, mas os dados ficam
+  sessionVersion: integer("session_version").notNull().default(0), // sobe ao trocar senha / sair de todos os aparelhos
 });
 
 export const studentProfiles = sqliteTable("student_profiles", {
@@ -154,6 +155,13 @@ export const wordleGames = sqliteTable("wordle_games", {
   guessesUsed: integer("guesses_used").notNull(),
   hintUsed: integer("hint_used", { mode: "boolean" }).notNull().default(false),
   points: integer("points").notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
+// Quem pediu a dica do Wordle em cada dia (os pontos são calculados a partir daqui).
+export const wordleHints = sqliteTable("wordle_hints", {
+  studentId: text("student_id").notNull().references(() => users.id),
+  date: text("date").notNull(), // "YYYY-MM-DD"
   createdAt: text("created_at").notNull(),
 });
 

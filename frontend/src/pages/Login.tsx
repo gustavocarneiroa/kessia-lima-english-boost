@@ -75,8 +75,8 @@ export default function Login() {
 
           <div className="rounded-2xl border border-white/10 bg-white/[0.07] p-6 shadow-2xl backdrop-blur-xl sm:p-8">
             <p className="mb-6 text-sm leading-relaxed text-white/70">
-              Entre com seu e-mail e senha. Se for a primeira vez, a senha que você digitar agora
-              vira a sua senha de acesso.
+              Entre com seu e-mail e senha. Primeira vez aqui? Crie sua senha pelo link de convite
+              que a professora te mandou.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">

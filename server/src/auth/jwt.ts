@@ -9,9 +9,13 @@ export interface SessionPayload {
   userId: string;
   email: string;
   role: "teacher" | "student";
+  // Cópia de users.session_version no momento do login. Se a versão do usuário subir
+  // (troca de senha, "sair de todos os aparelhos"), a sessão para de valer.
+  // Sessões antigas, de antes desse campo existir, chegam sem ele e contam como 0.
+  sessionVersion?: number;
 }
 
-export async function signSession(payload: SessionPayload): Promise<string> {
+export async function signSession(payload: Required<SessionPayload>): Promise<string> {
   return await new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -21,7 +25,7 @@ export async function signSession(payload: SessionPayload): Promise<string> {
 
 export async function verifySession(token: string): Promise<SessionPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"] });
     return payload as unknown as SessionPayload;
   } catch {
     return null;

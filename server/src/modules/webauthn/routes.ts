@@ -12,6 +12,7 @@ import { env, corsOrigins } from "../../env.ts";
 import { requireAuth, ARCHIVED_MESSAGE } from "../../auth/guards.ts";
 import { signSession, sessionCookieOptions, SESSION_COOKIE } from "../../auth/jwt.ts";
 import { saveChallenge, takeChallenge } from "../../lib/challenge-store.ts";
+import { blockedFor, clearFailures, registerFailure, tooManyAttempts } from "../../lib/rate-limit.ts";
 
 const RP_ID = env.WEBAUTHN_RP_ID;
 // Aceita tanto "teacherkessialima.com.br" quanto "www.teacherkessialima.com.br"
@@ -124,6 +125,9 @@ export async function webauthnRoutes(app: FastifyInstance) {
     if (!parsed.success) return reply.code(400).send({ error: "invalid_body" });
 
     const email = parsed.data.email.trim().toLowerCase();
+    const wait = Math.max(blockedFor("email", email), blockedFor("ip", req.ip));
+    if (wait > 0) return reply.code(429).send(tooManyAttempts(wait));
+
     const expectedChallenge = takeChallenge(`auth:${email}`);
     if (!expectedChallenge) {
       return reply.code(400).send({ error: "challenge_expired", message: "Sessão de login expirou, tente de novo." });
@@ -139,6 +143,7 @@ export async function webauthnRoutes(app: FastifyInstance) {
       : undefined;
 
     if (!credential || credential.userId !== user.id) {
+      registerFailure("ip", req.ip);
       return reply.code(404).send({ error: "unknown_device", message: "Dispositivo não reconhecido." });
     }
 
@@ -157,6 +162,8 @@ export async function webauthnRoutes(app: FastifyInstance) {
       });
 
       if (!verification.verified) {
+        registerFailure("email", email);
+        registerFailure("ip", req.ip);
         return reply.code(401).send({ error: "verification_failed", message: "Não foi possível confirmar login." });
       }
 
@@ -165,11 +172,19 @@ export async function webauthnRoutes(app: FastifyInstance) {
         .where(eq(schema.credentials.id, credential.id))
         .run();
 
-      const token = await signSession({ userId: user.id, email: user.email, role: user.role });
+      clearFailures("email", email);
+      const token = await signSession({
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+        sessionVersion: user.sessionVersion,
+      });
       reply.setCookie(SESSION_COOKIE, token, sessionCookieOptions);
       return { email: user.email, role: user.role };
     } catch (err) {
       req.log.error({ err }, "falha ao verificar login webauthn");
+      registerFailure("email", email);
+      registerFailure("ip", req.ip);
       return reply.code(401).send({ error: "verification_failed", message: "Não foi possível confirmar login." });
     }
   });
@@ -178,5 +193,17 @@ export async function webauthnRoutes(app: FastifyInstance) {
     const { userId } = req.session!;
     const devices = db.select().from(schema.credentials).where(eq(schema.credentials.userId, userId)).all();
     return devices.map((d) => ({ id: d.id, deviceName: d.deviceName, createdAt: d.createdAt }));
+  });
+
+  // Remover um aparelho (ex.: celular perdido) — ele deixa de conseguir entrar sem senha.
+  app.delete("/api/webauthn/devices/:id", { preHandler: requireAuth }, async (req, reply) => {
+    const { userId } = req.session!;
+    const { id } = req.params as { id: string };
+    const device = db.select().from(schema.credentials).where(eq(schema.credentials.id, id)).get();
+    if (!device || device.userId !== userId) {
+      return reply.code(404).send({ error: "not_found", message: "Dispositivo não encontrado." });
+    }
+    db.delete(schema.credentials).where(eq(schema.credentials.id, id)).run();
+    return reply.code(204).send();
   });
 }

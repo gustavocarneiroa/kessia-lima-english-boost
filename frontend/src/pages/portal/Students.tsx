@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Archive, ArchiveRestore, Loader2, Trash2, UserPlus } from "lucide-react";
 import Pagination from "@/components/Pagination";
+import PasswordLinkBox from "@/components/PasswordLinkBox";
 
 const PAGE_SIZE = 20;
 
@@ -41,6 +42,7 @@ export default function Students() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [invite, setInvite] = useState<{ email: string; link: string } | null>(null);
 
   const [view, setView] = useState<View>("active");
   const [page, setPage] = useState(1);
@@ -77,8 +79,10 @@ export default function Students() {
     e.preventDefault();
     setError(null);
     setAdding(true);
+    setInvite(null);
     try {
-      await api.post("/api/students", { email });
+      const res = await api.post<{ email: string; inviteLink: string }>("/api/students", { email });
+      setInvite({ email: res.email, link: res.inviteLink });
       setEmail("");
       if (view === "active") await loadStudents();
       else changeView("active");
@@ -115,8 +119,8 @@ export default function Students() {
         <h1 className="text-2xl font-semibold tracking-tight">{t("Alunos", "Students")}</h1>
         <p className="text-muted-foreground">
           {t(
-            "Adicione o e-mail do aluno. No primeiro login dele, a senha que ele digitar vira a senha da conta.",
-            "Add the student's email. The password they type on their first login becomes their account password.",
+            "Adicione o e-mail do aluno e mande pra ele o link de convite que aparecer — é por esse link que ele cria a senha.",
+            "Add the student's email and send them the invite link that shows up — that's how they create their password.",
           )}
         </p>
       </div>
@@ -140,6 +144,14 @@ export default function Students() {
             </Button>
           </form>
           {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+          {invite && (
+            <div className="mt-3">
+              <p className="text-sm font-medium">
+                {t("Aluno adicionado:", "Student added:")} {invite.email}
+              </p>
+              <PasswordLinkBox link={invite.link} invite />
+            </div>
+          )}
         </CardContent>
       </Card>
 

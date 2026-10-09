@@ -26,7 +26,9 @@ import { ensureWebhook } from "./lib/zapsign.ts";
 
 const app = Fastify({
   logger: { level: env.NODE_ENV === "production" ? "info" : "debug" },
-  trustProxy: true,
+  // Só confia no endereço repassado pelo nginx (que roda na mesma máquina). Com "true",
+  // qualquer um podia inventar o próprio IP no cabeçalho e escapar do limite de tentativas.
+  trustProxy: "loopback",
   bodyLimit: 8 * 1024 * 1024,
 });
 
@@ -34,6 +36,18 @@ await app.register(cors, { origin: corsOrigins, credentials: true });
 await app.register(cookie);
 
 app.addHook("onRequest", loadSession);
+
+// Cabeçalhos de proteção padrão: a API nunca é aberta dentro de outro site, o navegador
+// não "adivinha" tipo de arquivo, e só se fala com ela por HTTPS.
+app.addHook("onSend", async (_req, reply) => {
+  reply.header("X-Content-Type-Options", "nosniff");
+  reply.header("X-Frame-Options", "DENY");
+  reply.header("Referrer-Policy", "strict-origin-when-cross-origin");
+  reply.header("Cross-Origin-Resource-Policy", "same-site");
+  if (env.NODE_ENV === "production") {
+    reply.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  }
+});
 
 app.get("/health", async () => {
   return { status: "ok", env: env.NODE_ENV };

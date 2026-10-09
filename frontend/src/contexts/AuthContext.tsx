@@ -14,6 +14,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<{ firstLogin: boolean }>;
   loginWithDevice: (email: string) => Promise<void>;
   logout: () => Promise<void>;
+  logoutAll: () => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -63,8 +64,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  // Encerra a sessão em todos os aparelhos (inclusive neste).
+  async function logoutAll() {
+    await api.post("/api/auth/logout-all");
+    setUser(null);
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithDevice, logout, refresh }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithDevice, logout, logoutAll, refresh }}>
       {children}
     </AuthContext.Provider>
   );
