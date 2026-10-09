@@ -5,7 +5,7 @@ import { importNotionLessons } from "./import-notion-lessons.ts";
 import { importLearningTopics } from "./import-learning-topics.ts";
 import { importNotionStudents } from "./import-notion-students.ts";
 import { importVocabLists } from "./import-vocab-lists.ts";
-import { importNotebookActivities } from "./import-notebook-activities.ts";
+import { removeNotebookActivities } from "./remove-notebook-activities.ts";
 import { importPracticeResources } from "./import-practice-resources.ts";
 import { getSetting, setSetting } from "../lib/settings.ts";
 
@@ -32,7 +32,7 @@ importNotionLessons();
 importNotionStudents();
 importLearningTopics();
 importVocabLists();
-importNotebookActivities();
+removeNotebookActivities();
 importPracticeResources();
 
 // Aviso de "novidade" (aula/atividade nova) na tela inicial do aluno: sem isso,
