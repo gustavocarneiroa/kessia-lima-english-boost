@@ -6,6 +6,7 @@ import { requireTeacher } from "../../auth/guards.ts";
 import { parsePagination } from "../../lib/pagination.ts";
 import { createContractDocument, zapsignEnabled } from "../../lib/zapsign.ts";
 import { env } from "../../env.ts";
+import { MAX_CHUNK_CHARS, MAX_CHUNKS, putChunk, startUpload, takeUpload } from "../../lib/pdf-upload.ts";
 
 // Quem assina pela professora no ZapSign (mesmo nome do contrato).
 const TEACHER_SIGNER_NAME = "Kelma Késsia Lima Carneiro";
@@ -50,7 +51,9 @@ const convertBody = z.object({
   // Tudo que vai no texto do contrato (dados do aluno, plano, valores) — só a tela do contrato lê.
   contract: z.record(z.unknown()),
   // PDF do contrato montado na tela (base64, sem o prefixo data:) — vai pro ZapSign.
+  // Vem em pedaços por /api/quotes/pdf-upload (pdfUploadId); pdfBase64 direto só se couber.
   pdfBase64: z.string().max(7_000_000).optional(),
+  pdfUploadId: z.string().uuid().optional(),
   installmentValue: z.string().trim().max(50),
   paymentDueDay: z.string().regex(/^([1-9]|[12]\d|3[01])$/),
   payments: z
@@ -171,6 +174,27 @@ export async function quoteRoutes(app: FastifyInstance) {
     return reply.code(204).send();
   });
 
+  // PDF do contrato em pedaços (ver lib/pdf-upload.ts): primeiro pede um id dizendo
+  // quantos pedaços vêm, depois manda cada um; o "Virar contrato" recebe só o id.
+  app.post("/api/quotes/pdf-upload", { preHandler: requireTeacher }, async (req, reply) => {
+    const parsed = z.object({ total: z.number().int().min(1).max(MAX_CHUNKS) }).safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", message: "O PDF do contrato ficou grande demais." });
+    }
+    return { uploadId: startUpload(parsed.data.total) };
+  });
+
+  app.put("/api/quotes/pdf-upload/:uploadId/:index", { preHandler: requireTeacher }, async (req, reply) => {
+    const { uploadId, index } = req.params as { uploadId: string; index: string };
+    const parsed = z
+      .object({ data: z.string().min(1).max(MAX_CHUNK_CHARS).regex(/^[A-Za-z0-9+/=]+$/) })
+      .safeParse(req.body);
+    if (!parsed.success || !putChunk(uploadId, Number(index), parsed.data.data)) {
+      return reply.code(400).send({ error: "invalid_body", message: "Não consegui enviar o PDF do contrato. Tente de novo." });
+    }
+    return reply.code(204).send();
+  });
+
   // "Virar contrato": cadastra o aluno (ou reaproveita o cadastro, se o e-mail já
   // existe — renovação), preenche contrato/vencimento no perfil e cria as parcelas
   // no Financeiro. Aluno arquivado volta a ficar ativo.
@@ -219,7 +243,8 @@ export async function quoteRoutes(app: FastifyInstance) {
     // aqui — se o ZapSign recusar, nada fica pela metade no portal.
     let zapsign: Awaited<ReturnType<typeof createContractDocument>> | null = null;
     if (zapsignEnabled()) {
-      if (!input.pdfBase64) {
+      const pdfBase64 = input.pdfUploadId ? takeUpload(input.pdfUploadId) : input.pdfBase64;
+      if (!pdfBase64) {
         return reply.code(400).send({ error: "invalid_body", message: "Não consegui montar o PDF do contrato. Tente de novo." });
       }
       const studentName = input.fullName || email;
@@ -227,7 +252,7 @@ export async function quoteRoutes(app: FastifyInstance) {
         zapsign = await createContractDocument({
           contractId,
           name: `Contrato - ${studentName} (${formatDateBr(input.contractStart)} a ${formatDateBr(input.contractEnd)})`,
-          pdfBase64: input.pdfBase64,
+          pdfBase64,
           teacher: { name: TEACHER_SIGNER_NAME, email: env.ADMIN_EMAIL, phone: TEACHER_SIGNER_PHONE },
           student: { name: studentName, email, phone: input.phone },
         });

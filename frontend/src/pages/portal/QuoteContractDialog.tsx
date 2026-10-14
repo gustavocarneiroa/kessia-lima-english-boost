@@ -126,13 +126,19 @@ export default function QuoteContractDialog({
     setSaving(true);
     try {
       // Com o ZapSign ligado, o PDF (montado a partir da cópia escondida abaixo) vai junto.
-      let pdfBase64: string | undefined;
+      // Vai em pedaços: a API não aceita pedidos acima de 1 MB e o PDF passa disso.
+      let pdfUploadId: string | undefined;
       if (zapsignEnabled) {
         if (!pdfRef.current) throw new Error("pdf");
-        pdfBase64 = await contractPdfBase64(pdfRef.current);
+        const pdfBase64 = await contractPdfBase64(pdfRef.current);
+        const chunks = pdfBase64.match(/[\s\S]{1,600000}/g) ?? [];
+        ({ uploadId: pdfUploadId } = await api.post<{ uploadId: string }>("/api/quotes/pdf-upload", { total: chunks.length }));
+        for (let i = 0; i < chunks.length; i++) {
+          await api.put(`/api/quotes/pdf-upload/${pdfUploadId}/${i}`, { data: chunks[i] });
+        }
       }
       const res = await api.post<{ studentId: string; contractId: string; created: boolean }>(`/api/quotes/${quoteId}/convert`, {
-        pdfBase64,
+        pdfUploadId,
         email: contract.student.email,
         fullName: contract.student.fullName || null,
         phone: contract.student.phone || null,
