@@ -117,6 +117,10 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   bloqueado (`ContractGate.tsx` + `GET /api/me/contract-gate`) enquanto houver
   contrato do ZapSign não assinado — na renovação, só depois do fim do contrato
   anterior (`block_after`). Testes: `ZAPSIGN_API_URL=https://sandbox.api.zapsign.com.br`.
+- **Aba "Contratos"** (`/portal/contratos`, só professora, `GET /api/contracts`): lista
+  todos os contratos com filtro (todos/aguardando/assinados). "Excluir contrato"
+  (`DeleteContractDialog.tsx`, também no topo de `/contrato/:id`) chama
+  `DELETE /api/contracts/:id` — só o contrato sai; aluno, cobranças e horários ficam.
 - **Dias sem aula** (`days_off`, aba "Calendário"): valem pra todos; o aluno vê no
   calendário dele. Feriados nacionais (BrasilAPI) + Dia do Professor são importados
   pelo servidor sempre do ano atual até +2 (`server/src/lib/holidays.ts`, checa ao
@@ -131,6 +135,13 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   servidor a partir das tentativas gravadas + `wordle_hints` (nunca confiar no corpo
   de `/api/wordle/finish`). Cabeçalhos de segurança na API (`index.ts`) e no site
   (`frontend/public/_headers`).
+- **E-mail pelo Resend** (`server/src/lib/email.ts`, chamada direta à API, sem SDK):
+  ligado só se `RESEND_API_KEY` existir (secret do GitHub → `.env` no deploy; também
+  `EMAIL_FROM`, padrão `nao-responda@teacherkessialima.com.br` — domínio precisa estar
+  verificado no Resend, e `EMAIL_REPLY_TO` opcional). Hoje só usado no "Esqueci minha
+  senha" (`/esqueci-senha` → `POST /api/auth/forgot-password`): resposta sempre igual
+  (não revela se o e-mail existe), limite de 3 pedidos/15min por e-mail, aluno sem senha
+  recebe o link de convite. Sem a chave, a rota responde 503 `email_disabled`.
 - Sem banco de dados de alunos ainda além de e-mail/senha — qualquer feature nova
   pra aluno (notas, exercícios, agenda etc.) precisa ser desenhada quando for
   pedida, não existe estrutura pronta pra isso.

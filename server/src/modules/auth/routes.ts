@@ -5,7 +5,8 @@ import { z } from "zod";
 import { db, schema } from "../../db/client.ts";
 import { env } from "../../env.ts";
 import { hashPassword, verifyPassword } from "../../lib/password.ts";
-import { MIN_PASSWORD_LENGTH, PASSWORD_TOO_SHORT } from "../../lib/password-link.ts";
+import { createPasswordLink, MIN_PASSWORD_LENGTH, PASSWORD_TOO_SHORT } from "../../lib/password-link.ts";
+import { emailEnabled, passwordEmail, sendEmail } from "../../lib/email.ts";
 import { blockedFor, clearFailures, registerFailure, tooManyAttempts } from "../../lib/rate-limit.ts";
 import { signSession, sessionCookieOptions, SESSION_COOKIE } from "../../auth/jwt.ts";
 import { requireAuth, revokeAllSessions, ARCHIVED_MESSAGE } from "../../auth/guards.ts";
@@ -15,6 +16,8 @@ const loginBody = z.object({
   // Sem mínimo aqui: quem criou a senha quando o mínimo era 6 continua entrando.
   password: z.string().min(1, "Digite sua senha.").max(200),
 });
+
+const forgotPasswordBody = z.object({ email: z.string().email() });
 
 const resetPasswordBody = z.object({
   token: z.string().min(1),
@@ -85,6 +88,43 @@ export async function authRoutes(app: FastifyInstance) {
     });
     reply.setCookie(SESSION_COOKIE, token, sessionCookieOptions);
     return { email: user.email, role: user.role, firstLogin };
+  });
+
+  // "Esqueci minha senha": manda por e-mail o mesmo link que a professora geraria.
+  // A resposta é sempre a mesma, exista o e-mail ou não.
+  app.post("/api/auth/forgot-password", async (req, reply) => {
+    if (!emailEnabled()) {
+      return reply.code(503).send({
+        error: "email_disabled",
+        message: "O envio por e-mail ainda não está disponível. Peça um link de redefinição para a professora.",
+      });
+    }
+    const parsed = forgotPasswordBody.safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", message: "Digite um e-mail válido." });
+    }
+    const email = parsed.data.email.trim().toLowerCase();
+
+    const wait = Math.max(blockedFor("forgotEmail", email), blockedFor("forgotIp", req.ip));
+    if (wait > 0) return reply.code(429).send(tooManyAttempts(wait));
+    registerFailure("forgotEmail", email);
+    registerFailure("forgotIp", req.ip);
+
+    const user = db.select().from(schema.users).where(eq(schema.users.email, email)).get();
+    if (user && !user.archivedAt) {
+      const { link, invite } = createPasswordLink(user);
+      const msg = passwordEmail(link, invite);
+      // não espera o envio: assim a resposta não demora mais quando o e-mail existe
+      sendEmail({ to: user.email, ...msg }).catch((err) =>
+        req.log.error({ err, userId: user.id }, "falha ao enviar e-mail de senha"),
+      );
+    }
+
+    return {
+      ok: true,
+      message:
+        "Se esse e-mail estiver cadastrado, você vai receber em instantes um link para criar uma nova senha. Confira também a caixa de spam.",
+    };
   });
 
   app.post("/api/auth/reset-password", async (req, reply) => {

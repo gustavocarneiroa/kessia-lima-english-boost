@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth, ApiError } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,7 +121,9 @@ export default function Login() {
               </div>
 
               <p className="text-xs text-white/50">
-                Esqueceu a senha? Peça um link de redefinição para a professora.
+                <Link to="/esqueci-senha" className="underline-offset-2 hover:text-white/80 hover:underline">
+                  Esqueci minha senha
+                </Link>
               </p>
 
               {error && (

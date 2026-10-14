@@ -13,6 +13,9 @@ const limits = {
   // IP: protege contra quem testa vários e-mails. Folgado de propósito — várias
   // pessoas podem sair pelo mesmo IP (mesma rede/escola).
   ip: 40,
+  // "Esqueci minha senha": poucos e-mails por conta, pra ninguém lotar a caixa de alguém
+  forgotEmail: 3,
+  forgotIp: 15,
 };
 
 type Kind = keyof typeof limits;
@@ -54,7 +57,7 @@ export function tooManyAttempts(seconds: number) {
   const minutes = Math.max(1, Math.ceil(seconds / 60));
   return {
     error: "too_many_attempts",
-    message: `Muitas tentativas erradas. Por segurança, espere ${minutes} minuto${minutes > 1 ? "s" : ""} e tente de novo.`,
+    message: `Muitas tentativas. Por segurança, espere ${minutes} minuto${minutes > 1 ? "s" : ""} e tente de novo.`,
   };
 }
 

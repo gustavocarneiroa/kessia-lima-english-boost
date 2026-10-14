@@ -35,6 +35,15 @@ const schema = z.object({
   ZAPSIGN_API_URL: z.string().url().default("https://api.zapsign.com.br"),
   // Endereço público deste servidor — o ZapSign avisa as assinaturas em <isso>/api/zapsign/webhook
   PUBLIC_API_ORIGIN: z.string().url().default("https://api.teacherkessialima.com.br"),
+
+  // Envio de e-mails pelo Resend (resend.com) — por enquanto só o "Esqueci minha senha".
+  // Sem a chave, o envio fica desligado e a tela pede pra falar com a professora.
+  RESEND_API_KEY: z.string().min(1).optional(),
+  RESEND_API_URL: z.string().url().default("https://api.resend.com"),
+  // Remetente — o domínio precisa estar verificado no Resend.
+  EMAIL_FROM: z.string().min(1).default("Teacher Kessia Lima <nao-responda@teacherkessialima.com.br>"),
+  // Pra onde vai a resposta se o aluno clicar em "responder" (opcional).
+  EMAIL_REPLY_TO: z.string().email().optional(),
 });
 
 const parsed = schema.safeParse(process.env);

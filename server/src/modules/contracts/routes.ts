@@ -132,6 +132,28 @@ export async function contractRoutes(app: FastifyInstance) {
       .map((r) => ({ ...serialize(r.contract, "teacher"), studentEmail: r.email, studentName: r.fullName }));
   });
 
+  // Aba "Contratos" da professora: todos, do mais novo pro mais antigo.
+  app.get("/api/contracts", { preHandler: requireTeacher }, async () => {
+    return db
+      .select({
+        contract: schema.studentContracts,
+        email: schema.users.email,
+        archivedAt: schema.users.archivedAt,
+        fullName: schema.studentProfiles.fullName,
+      })
+      .from(schema.studentContracts)
+      .innerJoin(schema.users, eq(schema.users.id, schema.studentContracts.studentId))
+      .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.studentContracts.studentId))
+      .orderBy(desc(schema.studentContracts.createdAt))
+      .all()
+      .map((r) => ({
+        ...serialize(r.contract, "teacher"),
+        studentEmail: r.email,
+        studentName: r.fullName,
+        studentArchived: !!r.archivedAt,
+      }));
+  });
+
   // A professora abre qualquer contrato; o aluno só os dele.
   app.get("/api/contracts/:id", { preHandler: requireAuth }, async (req, reply) => {
     const row = loadForSession(req, reply);

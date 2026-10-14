@@ -7,9 +7,10 @@ import type { ContractRecord } from "@/lib/contract";
 import { contractFileName, downloadContractPdf } from "@/lib/contractPdf";
 import ContractDocument from "@/components/ContractDocument";
 import ZapSignSigning from "@/components/ZapSignSigning";
+import DeleteContractDialog from "@/components/DeleteContractDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Check, CheckCircle2, Copy, Download, ExternalLink, Hourglass, Loader2, PenLine, Printer, XCircle } from "lucide-react";
+import { ArrowLeft, Check, CheckCircle2, Copy, Download, ExternalLink, Hourglass, Loader2, PenLine, Printer, Trash2, XCircle } from "lucide-react";
 
 // Página fora do layout do portal (sem menu lateral). Conforme a etapa, mostra:
 // a tela do ZapSign pra quem tem que assinar agora, o contrato montado (pra ler,
@@ -21,6 +22,7 @@ export default function ContractView() {
   const [contract, setContract] = useState<ContractRecord | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const documentRef = useRef<HTMLDivElement>(null);
   const isTeacher = user?.role === "teacher";
 
@@ -91,18 +93,26 @@ export default function ContractView() {
           <ArrowLeft className="h-4 w-4" />
           Voltar ao portal
         </Link>
-        {showDocument && (
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => window.print()} className="gap-2 bg-white">
-              <Printer className="h-4 w-4" />
-              Imprimir
+        <div className="flex flex-wrap gap-2">
+          {isTeacher && contract && (
+            <Button variant="outline" onClick={() => setDeleting(true)} className="gap-2 bg-white text-red-600 hover:text-red-700">
+              <Trash2 className="h-4 w-4" />
+              Excluir contrato
             </Button>
-            <Button onClick={() => void downloadGenerated()} disabled={downloading} className="gap-2">
-              {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-              {downloading ? "Montando o PDF..." : "Baixar PDF"}
-            </Button>
-          </div>
-        )}
+          )}
+          {showDocument && (
+            <>
+              <Button variant="outline" onClick={() => window.print()} className="gap-2 bg-white">
+                <Printer className="h-4 w-4" />
+                Imprimir
+              </Button>
+              <Button onClick={() => void downloadGenerated()} disabled={downloading} className="gap-2">
+                {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                {downloading ? "Montando o PDF..." : "Baixar PDF"}
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
       {error && <p className="mb-4 px-4 text-center text-sm text-red-600 print:hidden">{error}</p>}
@@ -133,6 +143,12 @@ export default function ContractView() {
           )}
         </>
       )}
+
+      <DeleteContractDialog
+        contract={deleting ? contract : null}
+        onClose={() => setDeleting(false)}
+        onDeleted={() => navigate(isTeacher ? "/portal/contratos" : backTo)}
+      />
     </div>
   );
 }
@@ -206,7 +222,7 @@ function StatusPanel({
         <p className="text-sm text-neutral-600">{period}</p>
         <p className="text-sm text-neutral-700">
           {isTeacher
-            ? "A assinatura foi recusada no ZapSign. Exclua este contrato na página do aluno e gere um novo pelo orçamento."
+            ? "A assinatura foi recusada no ZapSign. Exclua este contrato (botão “Excluir contrato” no topo) e gere um novo pelo orçamento."
             : "A assinatura foi recusada. Fale com a teacher para gerar um novo contrato."}
         </p>
       </Panel>

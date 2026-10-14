@@ -10,6 +10,7 @@ import AceternityDemo from "./pages/AceternityDemo";
 import Wordle from "./pages/Wordle";
 import Login from "./pages/Login";
 import ResetPassword from "./pages/ResetPassword";
+import ForgotPassword from "./pages/ForgotPassword";
 import PortalLayout from "./pages/PortalLayout";
 import PortalOverview from "./pages/portal/Overview";
 import PortalStudents from "./pages/portal/Students";
@@ -28,6 +29,7 @@ import ForumPost from "./pages/portal/ForumPost";
 import Finance from "./pages/portal/Finance";
 import Resources from "./pages/portal/Resources";
 import Quotes from "./pages/portal/Quotes";
+import Contracts from "./pages/portal/Contracts";
 import QuoteEditor from "./pages/portal/QuoteEditor";
 import Calendar from "./pages/portal/Calendar";
 import ContractView from "./pages/ContractView";
@@ -47,6 +49,7 @@ const App = () => (
             <Route path="/wordle" element={<Wordle />} />
             <Route path="/login" element={<Login />} />
             <Route path="/redefinir-senha" element={<ResetPassword />} />
+            <Route path="/esqueci-senha" element={<ForgotPassword />} />
             <Route path="/contrato/:id" element={<ContractView />} />
             <Route path="/portal" element={<PortalLayout />}>
               <Route index element={<PortalOverview />} />
@@ -66,6 +69,7 @@ const App = () => (
               <Route path="financeiro" element={<Finance />} />
               <Route path="calendario" element={<Calendar />} />
               <Route path="orcamentos" element={<Quotes />} />
+              <Route path="contratos" element={<Contracts />} />
               <Route path="orcamentos/novo" element={<QuoteEditor />} />
               <Route path="orcamentos/:id" element={<QuoteEditor />} />
               <Route path="configuracoes" element={<Settings />} />
