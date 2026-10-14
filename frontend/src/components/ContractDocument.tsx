@@ -76,7 +76,8 @@ export default function ContractDocument({ data }: { data: ContractData }) {
   const upfront = data.paymentMode === "upfront";
 
   return (
-    <div data-contract-root className="mx-auto max-w-[210mm] bg-white shadow-lg print:max-w-none print:shadow-none">
+    // texto sempre escuro: no portal em modo escuro herdaria a cor clara (PDF em branco)
+    <div data-contract-root className="mx-auto max-w-[210mm] bg-white text-neutral-900 shadow-lg print:max-w-none print:shadow-none">
       <style>{`@page { size: A4; margin: 0; } @media print { body { background: white; } }`}</style>
 
       {/* Página 1: partes e plano */}
