@@ -59,7 +59,7 @@ function QuestionEditor({
           value={q.prompt}
           onChange={(e) => onChange({ ...q, prompt: e.target.value })}
           placeholder={t("Enunciado (ex.: She ___ coffee every morning.)", "Prompt (e.g. She ___ coffee every morning.)")}
-          rows={1}
+          rows={Math.min(12, q.prompt.split("\n").reduce((n, line) => n + Math.max(1, Math.ceil(line.length / 80)), 0))}
           className="min-h-[40px] flex-1"
         />
         {showLevel && (
@@ -224,6 +224,12 @@ export default function LevelTestEditor() {
             {t(
               "Clique na letra ao lado de uma opção pra marcar a resposta certa (fica verde). O ideal é ter pelo menos 5 perguntas por nível.",
               "Click the letter next to an option to mark the correct answer (it turns green). Aim for at least 5 questions per level.",
+            )}
+          </p>
+          <p>
+            {t(
+              "Pergunta de reading: escreva o texto, deixe uma linha em branco e escreva a pergunta embaixo — o aluno vê o texto num quadro separado.",
+              "Reading question: write the text, leave a blank line and write the question below — the student sees the text in a separate box.",
             )}
           </p>
         </CardContent>

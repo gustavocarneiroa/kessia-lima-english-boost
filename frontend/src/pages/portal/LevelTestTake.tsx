@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
-import { DONT_KNOW, type LevelTestAttempt } from "@/lib/levelTest";
+import { DONT_KNOW, splitPrompt, type LevelTestAttempt } from "@/lib/levelTest";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +17,7 @@ import {
 import { ArrowLeft, ArrowRight, CheckCircle2, Gauge, Headphones, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import LevelTestResult from "./LevelTestResult";
+import LevelTestPrompt from "./LevelTestPrompt";
 
 interface StudentQuestion {
   prompt: string;
@@ -293,7 +294,8 @@ export default function LevelTestTake() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="whitespace-pre-line text-lg font-medium leading-relaxed">{q.prompt}</CardTitle>
+          {splitPrompt(q.prompt).passage && <p className="text-sm font-medium text-muted-foreground">Reading</p>}
+          <LevelTestPrompt prompt={q.prompt} className="text-lg font-medium leading-relaxed" passageClassName="text-base" />
         </CardHeader>
         <CardContent className="space-y-2">
           {q.options.map((opt, oi) => (

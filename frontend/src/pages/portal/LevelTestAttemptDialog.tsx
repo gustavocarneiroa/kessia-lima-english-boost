@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
-import { DONT_KNOW, type LevelTestAttemptDetail, type LevelTestQuestion } from "@/lib/levelTest";
+import { DONT_KNOW, splitPrompt, type LevelTestAttemptDetail, type LevelTestQuestion } from "@/lib/levelTest";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
@@ -71,11 +71,16 @@ export default function LevelTestAttemptDialog({ attemptId, onClose }: { attempt
                         <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
                       )}
                       <div className="min-w-0 flex-1">
+                        {splitPrompt(q.prompt).passage && (
+                          <p className="mb-1 line-clamp-2 text-xs italic text-muted-foreground" title={splitPrompt(q.prompt).passage!}>
+                            Reading: {splitPrompt(q.prompt).passage}
+                          </p>
+                        )}
                         <p className="whitespace-pre-line">
                           <Badge variant="outline" className="mr-1.5 px-1.5 py-0 text-[10px]">
                             {q.level}
                           </Badge>
-                          {i + 1}. {q.prompt}
+                          {i + 1}. {splitPrompt(q.prompt).question}
                         </p>
                         {!ok && (
                           <p className="text-muted-foreground">

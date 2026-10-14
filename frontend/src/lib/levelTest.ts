@@ -90,3 +90,10 @@ export interface LevelTestAttemptDetail extends LevelTestAttempt {
   questions: LevelTestQuestion[];
   listening: LevelTest["listening"];
 }
+
+/** Enunciado com linha em branco = texto de leitura (antes) + pergunta (depois da última). */
+export function splitPrompt(prompt: string): { passage: string | null; question: string } {
+  const i = prompt.lastIndexOf("\n\n");
+  if (i === -1) return { passage: null, question: prompt };
+  return { passage: prompt.slice(0, i).trim(), question: prompt.slice(i + 2).trim() };
+}
