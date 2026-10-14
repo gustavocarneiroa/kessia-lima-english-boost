@@ -21,6 +21,8 @@ import {
 import { useWordle, useWordleLeaderboard } from "@/hooks/useWordle";
 import NoticeBoard from "./NoticeBoard";
 import PendingContractsCard from "./PendingContractsCard";
+import LevelTestNoticeCard from "./LevelTestNoticeCard";
+import { LEVEL_TEST_FOR_STUDENTS } from "@/lib/levelTest";
 
 
 interface Birthday {
@@ -146,6 +148,8 @@ export default function Overview() {
       <p className="text-muted-foreground">{user.email}</p>
 
       <PendingContractsCard isTeacher={isTeacher} />
+
+      {!isTeacher && LEVEL_TEST_FOR_STUDENTS && <LevelTestNoticeCard />}
 
       <NoticeBoard isTeacher={isTeacher} />
 

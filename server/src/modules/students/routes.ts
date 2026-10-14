@@ -265,6 +265,8 @@ export async function studentRoutes(app: FastifyInstance) {
       tx.delete(schema.payments).where(eq(schema.payments.studentId, id)).run();
       tx.delete(schema.studentFlashcards).where(eq(schema.studentFlashcards.studentId, id)).run();
       tx.delete(schema.studentContracts).where(eq(schema.studentContracts.studentId, id)).run();
+      tx.delete(schema.levelTestAssignments).where(eq(schema.levelTestAssignments.studentId, id)).run();
+      tx.delete(schema.levelTestAttempts).where(eq(schema.levelTestAttempts.studentId, id)).run();
       // usa a mesma conexão SQLite, então também roda dentro desta transação
       deleteForumContentByAuthor(id);
       tx.delete(schema.users).where(eq(schema.users.id, id)).run();

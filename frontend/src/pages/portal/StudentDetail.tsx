@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import StudentAssignments from "./StudentAssignments";
 import ContractsCard from "./ContractsCard";
+import LevelTestCard from "./LevelTestCard";
+import { LEVEL_TEST_FOR_STUDENTS } from "@/lib/levelTest";
 import PasswordLinkBox from "@/components/PasswordLinkBox";
 import { Loader2, ArrowLeft, Link as LinkIcon, ClipboardList, ExternalLink, KeyRound, Archive, ArchiveRestore } from "lucide-react";
 
@@ -256,6 +258,8 @@ export default function StudentDetail() {
       {id && <StudentAssignments studentId={id} />}
 
       {id && <ContractsCard path={`/api/students/${id}/contracts`} />}
+
+      {id && LEVEL_TEST_FOR_STUDENTS && <LevelTestCard studentId={id} />}
 
       <Card>
         <CardHeader>

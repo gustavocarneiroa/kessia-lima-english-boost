@@ -298,6 +298,29 @@ export const practiceResources = sqliteTable("practice_resources", {
   createdAt: text("created_at").notNull(),
 });
 
+// Teste de nível: as perguntas ficam em app_settings (chave "level_test"). A professora
+// "envia" o teste pro aluno (levelTestAssignments); ao terminar, o envio some, a tentativa
+// fica guardada e o nível calculado vai pro perfil (studentProfiles.englishLevel).
+export const levelTestAssignments = sqliteTable("level_test_assignments", {
+  studentId: text("student_id").primaryKey().references(() => users.id),
+  assignedAt: text("assigned_at").notNull(),
+});
+
+export const levelTestAttempts = sqliteTable("level_test_attempts", {
+  id: text("id").primaryKey(),
+  studentId: text("student_id").notNull().references(() => users.id),
+  // JSON: number[] na ordem das perguntas (gramática e depois listening); -1 = "não sei".
+  answers: text("answers").notNull(),
+  score: integer("score").notNull(),
+  total: integer("total").notNull(),
+  level: text("level").notNull(), // "A1" … "C2"
+  // JSON: Record<nível, { correct, total }>
+  byLevel: text("by_level").notNull(),
+  // JSON: cópia do teste como estava na hora — editar as perguntas depois não estraga o histórico.
+  test: text("test").notNull(),
+  submittedAt: text("submitted_at").notNull(),
+});
+
 export const passwordResetTokens = sqliteTable("password_reset_tokens", {
   // hash (sha-256) do token — o token em si só existe no link, nunca é salvo em texto puro
   tokenHash: text("token_hash").primaryKey(),

@@ -32,6 +32,7 @@ import Quotes from "./pages/portal/Quotes";
 import Contracts from "./pages/portal/Contracts";
 import QuoteEditor from "./pages/portal/QuoteEditor";
 import Calendar from "./pages/portal/Calendar";
+import LevelTest from "./pages/portal/LevelTest";
 import ContractView from "./pages/ContractView";
 
 const queryClient = new QueryClient();
@@ -63,6 +64,7 @@ const App = () => (
               <Route path="atividades" element={<Activities />} />
               <Route path="atividades/:id" element={<ActivityDetail />} />
               <Route path="trilha" element={<LearningPath />} />
+              <Route path="teste-de-nivel" element={<LevelTest />} />
               <Route path="recursos" element={<Resources />} />
               <Route path="forum" element={<Forum />} />
               <Route path="forum/:id" element={<ForumPost />} />

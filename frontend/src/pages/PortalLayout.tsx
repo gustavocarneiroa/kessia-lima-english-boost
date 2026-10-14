@@ -25,6 +25,7 @@ import {
   CalendarRange,
   Calculator,
   FileSignature,
+  Gauge,
   GraduationCap,
   Languages,
   Library,
@@ -46,6 +47,7 @@ import {
 import logo from "@/assets/logo.png";
 import { cn } from "@/lib/utils";
 import ContractGate from "./portal/ContractGate";
+import { LEVEL_TEST_FOR_STUDENTS } from "@/lib/levelTest";
 
 interface NavItem {
   to: string;
@@ -61,6 +63,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/portal/aulas", icon: CalendarDays, label: ["Aulas", "Lessons"] },
   { to: "/portal/vocabulario", icon: Layers, label: ["Vocabulário", "Vocabulary"] },
   { to: "/portal/trilha", icon: Map, label: ["Trilha", "Path"], tooltip: ["Trilha de aprendizagem", "Learning path"] },
+  { to: "/portal/teste-de-nivel", icon: Gauge, label: ["Teste de nível", "Level test"], only: LEVEL_TEST_FOR_STUDENTS ? undefined : "teacher" },
   { to: "/portal/atividades", icon: Puzzle, label: ["Atividades", "Activities"] },
   { to: "/portal/recursos", icon: Library, label: ["Recursos", "Resources"], tooltip: ["Recursos para praticar", "Practice resources"] },
   { to: "/portal/forum", icon: MessagesSquare, label: ["Fórum", "Forum"] },

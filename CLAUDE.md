@@ -142,6 +142,16 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   senha" (`/esqueci-senha` → `POST /api/auth/forgot-password`): resposta sempre igual
   (não revela se o e-mail existe), limite de 3 pedidos/15min por e-mail, aluno sem senha
   recebe o link de convite. Sem a chave, a rota responde 503 `email_disabled`.
+- **Teste de nível** (`/portal/teste-de-nivel`, escala CEFR A1–C2): perguntas de múltipla
+  escolha marcadas por nível + listening opcional (vídeo do YouTube), em `app_settings`
+  chave `level_test` (sem ela, usa `DEFAULT_LEVEL_TEST` de `server/src/lib/levelTest.ts`).
+  Professora libera por aluno (`level_test_assignments`); ao enviar, o servidor corrige, guarda
+  a tentativa com cópia do teste (`level_test_attempts`), apaga a liberação e grava o nível em
+  `student_profiles.english_level`. Nível = mais alto com ≥60% de acerto sem falhar nenhum
+  abaixo; "não sei" = -1. Aluno vê o nível e acertos por nível, não o gabarito.
+  **Hoje só a professora vê** (fase de revisão das perguntas): `LEVEL_TEST_FOR_STUDENTS = false`
+  em `server/src/lib/levelTest.ts` e `frontend/src/lib/levelTest.ts` — esconde menu/aviso/card
+  do aluno e "Liberar", e as rotas do aluno respondem 404. Pra abrir, trocar os dois pra `true`.
 - Sem banco de dados de alunos ainda além de e-mail/senha — qualquer feature nova
   pra aluno (notas, exercícios, agenda etc.) precisa ser desenhada quando for
   pedida, não existe estrutura pronta pra isso.

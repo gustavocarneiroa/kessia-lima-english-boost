@@ -417,6 +417,27 @@ sqlite.exec(`
   );
 `);
 
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS level_test_assignments (
+    student_id TEXT PRIMARY KEY REFERENCES users(id),
+    assigned_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS level_test_attempts (
+    id TEXT PRIMARY KEY,
+    student_id TEXT NOT NULL REFERENCES users(id),
+    answers TEXT NOT NULL,
+    score INTEGER NOT NULL,
+    total INTEGER NOT NULL,
+    level TEXT NOT NULL,
+    by_level TEXT NOT NULL,
+    test TEXT NOT NULL,
+    submitted_at TEXT NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS level_test_attempts_student_id_idx ON level_test_attempts(student_id);
+`);
+
 // activities: a tabela já existia em produção com CHECK mais restritivo (sem
 // "listening" antes, sem "quiz" agora) — SQLite não permite alterar CHECK com
 // ALTER TABLE, então reconstruímos a tabela (idempotente: só roda se o CHECK
