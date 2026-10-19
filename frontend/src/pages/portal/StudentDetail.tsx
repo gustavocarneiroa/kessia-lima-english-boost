@@ -14,7 +14,7 @@ import ContractsCard from "./ContractsCard";
 import LevelTestCard from "./LevelTestCard";
 import { LEVEL_TEST_FOR_STUDENTS } from "@/lib/levelTest";
 import PasswordLinkBox from "@/components/PasswordLinkBox";
-import { Loader2, ArrowLeft, Link as LinkIcon, ClipboardList, ExternalLink, KeyRound, Archive, ArchiveRestore } from "lucide-react";
+import { Loader2, ArrowLeft, Link as LinkIcon, ClipboardList, ExternalLink, KeyRound, Archive, ArchiveRestore, Pencil } from "lucide-react";
 
 interface Student {
   id: string;
@@ -106,6 +106,12 @@ export default function StudentDetail() {
   const [resetError, setResetError] = useState<string | null>(null);
   const [archiving, setArchiving] = useState(false);
 
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailSaving, setEmailSaving] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailSaved, setEmailSaved] = useState(false);
+
   const [profile, setProfile] = useState<StudentProfile>(emptyProfile);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
@@ -181,6 +187,26 @@ export default function StudentDetail() {
     }
   }
 
+  async function handleSaveEmail(e: React.FormEvent) {
+    e.preventDefault();
+    if (!id) return;
+    setEmailSaving(true);
+    setEmailError(null);
+    try {
+      const res = await api.put<{ email: string; inviteLink: string | null }>(`/api/students/${id}/email`, {
+        email: newEmail,
+      });
+      setStudent((prev) => (prev ? { ...prev, email: res.email } : prev));
+      setResetLink(res.inviteLink ? { link: res.inviteLink, invite: true } : null);
+      setEditingEmail(false);
+      setEmailSaved(true);
+    } catch (err) {
+      setEmailError(err instanceof ApiError ? err.message : t("Não foi possível alterar o e-mail.", "Couldn't change the email."));
+    } finally {
+      setEmailSaving(false);
+    }
+  }
+
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
     if (!id) return;
@@ -219,7 +245,58 @@ export default function StudentDetail() {
         <h1 className="text-2xl font-semibold tracking-tight">
           {loading ? t("Carregando...", "Loading...") : student?.fullName || student?.email}
         </h1>
-        {student?.fullName && <p className="text-sm text-muted-foreground">{student.email}</p>}
+        {student && !editingEmail && (
+          <div className="flex flex-wrap items-center gap-2">
+            {student.fullName && <p className="text-sm text-muted-foreground">{student.email}</p>}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 px-2 text-xs"
+              onClick={() => {
+                setNewEmail(student.email);
+                setEmailError(null);
+                setEmailSaved(false);
+                setEditingEmail(true);
+              }}
+            >
+              <Pencil className="h-3 w-3" /> {t("Alterar e-mail", "Change email")}
+            </Button>
+          </div>
+        )}
+        {editingEmail && (
+          <form onSubmit={handleSaveEmail} className="flex max-w-md flex-wrap items-center gap-2 pt-1">
+            <Input
+              type="email"
+              required
+              autoFocus
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              className="h-8 min-w-0 flex-1"
+              aria-label={t("Novo e-mail", "New email")}
+            />
+            <Button type="submit" size="sm" disabled={emailSaving} className="gap-1.5">
+              {emailSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              {t("Salvar", "Save")}
+            </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setEditingEmail(false)} disabled={emailSaving}>
+              {t("Cancelar", "Cancel")}
+            </Button>
+          </form>
+        )}
+        {emailError && <p className="text-sm text-destructive">{emailError}</p>}
+        {emailSaved && (
+          <p className="text-sm text-muted-foreground">
+            {student?.hasLoggedIn
+              ? t(
+                  "E-mail alterado. Aulas, cobranças e contratos continuam iguais. O aluno passa a entrar com o e-mail novo (a senha não muda).",
+                  "Email changed. Lessons, payments and contracts stay the same. The student now logs in with the new email (password unchanged).",
+                )
+              : t(
+                  "E-mail alterado. Aulas, cobranças e contratos continuam iguais. O link de convite antigo parou de valer — mande o novo link abaixo pro aluno.",
+                  "Email changed. Lessons, payments and contracts stay the same. The old invite link no longer works — send the student the new link below.",
+                )}
+          </p>
+        )}
         {student && (
           <div className="flex flex-wrap items-center gap-2 pt-1">
             {student.archivedAt ? (

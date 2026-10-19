@@ -277,6 +277,41 @@ export async function studentRoutes(app: FastifyInstance) {
     return reply.code(204).send();
   });
 
+  // Corrigir e-mail cadastrado errado. Tudo do aluno (aulas, cobranças, contratos...)
+  // é ligado pelo id, então nada se perde.
+  app.put("/api/students/:id/email", { preHandler: requireTeacher }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const student = db.select().from(schema.users).where(eq(schema.users.id, id)).get();
+    if (!student || student.role !== "student") {
+      return reply.code(404).send({ error: "not_found", message: "Aluno não encontrado." });
+    }
+
+    const parsed = addStudentBody.safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_email", message: "E-mail inválido." });
+    }
+    const email = parsed.data.email.trim().toLowerCase();
+    if (email === student.email) return { email, inviteLink: null };
+
+    const existing = db.select().from(schema.users).where(eq(schema.users.email, email)).get();
+    if (existing) {
+      return reply.code(409).send({
+        error: "already_exists",
+        message: existing.archivedAt
+          ? "Esse e-mail é de um aluno arquivado."
+          : "Esse e-mail já está cadastrado em outra conta.",
+      });
+    }
+
+    db.update(schema.users).set({ email }).where(eq(schema.users.id, id)).run();
+    // link de convite/redefinição já enviado não deve continuar valendo
+    db.delete(schema.passwordResetTokens).where(eq(schema.passwordResetTokens.userId, id)).run();
+    // aluno ainda sem senha: já devolve um convite novo pra mandar pro e-mail certo
+    const invite = student.passwordHash === null && !student.archivedAt ? createPasswordLink(student) : null;
+
+    return { email, inviteLink: invite?.link ?? null };
+  });
+
   app.post("/api/students/:id/reset-link", { preHandler: requireTeacher }, async (req, reply) => {
     const { id } = req.params as { id: string };
     const student = db.select().from(schema.users).where(eq(schema.users.id, id)).get();
