@@ -4,7 +4,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Headphones, Link2, PenLine } from "lucide-react";
+import { Loader2, Headphones, Link2, PenLine, CheckCircle2 } from "lucide-react";
 import ActivityForm, { type ActivityFormPayload } from "./ActivityForm";
 import Pagination from "@/components/Pagination";
 
@@ -15,6 +15,7 @@ interface Activity {
   title: string;
   kind: "embed" | "listening" | "quiz";
   createdAt: string;
+  completedAt?: string | null; // só na visão do aluno: quando ele marcou "feito" (embed)
 }
 
 export default function Activities() {
@@ -110,6 +111,12 @@ export default function Activities() {
                       <Link2 className="h-4 w-4 text-muted-foreground" />
                     )}
                     <p className="font-medium">{a.title}</p>
+                    {a.completedAt && (
+                      <span className="ml-auto flex items-center gap-1 text-xs font-medium text-emerald-600">
+                        <CheckCircle2 className="h-4 w-4" />
+                        {t("Feito", "Done")}
+                      </span>
+                    )}
                   </Link>
                 </li>
               ))}

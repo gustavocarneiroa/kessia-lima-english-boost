@@ -107,6 +107,15 @@ export const activityAnswers = sqliteTable("activity_answers", {
   submittedAt: text("submitted_at").notNull(),
 });
 
+// Atividade "embed" (feita num site externo dentro de um iframe): o site não tem como
+// mandar a resposta pra cá, então o próprio aluno marca "feito". Uma linha por aluno
+// que marcou; desmarcar apaga a linha.
+export const activityCompletions = sqliteTable("activity_completions", {
+  activityId: text("activity_id").notNull().references(() => activities.id),
+  studentId: text("student_id").notNull().references(() => users.id),
+  completedAt: text("completed_at").notNull(),
+});
+
 // Trilha de aprendizagem: uma lista única de tópicos (gramática, vocabulário,
 // comunicação) que vale pra todos os alunos, na mesma ordem. O progresso de quem
 // já estudou cada tópico é individual — ver learningTopicCompletions.

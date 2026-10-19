@@ -25,6 +25,7 @@ export function removeNotebookActivities() {
 
   for (const id of ids) {
     db.delete(schema.activityAnswers).where(eq(schema.activityAnswers.activityId, id)).run();
+    db.delete(schema.activityCompletions).where(eq(schema.activityCompletions.activityId, id)).run();
     db.delete(schema.activityStudents).where(eq(schema.activityStudents.activityId, id)).run();
     db.delete(schema.activities).where(eq(schema.activities.id, id)).run();
   }

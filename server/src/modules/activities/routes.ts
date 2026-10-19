@@ -88,6 +88,10 @@ const quizSubmitBody = z.object({
   answers: z.array(z.union([z.number().int().min(0), z.string().trim().max(1000)])).max(QUIZ_ITEMS_MAX),
 });
 
+const doneBody = z.object({
+  done: z.boolean(),
+});
+
 const gradeBody = z.object({
   index: z.number().int().min(0),
   correct: z.boolean(),
@@ -194,7 +198,20 @@ export async function activitiesRoutes(app: FastifyInstance) {
         .filter((a) => ids.has(a.id));
     }
 
-    const items = all.slice(offset, offset + pageSize);
+    // "Feito" marcado pelo aluno nas atividades de site externo (embed).
+    const completedAtByActivity = new Map<string, string>();
+    if (studentId) {
+      for (const c of db
+        .select({ activityId: schema.activityCompletions.activityId, completedAt: schema.activityCompletions.completedAt })
+        .from(schema.activityCompletions)
+        .where(eq(schema.activityCompletions.studentId, studentId))
+        .all()) {
+        completedAtByActivity.set(c.activityId, c.completedAt);
+      }
+    }
+    const items = all
+      .slice(offset, offset + pageSize)
+      .map((a) => (studentId ? { ...a, completedAt: completedAtByActivity.get(a.id) ?? null } : a));
     if (session.role === "teacher" && studentId) {
       const answers = db
         .select({
@@ -447,8 +464,27 @@ export async function activitiesRoutes(app: FastifyInstance) {
     }
 
     if (activity.kind !== "listening") {
-      const studentIds = session.role === "teacher" ? assignedStudentIds(id) : undefined;
-      return { ...activity, studentIds };
+      if (session.role === "teacher") {
+        const completions = db
+          .select({
+            studentId: schema.activityCompletions.studentId,
+            completedAt: schema.activityCompletions.completedAt,
+            email: schema.users.email,
+            fullName: schema.studentProfiles.fullName,
+          })
+          .from(schema.activityCompletions)
+          .innerJoin(schema.users, eq(schema.users.id, schema.activityCompletions.studentId))
+          .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.activityCompletions.studentId))
+          .where(eq(schema.activityCompletions.activityId, id))
+          .all();
+        return { ...activity, studentIds: assignedStudentIds(id), completions };
+      }
+      const mine = db
+        .select({ completedAt: schema.activityCompletions.completedAt })
+        .from(schema.activityCompletions)
+        .where(and(eq(schema.activityCompletions.activityId, id), eq(schema.activityCompletions.studentId, session.userId)))
+        .get();
+      return { ...activity, completedAt: mine?.completedAt ?? null };
     }
 
     const questions = parseQuestions(activity.questions);
@@ -598,6 +634,33 @@ export async function activitiesRoutes(app: FastifyInstance) {
     return { score, total: questions.length, correctAnswers: questions.map((q) => q.correctIndex) };
   });
 
+  // Aluno marca/desmarca "feito" numa atividade de site externo (embed).
+  app.put("/api/activities/:id/done", { preHandler: requireAuth }, async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const session = req.session!;
+    if (session.role === "teacher") {
+      return reply.code(403).send({ error: "forbidden", message: "Só alunos marcam atividades como feitas." });
+    }
+    const activity = activityOr404(id);
+    if (!activity || activity.kind !== "embed" || !studentAssigned(id, session.userId)) {
+      return reply.code(404).send({ error: "not_found", message: "Atividade não encontrada." });
+    }
+    const parsed = doneBody.safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", message: "Pedido inválido." });
+    }
+    const where = and(eq(schema.activityCompletions.activityId, id), eq(schema.activityCompletions.studentId, session.userId));
+    if (!parsed.data.done) {
+      db.delete(schema.activityCompletions).where(where).run();
+      return { completedAt: null };
+    }
+    const existing = db.select().from(schema.activityCompletions).where(where).get();
+    if (existing) return { completedAt: existing.completedAt };
+    const completedAt = new Date().toISOString();
+    db.insert(schema.activityCompletions).values({ activityId: id, studentId: session.userId, completedAt }).run();
+    return { completedAt };
+  });
+
   // Professora corrige manualmente uma resposta aberta ("completar") de um aluno.
   app.put("/api/activities/:id/answers/:studentId/grade", { preHandler: requireTeacher }, async (req, reply) => {
     const { id, studentId } = req.params as { id: string; studentId: string };
@@ -630,6 +693,7 @@ export async function activitiesRoutes(app: FastifyInstance) {
     const { id } = req.params as { id: string };
     if (!activityOr404(id)) return reply.code(404).send({ error: "not_found", message: "Atividade não encontrada." });
     db.delete(schema.activityAnswers).where(eq(schema.activityAnswers.activityId, id)).run();
+    db.delete(schema.activityCompletions).where(eq(schema.activityCompletions.activityId, id)).run();
     db.delete(schema.activityStudents).where(eq(schema.activityStudents.activityId, id)).run();
     db.delete(schema.activities).where(eq(schema.activities.id, id)).run();
     return reply.code(204).send();

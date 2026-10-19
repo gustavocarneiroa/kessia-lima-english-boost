@@ -17,6 +17,7 @@ interface Activity {
   title: string;
   kind: "embed" | "listening" | "quiz";
   studentAnswer: { score: number; total: number; submittedAt: string } | null;
+  completedAt: string | null; // embed: quando o aluno marcou "feito"
 }
 
 interface VocabList {
@@ -118,8 +119,12 @@ export default function StudentAssignments({ studentId }: { studentId: string })
   }, [studentId]);
 
   function activityStatus(a: Activity) {
-    // atividade de site externo (embed): o portal não sabe se o aluno fez
-    if (a.kind === "embed") return <Badge variant="outline">{t("Site externo", "External site")}</Badge>;
+    // atividade de site externo (embed): o portal só sabe se o próprio aluno marcou "feito"
+    if (a.kind === "embed") {
+      if (!a.completedAt) return <Badge variant="secondary">{t("Ainda não marcou como feita", "Not marked as done yet")}</Badge>;
+      const when = new Date(a.completedAt).toLocaleDateString(locale);
+      return <Badge>{t(`Marcou como feita em ${when}`, `Marked as done on ${when}`)}</Badge>;
+    }
     if (!a.studentAnswer) return <Badge variant="secondary">{t("Ainda não fez", "Not done yet")}</Badge>;
     const when = formatDate(a.studentAnswer.submittedAt, locale);
     // quiz pode ter perguntas escritas que a professora corrige à mão — a nota automática

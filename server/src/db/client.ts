@@ -130,6 +130,13 @@ sqlite.exec(`
     UNIQUE (activity_id, student_id)
   );
 
+  CREATE TABLE IF NOT EXISTS activity_completions (
+    activity_id TEXT NOT NULL REFERENCES activities(id),
+    student_id TEXT NOT NULL REFERENCES users(id),
+    completed_at TEXT NOT NULL,
+    PRIMARY KEY (activity_id, student_id)
+  );
+
   CREATE TABLE IF NOT EXISTS learning_topics (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,

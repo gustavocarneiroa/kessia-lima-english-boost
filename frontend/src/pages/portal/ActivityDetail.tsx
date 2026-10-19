@@ -79,6 +79,8 @@ interface ActivityDetail {
   studentIds?: string[];
   results?: StudentResult[];
   mySubmission?: Submission | null;
+  completedAt?: string | null; // embed, visão do aluno: quando ele marcou "feito"
+  completions?: { studentId: string; completedAt: string; email: string; fullName?: string | null }[]; // embed, visão da professora
 }
 
 interface Student {
@@ -90,7 +92,7 @@ interface Student {
 export default function ActivityDetail() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
-  const { t } = usePortalPrefs();
+  const { t, locale } = usePortalPrefs();
   const navigate = useNavigate();
   const isTeacher = user?.role === "teacher";
   const [activity, setActivity] = useState<ActivityDetail | null>(null);
@@ -106,6 +108,7 @@ export default function ActivityDetail() {
   const [result, setResult] = useState<Submission | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [savingDone, setSavingDone] = useState(false);
 
   async function load() {
     if (!id) return;
@@ -165,6 +168,17 @@ export default function ActivityDetail() {
     }
   }
 
+  async function toggleDone(done: boolean) {
+    if (!id) return;
+    setSavingDone(true);
+    try {
+      const res = await api.put<{ completedAt: string | null }>(`/api/activities/${id}/done`, { done });
+      setActivity((prev) => (prev ? { ...prev, completedAt: res.completedAt } : prev));
+    } finally {
+      setSavingDone(false);
+    }
+  }
+
   async function gradeBlank(studentId: string, qi: number, correct: boolean) {
     if (!id) return;
     const key = `${studentId}-${qi}`;
@@ -197,11 +211,30 @@ export default function ActivityDetail() {
     ? activity.questions.every((_, i) => answers[i] !== undefined && answers[i] !== "")
     : false;
 
+  // Aluno marca "feito" na atividade de site externo — o site não manda a resposta pra cá.
+  const doneCheckbox =
+    !isTeacher && activity.kind === "embed" ? (
+      <label className="flex cursor-pointer items-center gap-2 text-sm">
+        <Checkbox
+          checked={!!activity.completedAt}
+          disabled={savingDone}
+          onCheckedChange={(v) => void toggleDone(v === true)}
+        />
+        <span className="font-medium">{t("Já fiz essa atividade", "I've done this activity")}</span>
+        {activity.completedAt && (
+          <span className="text-muted-foreground">
+            ({t("marcada em", "marked on")} {new Date(activity.completedAt).toLocaleDateString(locale)})
+          </span>
+        )}
+      </label>
+    ) : null;
+
   if (expanded && activity.kind === "embed") {
     return (
       <div className="fixed inset-0 z-50 flex flex-col bg-background">
-        <div className="flex items-center justify-between gap-3 border-b px-4 py-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-2">
           <p className="truncate font-medium">{activity.title}</p>
+          {doneCheckbox}
           <Button variant="outline" size="sm" className="gap-2" onClick={() => setExpanded(false)}>
             <Minimize2 className="h-4 w-4" />
             {t("Sair da tela cheia", "Exit full screen")}
@@ -286,17 +319,60 @@ export default function ActivityDetail() {
           </CardContent>
         </Card>
       ) : activity.kind === "embed" ? (
-        <Card>
-          <CardContent className="p-0">
-            <iframe
-              src={activity.embedSrc ?? undefined}
-              height={activity.embedHeight}
-              width="100%"
-              style={{ border: 0, display: "block" }}
-              title={activity.title}
-            />
-          </CardContent>
-        </Card>
+        <>
+          {doneCheckbox && (
+            <Card>
+              <CardContent className="space-y-1 py-4">
+                {doneCheckbox}
+                <p className="text-xs text-muted-foreground">
+                  {t(
+                    "Marque quando terminar a atividade abaixo — assim a professora sabe que você fez.",
+                    "Tick this when you finish the activity below — so your teacher knows you did it.",
+                  )}
+                </p>
+              </CardContent>
+            </Card>
+          )}
+          <Card>
+            <CardContent className="p-0">
+              <iframe
+                src={activity.embedSrc ?? undefined}
+                height={activity.embedHeight}
+                width="100%"
+                style={{ border: 0, display: "block" }}
+                title={activity.title}
+              />
+            </CardContent>
+          </Card>
+          {isTeacher && (activity.studentIds?.length ?? 0) > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{t("Quem já fez", "Who has done it")}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-1 text-sm">
+                  {activity.studentIds!.map((sid) => {
+                    const s = students.find((x) => x.id === sid);
+                    const done = activity.completions?.find((c) => c.studentId === sid);
+                    return (
+                      <li key={sid} className="flex flex-wrap justify-between gap-2">
+                        <span>{s?.fullName || s?.email || done?.fullName || done?.email || sid}</span>
+                        {done ? (
+                          <span className="flex items-center gap-1 font-medium text-emerald-600">
+                            <CheckCircle2 className="h-4 w-4" />
+                            {t("Feito em", "Done on")} {new Date(done.completedAt).toLocaleDateString(locale)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">{t("Ainda não marcou", "Not marked yet")}</span>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
+        </>
       ) : activity.kind === "quiz" ? (
         <>
           {!isTeacher && activity.questions && (
