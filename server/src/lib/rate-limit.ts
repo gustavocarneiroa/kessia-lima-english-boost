@@ -16,6 +16,9 @@ const limits = {
   // "Esqueci minha senha": poucos e-mails por conta, pra ninguém lotar a caixa de alguém
   forgotEmail: 3,
   forgotIp: 15,
+  // Horror Movie Awards (página sem login): envios de voto por IP — sobra pra
+  // alunos que corrigem o voto, segura quem tenta encher a urna.
+  awardsIp: 30,
 };
 
 type Kind = keyof typeof limits;

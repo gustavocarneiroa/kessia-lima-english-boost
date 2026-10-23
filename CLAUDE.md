@@ -152,6 +152,12 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   **Hoje só a professora vê** (fase de revisão das perguntas): `LEVEL_TEST_FOR_STUDENTS = false`
   em `server/src/lib/levelTest.ts` e `frontend/src/lib/levelTest.ts` — esconde menu/aviso/card
   do aluno e "Liberar", e as rotas do aluno respondem 404. Pra abrir, trocar os dois pra `true`.
+- **Horror Movie Awards** (aula de Halloween, out/2026): votação **aberta, sem login** em
+  `/awards` (`pages/HorrorAwards.tsx`) — cada navegador tem um `voterId` próprio (votar de
+  novo substitui), limite por IP (`awardsIp`). Resultado só pra professora em `/portal/awards`
+  (`HorrorAwardsResults.tsx`): envelope por categoria, abrir/encerrar votação, apagar votos.
+  Categorias/indicados em `frontend/src/lib/horrorAwards.ts` (ids repetidos em
+  `server/src/modules/awards/routes.ts`); votos em `horror_award_votes`.
 - Sem banco de dados de alunos ainda além de e-mail/senha — qualquer feature nova
   pra aluno (notas, exercícios, agenda etc.) precisa ser desenhada quando for
   pedida, não existe estrutura pronta pra isso.

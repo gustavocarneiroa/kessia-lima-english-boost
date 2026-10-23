@@ -330,6 +330,17 @@ export const levelTestAttempts = sqliteTable("level_test_attempts", {
   submittedAt: text("submitted_at").notNull(),
 });
 
+// Horror Movie Awards (aula de Halloween): página aberta, sem login. Cada navegador tem um
+// voterId próprio (guardado nele) — votar de novo só substitui o voto anterior.
+export const horrorAwardVotes = sqliteTable("horror_award_votes", {
+  voterId: text("voter_id").primaryKey(),
+  name: text("name").notNull(),
+  // JSON: Record<categoria, { pick, reason }>
+  picks: text("picks").notNull(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
 export const passwordResetTokens = sqliteTable("password_reset_tokens", {
   // hash (sha-256) do token — o token em si só existe no link, nunca é salvo em texto puro
   tokenHash: text("token_hash").primaryKey(),

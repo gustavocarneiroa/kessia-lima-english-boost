@@ -34,6 +34,8 @@ import QuoteEditor from "./pages/portal/QuoteEditor";
 import Calendar from "./pages/portal/Calendar";
 import LevelTest from "./pages/portal/LevelTest";
 import ContractView from "./pages/ContractView";
+import HorrorAwards from "./pages/HorrorAwards";
+import HorrorAwardsResults from "./pages/portal/HorrorAwardsResults";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +54,7 @@ const App = () => (
             <Route path="/redefinir-senha" element={<ResetPassword />} />
             <Route path="/esqueci-senha" element={<ForgotPassword />} />
             <Route path="/contrato/:id" element={<ContractView />} />
+            <Route path="/awards" element={<HorrorAwards />} />
             <Route path="/portal" element={<PortalLayout />}>
               <Route index element={<PortalOverview />} />
               <Route path="alunos" element={<PortalStudents />} />
@@ -75,6 +78,7 @@ const App = () => (
               <Route path="orcamentos/novo" element={<QuoteEditor />} />
               <Route path="orcamentos/:id" element={<QuoteEditor />} />
               <Route path="configuracoes" element={<Settings />} />
+              <Route path="awards" element={<HorrorAwardsResults />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
