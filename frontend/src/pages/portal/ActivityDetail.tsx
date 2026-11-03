@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Loader2, Maximize2, Minimize2, Pencil, Trash2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
-import ActivityForm, { type ActivityFormPayload, type QuizItemDraft } from "./ActivityForm";
+import ActivityForm, { quizQuestionNumber, type ActivityFormPayload, type QuizItemDraft } from "./ActivityForm";
 
 interface Question {
   prompt: string;
@@ -20,10 +20,36 @@ interface Question {
 }
 
 interface QuizItem {
-  type: "choice" | "blank";
-  prompt: string;
+  type: "choice" | "blank" | "translate" | "wordbank";
+  prompt?: string; // todos menos "wordbank"
   options?: string[];
   correctIndex?: number;
+  answer?: string; // "translate": sugestão de resposta (só a professora recebe)
+  words?: string[]; // "wordbank"
+}
+
+function isWordBank(q: Question | QuizItem) {
+  return "type" in q && q.type === "wordbank";
+}
+
+// Respostas escritas que a professora corrige à mão.
+function isWrittenItem(q: QuizItem) {
+  return q.type === "blank" || q.type === "translate";
+}
+
+function WordBankBox({ words, label }: { words: string[]; label: string }) {
+  return (
+    <div className="rounded-lg border bg-muted/40 p-3">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <div className="flex flex-wrap gap-2">
+        {words.map((w, i) => (
+          <span key={i} className="rounded-md border bg-background px-2 py-0.5 font-mono text-sm">
+            {w}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // Enunciados do quiz podem ter várias linhas (texto de leitura + pergunta) e links
@@ -54,6 +80,7 @@ interface Submission {
   score: number;
   total: number;
   correctAnswers?: (number | null)[];
+  modelAnswers?: (string | null)[]; // quiz: sugestão de resposta das traduções
   manualGrades?: Record<string, boolean>;
 }
 
@@ -158,7 +185,8 @@ export default function ActivityDetail() {
     setSubmitError(null);
     setSubmitting(true);
     try {
-      const orderedAnswers = activity.questions.map((_, i) => answers[i]);
+      // Banco de palavras não é pergunta — vai "" nessa posição.
+      const orderedAnswers = activity.questions.map((q, i) => (isWordBank(q) ? "" : answers[i]));
       const res = await api.post<Submission>(`/api/activities/${id}/submit`, { answers: orderedAnswers });
       setResult(res);
     } catch (err) {
@@ -208,7 +236,7 @@ export default function ActivityDetail() {
   }
 
   const allAnswered = activity.questions
-    ? activity.questions.every((_, i) => answers[i] !== undefined && answers[i] !== "")
+    ? activity.questions.every((q, i) => isWordBank(q) || (answers[i] !== undefined && answers[i] !== ""))
     : false;
 
   // Aluno marca "feito" na atividade de site externo — o site não manda a resposta pra cá.
@@ -298,8 +326,12 @@ export default function ActivityDetail() {
                         quizItems: (activity.questions as QuizItem[] | undefined)?.map(
                           (q): QuizItemDraft =>
                             q.type === "choice"
-                              ? { type: "choice", prompt: q.prompt, options: q.options ?? ["", ""], correctIndex: q.correctIndex ?? 0 }
-                              : { type: "blank", prompt: q.prompt },
+                              ? { type: "choice", prompt: q.prompt ?? "", options: q.options ?? ["", ""], correctIndex: q.correctIndex ?? 0 }
+                              : q.type === "translate"
+                                ? { type: "translate", prompt: q.prompt ?? "", answer: q.answer ?? "" }
+                                : q.type === "wordbank"
+                                  ? { type: "wordbank", text: (q.words ?? []).join(", ") }
+                                  : { type: "blank", prompt: q.prompt ?? "" },
                         ),
                       }
                     : {
@@ -385,24 +417,28 @@ export default function ActivityDetail() {
                   <div className="rounded-md border bg-muted/40 p-3 text-sm">
                     {t("Nota (múltipla escolha):", "Score (multiple choice):")} <span className="font-semibold">{result.score}</span>{" "}
                     {t("de", "of")} {result.total}
-                    {(activity.questions as QuizItem[]).some((q) => q.type === "blank") && (
+                    {(activity.questions as QuizItem[]).some(isWrittenItem) && (
                       <p className="mt-1 text-muted-foreground">
                         {t(
-                          "As perguntas de completar são corrigidas pela professora depois.",
-                          "Fill-in-the-blank questions are graded by your teacher later.",
+                          "As perguntas de resposta escrita (completar e tradução) são corrigidas pela professora depois.",
+                          "Written-answer questions (fill in the blank and translation) are graded by your teacher later.",
                         )}
                       </p>
                     )}
                   </div>
                 )}
 
-                {(activity.questions as QuizItem[]).map((q, qi) => {
+                {(activity.questions as QuizItem[]).map((q, qi, items) => {
+                  const num = quizQuestionNumber(items, qi);
+                  if (q.type === "wordbank") {
+                    return <WordBankBox key={qi} words={q.words ?? []} label={t("Banco de palavras", "Word bank")} />;
+                  }
                   if (q.type === "choice") {
                     const correct = result?.correctAnswers?.[qi];
                     return (
                       <div key={qi} className="space-y-2">
                         <Label className="text-sm font-medium">
-                          {qi + 1}. <PromptText text={q.prompt} />
+                          {num}. <PromptText text={q.prompt ?? ""} />
                         </Label>
                         <RadioGroup
                           value={answers[qi] !== undefined ? String(answers[qi]) : undefined}
@@ -437,19 +473,34 @@ export default function ActivityDetail() {
                   }
 
                   const grade = result?.manualGrades?.[String(qi)];
+                  const modelAnswer = result?.modelAnswers?.[qi];
                   return (
                     <div key={qi} className="space-y-2">
+                      {q.type === "translate" && (
+                        <p className="text-xs font-medium text-muted-foreground">
+                          {t("Traduza para o inglês:", "Translate into English:")}
+                        </p>
+                      )}
                       <Label className="text-sm font-medium">
-                        {qi + 1}. <PromptText text={q.prompt} />
+                        {num}. <PromptText text={q.prompt ?? ""} />
                       </Label>
                       <Textarea
                         value={(answers[qi] as string) ?? ""}
                         onChange={(e) => setAnswers((prev) => ({ ...prev, [qi]: e.target.value }))}
                         disabled={!!result}
-                        placeholder={t("Sua resposta", "Your answer")}
+                        placeholder={
+                          q.type === "translate"
+                            ? t("Sua tradução em inglês", "Your translation in English")
+                            : t("Sua resposta", "Your answer")
+                        }
                         rows={1}
                         className="min-h-10"
                       />
+                      {result && modelAnswer && (
+                        <p className="text-xs text-muted-foreground">
+                          {t("Sugestão de resposta:", "Suggested answer:")} <span className="font-medium">{modelAnswer}</span>
+                        </p>
+                      )}
                       {result &&
                         (grade === undefined ? (
                           <p className="text-xs text-muted-foreground">
@@ -490,21 +541,32 @@ export default function ActivityDetail() {
                 <CardTitle className="text-base">{t("Gabarito", "Answer key")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {(activity.questions as QuizItem[] | undefined)?.map((q, qi) => (
-                  <div key={qi} className="text-sm">
-                    <p className="font-medium">
-                      {qi + 1}. <PromptText text={q.prompt} />
-                    </p>
-                    <p className="text-muted-foreground">
-                      {q.type === "choice"
-                        ? `${t("Correta", "Correct")}: ${q.options?.[q.correctIndex ?? -1] ?? "—"}`
-                        : t(
-                            "Completar — você corrige depois que o aluno responder",
-                            "Fill in the blank — you grade it after the student answers",
-                          )}
-                    </p>
-                  </div>
-                ))}
+                {(activity.questions as QuizItem[] | undefined)?.map((q, qi, items) =>
+                  q.type === "wordbank" ? (
+                    <WordBankBox key={qi} words={q.words ?? []} label={t("Banco de palavras", "Word bank")} />
+                  ) : (
+                    <div key={qi} className="text-sm">
+                      <p className="font-medium">
+                        {quizQuestionNumber(items, qi)}. <PromptText text={q.prompt ?? ""} />
+                      </p>
+                      <p className="text-muted-foreground">
+                        {q.type === "choice"
+                          ? `${t("Correta", "Correct")}: ${q.options?.[q.correctIndex ?? -1] ?? "—"}`
+                          : q.type === "translate"
+                            ? q.answer
+                              ? `${t("Tradução — sugestão", "Translation — suggestion")}: ${q.answer}`
+                              : t(
+                                  "Tradução — você corrige depois que o aluno responder",
+                                  "Translation — you grade it after the student answers",
+                                )
+                            : t(
+                                "Completar — você corrige depois que o aluno responder",
+                                "Fill in the blank — you grade it after the student answers",
+                              )}
+                      </p>
+                    </div>
+                  ),
+                )}
               </CardContent>
             </Card>
           )}
@@ -523,16 +585,21 @@ export default function ActivityDetail() {
                         {r.score}/{r.total} ({t("múltipla escolha", "multiple choice")})
                       </span>
                     </div>
-                    {(activity.questions as QuizItem[]).map((q, qi) => {
-                      if (q.type !== "blank") return null;
+                    {(activity.questions as QuizItem[]).map((q, qi, items) => {
+                      if (!isWrittenItem(q)) return null;
                       const ans = r.answers?.[qi];
                       const gradeKey = `${r.studentId}-${qi}`;
                       const currentGrade = r.manualGrades?.[String(qi)];
                       return (
                         <div key={qi} className="rounded-md bg-muted/30 p-2 text-sm">
                           <p className="text-xs text-muted-foreground">
-                            {qi + 1}. <PromptText text={q.prompt} />
+                            {quizQuestionNumber(items, qi)}. <PromptText text={q.prompt ?? ""} />
                           </p>
+                          {q.type === "translate" && q.answer && (
+                            <p className="text-xs text-muted-foreground">
+                              {t("Sugestão", "Suggestion")}: {q.answer}
+                            </p>
+                          )}
                           <p className="whitespace-pre-line">{ans || <span className="italic text-muted-foreground">{t("(sem resposta)", "(no answer)")}</span>}</p>
                           <div className="mt-1 flex items-center gap-2">
                             <Button

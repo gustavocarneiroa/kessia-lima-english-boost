@@ -63,17 +63,39 @@ const quizBlankItemSchema = z.object({
   prompt: z.string().trim().min(1).max(QUIZ_PROMPT_MAX),
 });
 
-const quizItemSchema = z.union([quizChoiceItemSchema, quizBlankItemSchema]);
+// Tradução: a frase em português no enunciado, o aluno escreve em inglês. Corrigida
+// à mão como o "blank"; `answer` é uma sugestão de resposta da professora (opcional),
+// que o aluno só vê depois de enviar.
+const quizTranslateItemSchema = z.object({
+  type: z.literal("translate"),
+  prompt: z.string().trim().min(1).max(QUIZ_PROMPT_MAX),
+  answer: z.string().trim().max(QUIZ_PROMPT_MAX).optional(),
+});
+
+// Banco de palavras: só um quadro com palavras pro aluno usar nas perguntas seguintes —
+// não é pergunta (a resposta dele nessa posição é sempre "").
+const quizWordBankItemSchema = z.object({
+  type: z.literal("wordbank"),
+  words: z.array(z.string().trim().min(1).max(100)).min(1).max(60),
+});
+
+const quizItemSchema = z.union([quizChoiceItemSchema, quizBlankItemSchema, quizTranslateItemSchema, quizWordBankItemSchema]);
+
+const quizItemsSchema = z
+  .array(quizItemSchema)
+  .min(1)
+  .max(QUIZ_ITEMS_MAX)
+  .refine((items) => items.some((q) => q.type !== "wordbank"), { message: "precisa de pelo menos uma pergunta" });
 
 const quizCreateBody = z.object({
   kind: z.literal("quiz"),
   title: z.string().trim().min(1).max(200),
-  questions: z.array(quizItemSchema).min(1).max(QUIZ_ITEMS_MAX),
+  questions: quizItemsSchema,
 });
 
 const quizUpdateBody = z.object({
   title: z.string().trim().min(1).max(200),
-  questions: z.array(quizItemSchema).min(1).max(QUIZ_ITEMS_MAX),
+  questions: quizItemsSchema,
 });
 
 const studentsBody = z.object({
@@ -147,9 +169,16 @@ function questionsForStudent(questions: Question[]) {
 }
 
 function quizItemsForStudent(items: QuizItem[]) {
-  return items.map((q) =>
-    q.type === "choice" ? { type: q.type, prompt: q.prompt, options: q.options } : { type: q.type, prompt: q.prompt },
-  );
+  return items.map((q) => {
+    if (q.type === "choice") return { type: q.type, prompt: q.prompt, options: q.options };
+    if (q.type === "wordbank") return { type: q.type, words: q.words };
+    return { type: q.type, prompt: q.prompt };
+  });
+}
+
+// Sugestões de resposta das traduções — só vão pro aluno depois que ele envia.
+function quizModelAnswers(items: QuizItem[]) {
+  return items.map((q) => (q.type === "translate" ? (q.answer ?? null) : null));
 }
 
 function parseAnswers(raw: string | null): (number | string)[] {
@@ -294,7 +323,7 @@ export async function activitiesRoutes(app: FastifyInstance) {
       if (!parsed.success) {
         return reply.code(400).send({
           error: "invalid_body",
-          message: "Informe um título e pelo menos uma pergunta (múltipla escolha ou completar).",
+          message: "Informe um título e pelo menos uma pergunta (múltipla escolha, completar ou tradução).",
         });
       }
       const row = {
@@ -374,7 +403,7 @@ export async function activitiesRoutes(app: FastifyInstance) {
       if (!parsed.success) {
         return reply.code(400).send({
           error: "invalid_body",
-          message: "Informe um título e pelo menos uma pergunta (múltipla escolha ou completar).",
+          message: "Informe um título e pelo menos uma pergunta (múltipla escolha, completar ou tradução).",
         });
       }
       db.update(schema.activities)
@@ -458,6 +487,7 @@ export async function activitiesRoutes(app: FastifyInstance) {
               total: mine.total,
               manualGrades: parseManualGrades(mine.manualGrades),
               correctAnswers: items.map((q) => (q.type === "choice" ? q.correctIndex : null)),
+              modelAnswers: quizModelAnswers(items),
             }
           : null,
       };
@@ -591,6 +621,7 @@ export async function activitiesRoutes(app: FastifyInstance) {
         score,
         total: choiceCount,
         correctAnswers: items.map((q) => (q.type === "choice" ? q.correctIndex : null)),
+        modelAnswers: quizModelAnswers(items),
       };
     }
 
@@ -661,7 +692,7 @@ export async function activitiesRoutes(app: FastifyInstance) {
     return { completedAt };
   });
 
-  // Professora corrige manualmente uma resposta aberta ("completar") de um aluno.
+  // Professora corrige manualmente uma resposta aberta ("completar" ou "tradução") de um aluno.
   app.put("/api/activities/:id/answers/:studentId/grade", { preHandler: requireTeacher }, async (req, reply) => {
     const { id, studentId } = req.params as { id: string; studentId: string };
     const activity = activityOr404(id);

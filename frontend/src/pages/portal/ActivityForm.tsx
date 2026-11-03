@@ -24,7 +24,28 @@ interface GeneratedQuestion {
 
 export type QuizItemDraft =
   | { type: "choice"; prompt: string; options: string[]; correctIndex: number }
-  | { type: "blank"; prompt: string };
+  | { type: "blank"; prompt: string }
+  | { type: "translate"; prompt: string; answer: string }
+  // No formulário o banco de palavras é um campo de texto só (palavras separadas por
+  // vírgula); vira lista na hora de salvar.
+  | { type: "wordbank"; text: string };
+
+type QuizItemType = QuizItemDraft["type"];
+
+type QuizItemPayload =
+  | Exclude<QuizItemDraft, { type: "wordbank" }>
+  | { type: "wordbank"; words: string[] };
+
+function parseWordBank(text: string): string[] {
+  return text
+    .split(/[,·\n]/)
+    .map((w) => w.trim())
+    .filter(Boolean);
+}
+
+function quizItemPayload(q: QuizItemDraft): QuizItemPayload {
+  return q.type === "wordbank" ? { type: "wordbank", words: parseWordBank(q.text) } : q;
+}
 
 type StudentLevel = "beginner" | "intermediate" | "advanced";
 
@@ -33,6 +54,18 @@ const LEVEL_OPTIONS: { value: StudentLevel; label: [pt: string, en: string] }[] 
   { value: "intermediate", label: ["Intermediário", "Intermediate"] },
   { value: "advanced", label: ["Avançado", "Advanced"] },
 ];
+
+const QUIZ_TYPE_OPTIONS: { value: QuizItemType; label: [pt: string, en: string] }[] = [
+  { value: "choice", label: ["Múltipla escolha", "Multiple choice"] },
+  { value: "blank", label: ["Completar (resposta escrita)", "Fill in the blank (written answer)"] },
+  { value: "translate", label: ["Traduzir para o inglês", "Translate into English"] },
+  { value: "wordbank", label: ["Banco de palavras", "Word bank"] },
+];
+
+// Número da pergunta na tela — o banco de palavras não é pergunta, então não conta.
+export function quizQuestionNumber(items: { type: string }[], index: number): number {
+  return items.slice(0, index + 1).filter((q) => q.type !== "wordbank").length;
+}
 
 export function emptyQuestion(): QuestionDraft {
   return { prompt: "", options: ["", ""], correctIndex: 0 };
@@ -46,10 +79,17 @@ export function emptyQuizBlankItem(): QuizItemDraft {
   return { type: "blank", prompt: "" };
 }
 
+function emptyQuizItem(type: QuizItemType): QuizItemDraft {
+  if (type === "choice") return emptyQuizChoiceItem();
+  if (type === "translate") return { type: "translate", prompt: "", answer: "" };
+  if (type === "wordbank") return { type: "wordbank", text: "" };
+  return emptyQuizBlankItem();
+}
+
 export type ActivityFormPayload =
   | { kind: "embed"; title: string; embedCode: string }
   | { kind: "listening"; title: string; youtubeUrl: string; questions: QuestionDraft[] }
-  | { kind: "quiz"; title: string; questions: QuizItemDraft[] };
+  | { kind: "quiz"; title: string; questions: QuizItemPayload[] };
 
 interface ActivityFormProps {
   lockKind?: "embed" | "listening" | "quiz";
@@ -143,8 +183,20 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
     );
   }
 
-  function addQuizItem(type: "choice" | "blank") {
-    setQuizItems((prev) => [...prev, type === "choice" ? emptyQuizChoiceItem() : emptyQuizBlankItem()]);
+  function addQuizItem(type: QuizItemType) {
+    setQuizItems((prev) => [...prev, emptyQuizItem(type)]);
+  }
+
+  // Troca o tipo de uma pergunta mantendo o enunciado já digitado.
+  function changeQuizItemType(qi: number, type: QuizItemType) {
+    setQuizItems((prev) =>
+      prev.map((q, i) => {
+        if (i !== qi || q.type === type) return q;
+        const next = emptyQuizItem(type);
+        if ("prompt" in q && "prompt" in next) next.prompt = q.prompt;
+        return next;
+      }),
+    );
   }
 
   function removeQuizItem(qi: number) {
@@ -181,7 +233,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
           questions: questions.map((q) => ({ prompt: q.prompt, options: q.options, correctIndex: q.correctIndex })),
         });
       } else if (activityKind === "quiz") {
-        await onSubmit({ kind: "quiz", title, questions: quizItems });
+        await onSubmit({ kind: "quiz", title, questions: quizItems.map(quizItemPayload) });
       } else {
         await onSubmit({ kind: "embed", title, embedCode });
       }
@@ -214,7 +266,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
             onClick={() => setActivityKind("quiz")}
           >
             <PenLine className="h-4 w-4" />
-            {t("Feita por você (múltipla escolha / completar)", "Made by you (multiple choice / fill in the blank)")}
+            {t("Feita por você (múltipla escolha / completar / tradução)", "Made by you (multiple choice / fill in the blank / translation)")}
           </Button>
           <Button
             type="button"
@@ -385,20 +437,37 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
               <Card key={qi} className="border-dashed">
                 <CardContent className="space-y-3 pt-4">
                   <div className="flex items-start gap-2">
-                    <div className="flex-1 space-y-1">
-                      <Label className="text-xs">{t("Pergunta", "Question")} {qi + 1}</Label>
-                      <Textarea
-                        value={q.prompt}
-                        onChange={(e) => updateQuizItem(qi, { prompt: e.target.value })}
-                        placeholder={
-                          q.type === "choice"
-                            ? t("ex.: What is the past tense of 'go'?", "e.g. What is the past tense of 'go'?")
-                            : t("ex.: She ___ to school every day. (go)", "e.g. She ___ to school every day. (go)")
-                        }
-                        rows={2}
-                        required
-                      />
-                    </div>
+                    {q.type === "wordbank" ? (
+                      <div className="flex-1 space-y-1">
+                        <Label className="text-xs">{t("Banco de palavras", "Word bank")}</Label>
+                        <Input
+                          value={q.text}
+                          onChange={(e) => updateQuizItem(qi, { text: e.target.value })}
+                          placeholder={t("ex.: take, much, like, there, are", "e.g. take, much, like, there, are")}
+                          required
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex-1 space-y-1">
+                        <Label className="text-xs">
+                          {t("Pergunta", "Question")} {quizQuestionNumber(quizItems, qi)}
+                          {q.type === "translate" && ` — ${t("frase em português", "sentence in Portuguese")}`}
+                        </Label>
+                        <Textarea
+                          value={q.prompt}
+                          onChange={(e) => updateQuizItem(qi, { prompt: e.target.value })}
+                          placeholder={
+                            q.type === "choice"
+                              ? t("ex.: What is the past tense of 'go'?", "e.g. What is the past tense of 'go'?")
+                              : q.type === "translate"
+                                ? t("ex.: Eu gostaria de comprar uma camiseta.", "e.g. Eu gostaria de comprar uma camiseta.")
+                                : t("ex.: She ___ to school every day. (go)", "e.g. She ___ to school every day. (go)")
+                          }
+                          rows={2}
+                          required
+                        />
+                      </div>
+                    )}
                     {quizItems.length > 1 && (
                       <Button
                         type="button"
@@ -412,26 +481,43 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                     )}
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={q.type === "choice" ? "default" : "outline"}
-                      onClick={() => updateQuizItem(qi, q.type === "choice" ? q : emptyQuizChoiceItem())}
-                    >
-                      {t("Múltipla escolha", "Multiple choice")}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={q.type === "blank" ? "default" : "outline"}
-                      onClick={() => updateQuizItem(qi, q.type === "blank" ? q : emptyQuizBlankItem())}
-                    >
-                      {t("Completar (resposta escrita)", "Fill in the blank (written answer)")}
-                    </Button>
+                  <div className="flex flex-wrap gap-2">
+                    {QUIZ_TYPE_OPTIONS.map((opt) => (
+                      <Button
+                        key={opt.value}
+                        type="button"
+                        size="sm"
+                        variant={q.type === opt.value ? "default" : "outline"}
+                        onClick={() => changeQuizItemType(qi, opt.value)}
+                      >
+                        {t(...opt.label)}
+                      </Button>
+                    ))}
                   </div>
 
-                  {q.type === "choice" ? (
+                  {q.type === "wordbank" ? (
+                    <p className="text-xs text-muted-foreground">
+                      {t(
+                        "Separe as palavras por vírgula. O aluno vê um quadro com essas palavras logo acima das perguntas que vêm depois dele — use junto com perguntas de completar.",
+                        "Separate the words with commas. The student sees a box with these words right above the questions that follow it — use it with fill-in-the-blank questions.",
+                      )}
+                    </p>
+                  ) : q.type === "translate" ? (
+                    <div className="space-y-1">
+                      <Label className="text-xs">{t("Sugestão de resposta em inglês (opcional)", "Suggested answer in English (optional)")}</Label>
+                      <Input
+                        value={q.answer}
+                        onChange={(e) => updateQuizItem(qi, { answer: e.target.value })}
+                        placeholder={t("ex.: I'd like to buy a T-shirt.", "e.g. I'd like to buy a T-shirt.")}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {t(
+                          "O aluno escreve a tradução em inglês e você corrige como certa ou errada na tela da atividade. A sugestão ajuda na hora de corrigir e o aluno só vê depois de enviar.",
+                          "The student writes the translation in English and you mark it right or wrong on the activity screen. The suggestion helps you grade, and the student only sees it after submitting.",
+                        )}
+                      </p>
+                    </div>
+                  ) : q.type === "choice" ? (
                     <div className="space-y-2">
                       <Label className="text-xs">{t("Opções (marque a correta)", "Options (mark the correct one)")}</Label>
                       <RadioGroup
@@ -482,6 +568,14 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
               <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => addQuizItem("blank")}>
                 <Plus className="h-4 w-4" />
                 {t("Adicionar completar", "Add fill in the blank")}
+              </Button>
+              <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => addQuizItem("translate")}>
+                <Plus className="h-4 w-4" />
+                {t("Adicionar tradução", "Add translation")}
+              </Button>
+              <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => addQuizItem("wordbank")}>
+                <Plus className="h-4 w-4" />
+                {t("Adicionar banco de palavras", "Add word bank")}
               </Button>
             </div>
           </div>

@@ -79,7 +79,8 @@ export const activities = sqliteTable("activities", {
   youtubeVideoId: text("youtube_video_id"),
   // JSON. kind "listening": { prompt, options[], correctIndex }[].
   // kind "quiz" (feita pela professora, sem vídeo): { type: "choice", prompt, options[], correctIndex }[] |
-  // { type: "blank", prompt }[] — a professora mistura os dois tipos livremente.
+  // { type: "blank", prompt } | { type: "translate", prompt, answer? } | { type: "wordbank", words[] }
+  // — a professora mistura os tipos livremente ("wordbank" é só um quadro de palavras, não pergunta).
   questions: text("questions"),
   createdAt: text("created_at").notNull(),
 });
@@ -97,12 +98,12 @@ export const activityAnswers = sqliteTable("activity_answers", {
   activityId: text("activity_id").notNull().references(() => activities.id),
   studentId: text("student_id").notNull().references(() => users.id),
   // JSON: (number | string)[] na ordem das perguntas — número pro índice escolhido
-  // (choice/listening), texto pra resposta escrita (quiz "blank").
+  // (choice/listening), texto pra resposta escrita (quiz "blank"/"translate"; "" no "wordbank").
   answers: text("answers").notNull(),
   score: integer("score").notNull(),
   total: integer("total").notNull(),
   // JSON: Record<string, boolean> — nota manual da professora por índice de pergunta
-  // "blank" (essas não são corrigidas automaticamente). Null até ela corrigir alguma.
+  // "blank"/"translate" (essas não são corrigidas automaticamente). Null até ela corrigir alguma.
   manualGrades: text("manual_grades"),
   submittedAt: text("submitted_at").notNull(),
 });
