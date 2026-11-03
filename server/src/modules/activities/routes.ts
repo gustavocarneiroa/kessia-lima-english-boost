@@ -72,11 +72,14 @@ const quizTranslateItemSchema = z.object({
   answer: z.string().trim().max(QUIZ_PROMPT_MAX).optional(),
 });
 
-// Banco de palavras: só um quadro com palavras pro aluno usar nas perguntas seguintes —
-// não é pergunta (a resposta dele nessa posição é sempre "").
+// Banco de palavras: enunciado + quadro com palavras pro aluno usar nas perguntas
+// seguintes — não é pergunta (a resposta dele nessa posição é sempre ""). `blanks` =
+// quantas perguntas "blank" logo depois são as frases dele (o formulário edita tudo junto).
 const quizWordBankItemSchema = z.object({
   type: z.literal("wordbank"),
+  instruction: z.string().trim().max(500).optional(),
   words: z.array(z.string().trim().min(1).max(100)).min(1).max(60),
+  blanks: z.number().int().min(0).max(QUIZ_ITEMS_MAX).optional(),
 });
 
 const quizItemSchema = z.union([quizChoiceItemSchema, quizBlankItemSchema, quizTranslateItemSchema, quizWordBankItemSchema]);
@@ -171,7 +174,7 @@ function questionsForStudent(questions: Question[]) {
 function quizItemsForStudent(items: QuizItem[]) {
   return items.map((q) => {
     if (q.type === "choice") return { type: q.type, prompt: q.prompt, options: q.options };
-    if (q.type === "wordbank") return { type: q.type, words: q.words };
+    if (q.type === "wordbank") return { type: q.type, instruction: q.instruction, words: q.words };
     return { type: q.type, prompt: q.prompt };
   });
 }

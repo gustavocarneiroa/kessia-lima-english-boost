@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Loader2, Maximize2, Minimize2, Pencil, Trash2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
-import ActivityForm, { quizQuestionNumber, type ActivityFormPayload, type QuizItemDraft } from "./ActivityForm";
+import ActivityForm, { quizDraftsFromSaved, quizQuestionNumber, type ActivityFormPayload, type SavedQuizItem } from "./ActivityForm";
 
 interface Question {
   prompt: string;
@@ -19,14 +19,9 @@ interface Question {
   correctIndex?: number;
 }
 
-interface QuizItem {
-  type: "choice" | "blank" | "translate" | "wordbank";
-  prompt?: string; // todos menos "wordbank"
-  options?: string[];
-  correctIndex?: number;
-  answer?: string; // "translate": sugestão de resposta (só a professora recebe)
-  words?: string[]; // "wordbank"
-}
+// prompt: todos menos "wordbank"; answer ("translate"): sugestão de resposta, só a
+// professora recebe; instruction/words/blanks: "wordbank".
+type QuizItem = SavedQuizItem;
 
 function isWordBank(q: Question | QuizItem) {
   return "type" in q && q.type === "wordbank";
@@ -37,16 +32,19 @@ function isWrittenItem(q: QuizItem) {
   return q.type === "blank" || q.type === "translate";
 }
 
-function WordBankBox({ words, label }: { words: string[]; label: string }) {
+function WordBankBox({ words, label, instruction }: { words: string[]; label: string; instruction?: string }) {
   return (
-    <div className="rounded-lg border bg-muted/40 p-3">
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-      <div className="flex flex-wrap gap-2">
-        {words.map((w, i) => (
-          <span key={i} className="rounded-md border bg-background px-2 py-0.5 font-mono text-sm">
-            {w}
-          </span>
-        ))}
+    <div className="space-y-2">
+      {instruction && <p className="text-sm font-medium">{instruction}</p>}
+      <div className="rounded-lg border bg-muted/40 p-3">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+        <div className="flex flex-wrap gap-2">
+          {words.map((w, i) => (
+            <span key={i} className="rounded-md border bg-background px-2 py-0.5 font-mono text-sm">
+              {w}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -323,16 +321,7 @@ export default function ActivityDetail() {
                   : activity.kind === "quiz"
                     ? {
                         title: activity.title,
-                        quizItems: (activity.questions as QuizItem[] | undefined)?.map(
-                          (q): QuizItemDraft =>
-                            q.type === "choice"
-                              ? { type: "choice", prompt: q.prompt ?? "", options: q.options ?? ["", ""], correctIndex: q.correctIndex ?? 0 }
-                              : q.type === "translate"
-                                ? { type: "translate", prompt: q.prompt ?? "", answer: q.answer ?? "" }
-                                : q.type === "wordbank"
-                                  ? { type: "wordbank", text: (q.words ?? []).join(", ") }
-                                  : { type: "blank", prompt: q.prompt ?? "" },
-                        ),
+                        quizItems: quizDraftsFromSaved((activity.questions as QuizItem[] | undefined) ?? []),
                       }
                     : {
                         title: activity.title,
@@ -431,7 +420,7 @@ export default function ActivityDetail() {
                 {(activity.questions as QuizItem[]).map((q, qi, items) => {
                   const num = quizQuestionNumber(items, qi);
                   if (q.type === "wordbank") {
-                    return <WordBankBox key={qi} words={q.words ?? []} label={t("Banco de palavras", "Word bank")} />;
+                    return <WordBankBox key={qi} words={q.words ?? []} instruction={q.instruction} label={t("Banco de palavras", "Word bank")} />;
                   }
                   if (q.type === "choice") {
                     const correct = result?.correctAnswers?.[qi];
@@ -543,7 +532,7 @@ export default function ActivityDetail() {
               <CardContent className="space-y-4">
                 {(activity.questions as QuizItem[] | undefined)?.map((q, qi, items) =>
                   q.type === "wordbank" ? (
-                    <WordBankBox key={qi} words={q.words ?? []} label={t("Banco de palavras", "Word bank")} />
+                    <WordBankBox key={qi} words={q.words ?? []} instruction={q.instruction} label={t("Banco de palavras", "Word bank")} />
                   ) : (
                     <div key={qi} className="text-sm">
                       <p className="font-medium">

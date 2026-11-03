@@ -26,15 +26,30 @@ export type QuizItemDraft =
   | { type: "choice"; prompt: string; options: string[]; correctIndex: number }
   | { type: "blank"; prompt: string }
   | { type: "translate"; prompt: string; answer: string }
-  // No formulário o banco de palavras é um campo de texto só (palavras separadas por
-  // vírgula); vira lista na hora de salvar.
-  | { type: "wordbank"; text: string };
+  // Banco de palavras no formulário: enunciado + palavras (um campo de texto só,
+  // separadas por vírgula) + as frases pra completar. Ao salvar vira o quadro
+  // { type: "wordbank", instruction, words, blanks } seguido de `blanks` perguntas "blank".
+  | { type: "wordbank"; instruction: string; text: string; sentences: string[] };
 
 type QuizItemType = QuizItemDraft["type"];
 
 type QuizItemPayload =
   | Exclude<QuizItemDraft, { type: "wordbank" }>
-  | { type: "wordbank"; words: string[] };
+  | { type: "wordbank"; instruction: string; words: string[]; blanks: number };
+
+// Item como vem do servidor (atividade já salva).
+export interface SavedQuizItem {
+  type: "choice" | "blank" | "translate" | "wordbank";
+  prompt?: string;
+  options?: string[];
+  correctIndex?: number;
+  answer?: string;
+  instruction?: string;
+  words?: string[];
+  blanks?: number;
+}
+
+const DEFAULT_WORDBANK_INSTRUCTION = "Complete the sentences with the words from the box.";
 
 function parseWordBank(text: string): string[] {
   return text
@@ -43,8 +58,48 @@ function parseWordBank(text: string): string[] {
     .filter(Boolean);
 }
 
-function quizItemPayload(q: QuizItemDraft): QuizItemPayload {
-  return q.type === "wordbank" ? { type: "wordbank", words: parseWordBank(q.text) } : q;
+function quizItemsPayload(drafts: QuizItemDraft[]): QuizItemPayload[] {
+  return drafts.flatMap((q): QuizItemPayload[] => {
+    if (q.type !== "wordbank") return [q];
+    const sentences = q.sentences.map((s) => s.trim()).filter(Boolean);
+    return [
+      { type: "wordbank", instruction: q.instruction.trim(), words: parseWordBank(q.text), blanks: sentences.length },
+      ...sentences.map((prompt) => ({ type: "blank" as const, prompt })),
+    ];
+  });
+}
+
+// Caminho inverso pra editar: as `blanks` perguntas logo depois do quadro voltam pra dentro dele.
+export function quizDraftsFromSaved(items: SavedQuizItem[]): QuizItemDraft[] {
+  const drafts: QuizItemDraft[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const q = items[i];
+    if (q.type === "wordbank") {
+      const sentences: string[] = [];
+      while (sentences.length < (q.blanks ?? 0) && items[i + 1]?.type === "blank") {
+        sentences.push(items[++i].prompt ?? "");
+      }
+      drafts.push({ type: "wordbank", instruction: q.instruction ?? "", text: (q.words ?? []).join(", "), sentences });
+    } else if (q.type === "choice") {
+      drafts.push({ type: "choice", prompt: q.prompt ?? "", options: q.options ?? ["", ""], correctIndex: q.correctIndex ?? 0 });
+    } else if (q.type === "translate") {
+      drafts.push({ type: "translate", prompt: q.prompt ?? "", answer: q.answer ?? "" });
+    } else {
+      drafts.push({ type: "blank", prompt: q.prompt ?? "" });
+    }
+  }
+  return drafts;
+}
+
+// Número da primeira pergunta de cada item no formulário — o quadro do banco de
+// palavras ocupa um número por frase.
+function draftQuestionNumbers(drafts: QuizItemDraft[]): number[] {
+  let n = 1;
+  return drafts.map((q) => {
+    const first = n;
+    n += q.type === "wordbank" ? q.sentences.length : 1;
+    return first;
+  });
 }
 
 type StudentLevel = "beginner" | "intermediate" | "advanced";
@@ -82,7 +137,7 @@ export function emptyQuizBlankItem(): QuizItemDraft {
 function emptyQuizItem(type: QuizItemType): QuizItemDraft {
   if (type === "choice") return emptyQuizChoiceItem();
   if (type === "translate") return { type: "translate", prompt: "", answer: "" };
-  if (type === "wordbank") return { type: "wordbank", text: "" };
+  if (type === "wordbank") return { type: "wordbank", instruction: DEFAULT_WORDBANK_INSTRUCTION, text: "", sentences: ["", ""] };
   return emptyQuizBlankItem();
 }
 
@@ -233,7 +288,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
           questions: questions.map((q) => ({ prompt: q.prompt, options: q.options, correctIndex: q.correctIndex })),
         });
       } else if (activityKind === "quiz") {
-        await onSubmit({ kind: "quiz", title, questions: quizItems.map(quizItemPayload) });
+        await onSubmit({ kind: "quiz", title, questions: quizItemsPayload(quizItems) });
       } else {
         await onSubmit({ kind: "embed", title, embedCode });
       }
@@ -243,6 +298,8 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
       setSaving(false);
     }
   }
+
+  const questionNumbers = draftQuestionNumbers(quizItems);
 
   return (
     <>
@@ -438,19 +495,65 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                 <CardContent className="space-y-3 pt-4">
                   <div className="flex items-start gap-2">
                     {q.type === "wordbank" ? (
-                      <div className="flex-1 space-y-1">
-                        <Label className="text-xs">{t("Banco de palavras", "Word bank")}</Label>
-                        <Input
-                          value={q.text}
-                          onChange={(e) => updateQuizItem(qi, { text: e.target.value })}
-                          placeholder={t("ex.: take, much, like, there, are", "e.g. take, much, like, there, are")}
-                          required
-                        />
+                      <div className="flex-1 space-y-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">{t("Enunciado", "Instructions")}</Label>
+                          <Input
+                            value={q.instruction}
+                            onChange={(e) => updateQuizItem(qi, { instruction: e.target.value })}
+                            placeholder={DEFAULT_WORDBANK_INSTRUCTION}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">{t("Banco de palavras (separadas por vírgula)", "Word bank (comma-separated)")}</Label>
+                          <Input
+                            value={q.text}
+                            onChange={(e) => updateQuizItem(qi, { text: e.target.value })}
+                            placeholder={t("ex.: take, much, like, there, are", "e.g. take, much, like, there, are")}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-xs">{t("Frases para completar", "Sentences to complete")}</Label>
+                          {q.sentences.map((s, si) => (
+                            <div key={si} className="flex items-center gap-2">
+                              <span className="w-6 shrink-0 text-right text-sm text-muted-foreground">{questionNumbers[qi] + si}.</span>
+                              <Input
+                                value={s}
+                                onChange={(e) =>
+                                  updateQuizItem(qi, { sentences: q.sentences.map((x, j) => (j === si ? e.target.value : x)) })
+                                }
+                                placeholder={t("ex.: Excuse me, I'd _____ to buy a T-shirt.", "e.g. Excuse me, I'd _____ to buy a T-shirt.")}
+                                required
+                              />
+                              {q.sentences.length > 1 && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => updateQuizItem(qi, { sentences: q.sentences.filter((_, j) => j !== si) })}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="gap-2"
+                            onClick={() => updateQuizItem(qi, { sentences: [...q.sentences, ""] })}
+                          >
+                            <Plus className="h-3 w-3" />
+                            {t("Adicionar frase", "Add sentence")}
+                          </Button>
+                        </div>
                       </div>
                     ) : (
                       <div className="flex-1 space-y-1">
                         <Label className="text-xs">
-                          {t("Pergunta", "Question")} {quizQuestionNumber(quizItems, qi)}
+                          {t("Pergunta", "Question")} {questionNumbers[qi]}
                           {q.type === "translate" && ` — ${t("frase em português", "sentence in Portuguese")}`}
                         </Label>
                         <Textarea
@@ -498,8 +601,8 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                   {q.type === "wordbank" ? (
                     <p className="text-xs text-muted-foreground">
                       {t(
-                        "Separe as palavras por vírgula. O aluno vê um quadro com essas palavras logo acima das perguntas que vêm depois dele — use junto com perguntas de completar.",
-                        "Separate the words with commas. The student sees a box with these words right above the questions that follow it — use it with fill-in-the-blank questions.",
+                        "O aluno vê o enunciado, o quadro com as palavras e as frases numeradas, cada uma com um espaço pra escrever. Use _____ para marcar o espaço na frase. Você corrige cada frase como certa ou errada na tela da atividade.",
+                        "The student sees the instructions, the word box and the numbered sentences, each with a space to write. Use _____ to mark the gap. You mark each sentence right or wrong on the activity screen.",
                       )}
                     </p>
                   ) : q.type === "translate" ? (

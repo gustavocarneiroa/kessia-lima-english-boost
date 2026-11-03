@@ -79,7 +79,7 @@ export const activities = sqliteTable("activities", {
   youtubeVideoId: text("youtube_video_id"),
   // JSON. kind "listening": { prompt, options[], correctIndex }[].
   // kind "quiz" (feita pela professora, sem vídeo): { type: "choice", prompt, options[], correctIndex }[] |
-  // { type: "blank", prompt } | { type: "translate", prompt, answer? } | { type: "wordbank", words[] }
+  // { type: "blank", prompt } | { type: "translate", prompt, answer? } | { type: "wordbank", instruction?, words[], blanks? }
   // — a professora mistura os tipos livremente ("wordbank" é só um quadro de palavras, não pergunta).
   questions: text("questions"),
   createdAt: text("created_at").notNull(),
