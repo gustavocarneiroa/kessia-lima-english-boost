@@ -27,9 +27,15 @@ function isWordBank(q: Question | QuizItem) {
   return "type" in q && q.type === "wordbank";
 }
 
-// Respostas escritas que a professora corrige à mão.
+// Respostas escritas (completar e tradução).
 function isWrittenItem(q: QuizItem) {
   return q.type === "blank" || q.type === "translate";
+}
+
+// Completar com gabarito: corrigido na hora pelo servidor. A professora recebe o
+// gabarito (`answer`); o aluno só a marca `autoGraded`.
+function isAutoGradedBlank(q: QuizItem) {
+  return q.type === "blank" && (!!q.answer || !!q.autoGraded);
 }
 
 // Pergunta "blank" que é frase de um banco de palavras → índice do quadro dela.
@@ -183,8 +189,9 @@ interface Submission {
   score: number;
   total: number;
   correctAnswers?: (number | null)[];
-  modelAnswers?: (string | null)[]; // quiz: sugestão de resposta das traduções
+  modelAnswers?: (string | null)[]; // quiz: sugestão das traduções / gabarito do completar
   manualGrades?: Record<string, boolean>;
+  autoGrades?: (boolean | null)[]; // quiz: resultado das perguntas corrigidas na hora
 }
 
 interface StudentResult {
@@ -196,6 +203,7 @@ interface StudentResult {
   submittedAt: string;
   answers?: (number | string)[];
   manualGrades?: Record<string, boolean>;
+  autoGrades?: (boolean | null)[];
 }
 
 interface ActivityDetail {
@@ -343,6 +351,37 @@ export default function ActivityDetail() {
   const allAnswered = activity.questions
     ? activity.questions.every((q, i) => isWordBank(q) || (answers[i] !== undefined && answers[i] !== ""))
     : false;
+
+  // Depois de enviar: certo/errado (na hora ou pela professora) e, se tiver, a
+  // resposta certa (completar) ou a sugestão (tradução).
+  function gradeNote(qi: number, isSuggestion: boolean) {
+    if (!result) return null;
+    const grade = result.autoGrades?.[qi] ?? result.manualGrades?.[String(qi)];
+    const modelAnswer = result.modelAnswers?.[qi];
+    return (
+      <>
+        {modelAnswer && (isSuggestion || grade === false) && (
+          <p className="text-xs text-muted-foreground">
+            {isSuggestion ? t("Sugestão de resposta:", "Suggested answer:") : t("Resposta certa:", "Correct answer:")}{" "}
+            <span className="font-medium">{modelAnswer}</span>
+          </p>
+        )}
+        {grade === undefined || grade === null ? (
+          <p className="text-xs text-muted-foreground">
+            {t("Aguardando correção da professora.", "Waiting for your teacher to grade it.")}
+          </p>
+        ) : grade ? (
+          <p className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+            <CheckCircle2 className="h-3 w-3" /> {t("Certo", "Correct")}
+          </p>
+        ) : (
+          <p className="flex items-center gap-1 text-xs text-destructive">
+            <XCircle className="h-3 w-3" /> {t("Errado", "Wrong")}
+          </p>
+        )}
+      </>
+    );
+  }
 
   // Aluno marca "feito" na atividade de site externo — o site não manda a resposta pra cá.
   const doneCheckbox =
@@ -511,13 +550,13 @@ export default function ActivityDetail() {
               <CardContent className="space-y-6">
                 {result && (
                   <div className="rounded-md border bg-muted/40 p-3 text-sm">
-                    {t("Nota (múltipla escolha):", "Score (multiple choice):")} <span className="font-semibold">{result.score}</span>{" "}
+                    {t("Nota (correção automática):", "Score (automatic grading):")} <span className="font-semibold">{result.score}</span>{" "}
                     {t("de", "of")} {result.total}
-                    {(activity.questions as QuizItem[]).some(isWrittenItem) && (
+                    {(activity.questions as QuizItem[]).some((q) => isWrittenItem(q) && !isAutoGradedBlank(q)) && (
                       <p className="mt-1 text-muted-foreground">
                         {t(
-                          "As perguntas de resposta escrita (completar e tradução) são corrigidas pela professora depois.",
-                          "Written-answer questions (fill in the blank and translation) are graded by your teacher later.",
+                          "As outras perguntas de resposta escrita são corrigidas pela professora depois.",
+                          "The other written-answer questions are graded by your teacher later.",
                         )}
                       </p>
                     )}
@@ -551,7 +590,6 @@ export default function ActivityDetail() {
                   if (q.type === "blank" && bankOf[qi] !== undefined) {
                     const bank = bankOf[qi];
                     const value = typeof answers[qi] === "string" ? (answers[qi] as string) : "";
-                    const grade = result?.manualGrades?.[String(qi)];
                     return (
                       <div key={qi} className="space-y-1">
                         <p className="text-sm font-medium">
@@ -575,20 +613,7 @@ export default function ActivityDetail() {
                             }}
                           />
                         </p>
-                        {result &&
-                          (grade === undefined ? (
-                            <p className="text-xs text-muted-foreground">
-                              {t("Aguardando correção da professora.", "Waiting for your teacher to grade it.")}
-                            </p>
-                          ) : grade ? (
-                            <p className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                              <CheckCircle2 className="h-3 w-3" /> {t("Certo", "Correct")}
-                            </p>
-                          ) : (
-                            <p className="flex items-center gap-1 text-xs text-destructive">
-                              <XCircle className="h-3 w-3" /> {t("Errado", "Wrong")}
-                            </p>
-                          ))}
+                        {gradeNote(qi, false)}
                       </div>
                     );
                   }
@@ -631,8 +656,6 @@ export default function ActivityDetail() {
                     );
                   }
 
-                  const grade = result?.manualGrades?.[String(qi)];
-                  const modelAnswer = result?.modelAnswers?.[qi];
                   return (
                     <div key={qi} className="space-y-2">
                       {q.type === "translate" && (
@@ -655,25 +678,7 @@ export default function ActivityDetail() {
                         rows={1}
                         className="min-h-10"
                       />
-                      {result && modelAnswer && (
-                        <p className="text-xs text-muted-foreground">
-                          {t("Sugestão de resposta:", "Suggested answer:")} <span className="font-medium">{modelAnswer}</span>
-                        </p>
-                      )}
-                      {result &&
-                        (grade === undefined ? (
-                          <p className="text-xs text-muted-foreground">
-                            {t("Aguardando correção da professora.", "Waiting for your teacher to grade it.")}
-                          </p>
-                        ) : grade ? (
-                          <p className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                            <CheckCircle2 className="h-3 w-3" /> {t("Certo", "Correct")}
-                          </p>
-                        ) : (
-                          <p className="flex items-center gap-1 text-xs text-destructive">
-                            <XCircle className="h-3 w-3" /> {t("Errado", "Wrong")}
-                          </p>
-                        ))}
+                      {gradeNote(qi, q.type === "translate")}
                     </div>
                   );
                 })}
@@ -718,10 +723,12 @@ export default function ActivityDetail() {
                                   "Tradução — você corrige depois que o aluno responder",
                                   "Translation — you grade it after the student answers",
                                 )
-                            : t(
-                                "Completar — você corrige depois que o aluno responder",
-                                "Fill in the blank — you grade it after the student answers",
-                              )}
+                            : q.answer
+                              ? `${t("Resposta certa", "Correct answer")}: ${q.answer} (${t("corrigida automaticamente", "graded automatically")})`
+                              : t(
+                                  "Completar — você corrige depois que o aluno responder",
+                                  "Fill in the blank — you grade it after the student answers",
+                                )}
                       </p>
                     </div>
                   ),
@@ -741,7 +748,7 @@ export default function ActivityDetail() {
                     <div className="flex justify-between text-sm">
                       <span className="font-medium">{r.fullName || r.email}</span>
                       <span>
-                        {r.score}/{r.total} ({t("múltipla escolha", "multiple choice")})
+                        {r.score}/{r.total} ({t("correção automática", "automatic grading")})
                       </span>
                     </div>
                     {(activity.questions as QuizItem[]).map((q, qi, items) => {
@@ -760,27 +767,40 @@ export default function ActivityDetail() {
                             </p>
                           )}
                           <p className="whitespace-pre-line">{ans || <span className="italic text-muted-foreground">{t("(sem resposta)", "(no answer)")}</span>}</p>
-                          <div className="mt-1 flex items-center gap-2">
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant={currentGrade === true ? "default" : "outline"}
-                              disabled={grading.has(gradeKey)}
-                              onClick={() => void gradeBlank(r.studentId, qi, true)}
-                            >
-                              {t("Certo", "Correct")}
-                            </Button>
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant={currentGrade === false ? "default" : "outline"}
-                              disabled={grading.has(gradeKey)}
-                              onClick={() => void gradeBlank(r.studentId, qi, false)}
-                            >
-                              {t("Errado", "Wrong")}
-                            </Button>
-                            {grading.has(gradeKey) && <Loader2 className="h-3 w-3 animate-spin" />}
-                          </div>
+                          {isAutoGradedBlank(q) ? (
+                            r.autoGrades?.[qi] ? (
+                              <p className="mt-1 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                                <CheckCircle2 className="h-3 w-3" /> {t("Certo (correção automática)", "Correct (automatic)")}
+                              </p>
+                            ) : (
+                              <p className="mt-1 flex items-center gap-1 text-xs text-destructive">
+                                <XCircle className="h-3 w-3" /> {t("Errado (correção automática) — resposta certa:", "Wrong (automatic) — correct answer:")}{" "}
+                                {q.answer}
+                              </p>
+                            )
+                          ) : (
+                            <div className="mt-1 flex items-center gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={currentGrade === true ? "default" : "outline"}
+                                disabled={grading.has(gradeKey)}
+                                onClick={() => void gradeBlank(r.studentId, qi, true)}
+                              >
+                                {t("Certo", "Correct")}
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant={currentGrade === false ? "default" : "outline"}
+                                disabled={grading.has(gradeKey)}
+                                onClick={() => void gradeBlank(r.studentId, qi, false)}
+                              >
+                                {t("Errado", "Wrong")}
+                              </Button>
+                              {grading.has(gradeKey) && <Loader2 className="h-3 w-3 animate-spin" />}
+                            </div>
+                          )}
                         </div>
                       );
                     })}

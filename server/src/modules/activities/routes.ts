@@ -58,9 +58,12 @@ const quizChoiceItemSchema = z
   })
   .refine((q) => q.correctIndex < q.options.length, { message: "correctIndex fora do intervalo" });
 
+// `answer` (opcional) = gabarito: com ele a pergunta é corrigida na hora e entra na nota;
+// sem ele, a professora corrige à mão. Várias respostas aceitas separadas por "/".
 const quizBlankItemSchema = z.object({
   type: z.literal("blank"),
   prompt: z.string().trim().min(1).max(QUIZ_PROMPT_MAX),
+  answer: z.string().trim().max(500).optional(),
 });
 
 // Tradução: a frase em português no enunciado, o aluno escreve em inglês. Corrigida
@@ -175,13 +178,43 @@ function quizItemsForStudent(items: QuizItem[]) {
   return items.map((q) => {
     if (q.type === "choice") return { type: q.type, prompt: q.prompt, options: q.options };
     if (q.type === "wordbank") return { type: q.type, instruction: q.instruction, words: q.words, blanks: q.blanks };
-    return { type: q.type, prompt: q.prompt };
+    // Sem o gabarito, só avisa se a pergunta é corrigida na hora.
+    return { type: q.type, prompt: q.prompt, ...(isAutoGraded(q) ? { autoGraded: true } : {}) };
   });
 }
 
-// Sugestões de resposta das traduções — só vão pro aluno depois que ele envia.
+// Sugestões de resposta das traduções e gabarito do completar — só vão pro aluno
+// depois que ele envia.
 function quizModelAnswers(items: QuizItem[]) {
-  return items.map((q) => (q.type === "translate" ? (q.answer ?? null) : null));
+  return items.map((q) => ((q.type === "translate" || q.type === "blank") && q.answer ? q.answer : null));
+}
+
+// Comparação tolerante do completar: ignora maiúsculas, espaços extras, tipo de
+// apóstrofo e pontuação final.
+function normalizeBlankAnswer(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/[‘’`´]/g, "'")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/[.!?;,]+$/, "")
+    .trim();
+}
+
+function isAutoGraded(q: QuizItem) {
+  return q.type === "choice" || (q.type === "blank" && !!q.answer);
+}
+
+// true/false por pergunta corrigida na hora; null nas demais.
+function quizAutoGrades(items: QuizItem[], answers: (number | string)[]): (boolean | null)[] {
+  return items.map((q, i) => {
+    if (q.type === "choice") return q.correctIndex === answers[i];
+    if (q.type === "blank" && q.answer) {
+      const given = typeof answers[i] === "string" ? normalizeBlankAnswer(answers[i] as string) : "";
+      return q.answer.split("/").some((alt) => normalizeBlankAnswer(alt) === given && given !== "");
+    }
+    return null;
+  });
 }
 
 function parseAnswers(raw: string | null): (number | string)[] {
@@ -466,11 +499,15 @@ export async function activitiesRoutes(app: FastifyInstance) {
           .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.activityAnswers.studentId))
           .where(eq(schema.activityAnswers.activityId, id))
           .all();
-        const results = rows.map((r) => ({
-          ...r,
-          answers: parseAnswers(r.answers),
-          manualGrades: parseManualGrades(r.manualGrades),
-        }));
+        const results = rows.map((r) => {
+          const answers = parseAnswers(r.answers);
+          return {
+            ...r,
+            answers,
+            manualGrades: parseManualGrades(r.manualGrades),
+            autoGrades: quizAutoGrades(items, answers),
+          };
+        });
         return { ...activity, questions: items, studentIds, results };
       }
 
@@ -491,6 +528,7 @@ export async function activitiesRoutes(app: FastifyInstance) {
               manualGrades: parseManualGrades(mine.manualGrades),
               correctAnswers: items.map((q) => (q.type === "choice" ? q.correctIndex : null)),
               modelAnswers: quizModelAnswers(items),
+              autoGrades: quizAutoGrades(items, parseAnswers(mine.answers)),
             }
           : null,
       };
@@ -581,11 +619,10 @@ export async function activitiesRoutes(app: FastifyInstance) {
       if (parsedQuiz.data.answers.length !== items.length) {
         return reply.code(400).send({ error: "invalid_body", message: "Responda todas as perguntas." });
       }
-      const choiceCount = items.filter((q) => q.type === "choice").length;
-      const score = items.reduce(
-        (acc, q, i) => acc + (q.type === "choice" && q.correctIndex === parsedQuiz.data.answers[i] ? 1 : 0),
-        0,
-      );
+      // Nota = múltipla escolha + completar com gabarito; o resto a professora corrige à mão.
+      const autoCount = items.filter(isAutoGraded).length;
+      const autoGrades = quizAutoGrades(items, parsedQuiz.data.answers);
+      const score = autoGrades.filter((g) => g === true).length;
       const now = new Date().toISOString();
       const existing = db
         .select()
@@ -599,7 +636,7 @@ export async function activitiesRoutes(app: FastifyInstance) {
           .set({
             answers: JSON.stringify(parsedQuiz.data.answers),
             score,
-            total: choiceCount,
+            total: autoCount,
             manualGrades: null,
             submittedAt: now,
           })
@@ -613,7 +650,7 @@ export async function activitiesRoutes(app: FastifyInstance) {
             studentId: session.userId,
             answers: JSON.stringify(parsedQuiz.data.answers),
             score,
-            total: choiceCount,
+            total: autoCount,
             manualGrades: null,
             submittedAt: now,
           })
@@ -622,9 +659,10 @@ export async function activitiesRoutes(app: FastifyInstance) {
 
       return {
         score,
-        total: choiceCount,
+        total: autoCount,
         correctAnswers: items.map((q) => (q.type === "choice" ? q.correctIndex : null)),
         modelAnswers: quizModelAnswers(items),
+        autoGrades,
       };
     }
 
