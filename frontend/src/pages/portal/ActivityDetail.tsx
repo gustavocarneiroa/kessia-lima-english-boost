@@ -32,21 +32,126 @@ function isWrittenItem(q: QuizItem) {
   return q.type === "blank" || q.type === "translate";
 }
 
-function WordBankBox({ words, label, instruction }: { words: string[]; label: string; instruction?: string }) {
+// Pergunta "blank" que é frase de um banco de palavras → índice do quadro dela.
+function wordBankOfBlanks(items: QuizItem[]): Record<number, number> {
+  const map: Record<number, number> = {};
+  items.forEach((q, i) => {
+    if (q.type !== "wordbank") return;
+    for (let j = i + 1; j <= i + (q.blanks ?? 0) && items[j]?.type === "blank"; j++) map[j] = i;
+  });
+  return map;
+}
+
+function WordBankBox({
+  words,
+  label,
+  instruction,
+  interactive,
+  picked,
+  used,
+  hint,
+  onPick,
+}: {
+  words: string[];
+  label: string;
+  instruction?: string;
+  // Aluno respondendo: as palavras viram peças que ele arrasta (ou toca) até o espaço da frase.
+  interactive?: boolean;
+  picked?: string | null;
+  used?: Set<string>;
+  hint?: string;
+  onPick?: (word: string | null) => void;
+}) {
   return (
     <div className="space-y-2">
       {instruction && <p className="text-sm font-medium">{instruction}</p>}
       <div className="rounded-lg border bg-muted/40 p-3">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
         <div className="flex flex-wrap gap-2">
-          {words.map((w, i) => (
-            <span key={i} className="rounded-md border bg-background px-2 py-0.5 font-mono text-sm">
-              {w}
-            </span>
-          ))}
+          {words.map((w, i) =>
+            interactive ? (
+              <button
+                key={i}
+                type="button"
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData("text/plain", w);
+                  e.dataTransfer.effectAllowed = "copy";
+                }}
+                onClick={() => onPick?.(picked === w ? null : w)}
+                className={cn(
+                  "cursor-grab rounded-md border bg-background px-2 py-0.5 font-mono text-sm transition-colors active:cursor-grabbing",
+                  picked === w && "border-primary bg-primary text-primary-foreground",
+                  picked !== w && used?.has(w) && "opacity-50",
+                )}
+              >
+                {w}
+              </button>
+            ) : (
+              <span key={i} className="rounded-md border bg-background px-2 py-0.5 font-mono text-sm">
+                {w}
+              </span>
+            ),
+          )}
         </div>
+        {interactive && hint && <p className="mt-2 text-xs text-muted-foreground">{hint}</p>}
       </div>
     </div>
+  );
+}
+
+// Frase do banco de palavras com o espaço (o primeiro "___") onde o aluno solta a palavra.
+// Clicar no espaço coloca a palavra escolhida no quadro; clicar de novo num espaço
+// preenchido (sem palavra escolhida) esvazia.
+function SentenceWithGap({
+  prompt,
+  value,
+  disabled,
+  emptyLabel,
+  onDropWord,
+  onGapClick,
+}: {
+  prompt: string;
+  value: string;
+  disabled: boolean;
+  emptyLabel: string;
+  onDropWord: (word: string) => void;
+  onGapClick: () => void;
+}) {
+  const [over, setOver] = useState(false);
+  const match = prompt.match(/_{3,}/);
+  const before = match ? prompt.slice(0, match.index) : `${prompt} `;
+  const after = match ? prompt.slice(match.index! + match[0].length) : "";
+  return (
+    <span className="whitespace-pre-line leading-8">
+      {before}
+      <button
+        type="button"
+        disabled={disabled}
+        onClick={onGapClick}
+        onDragOver={(e) => {
+          if (disabled) return;
+          e.preventDefault();
+          setOver(true);
+        }}
+        onDragLeave={() => setOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setOver(false);
+          const word = e.dataTransfer.getData("text/plain");
+          if (word && !disabled) onDropWord(word);
+        }}
+        className={cn(
+          "mx-1 inline-flex h-7 min-w-20 items-center justify-center rounded-md border-2 border-dashed px-2 align-middle font-mono text-sm",
+          value ? "border-primary/60 bg-primary/10" : "border-muted-foreground/40 text-muted-foreground",
+          over && "border-primary bg-primary/20",
+          disabled && "cursor-default",
+        )}
+      >
+        {value || emptyLabel}
+      </button>
+      {after}
+    </span>
   );
 }
 
@@ -129,6 +234,8 @@ export default function ActivityDetail() {
   const [editing, setEditing] = useState(false);
 
   const [answers, setAnswers] = useState<Record<number, number | string>>({});
+  // Palavra tocada no banco de palavras (celular: toca a palavra, depois o espaço).
+  const [picked, setPicked] = useState<{ bank: number; word: string } | null>(null);
   const [grading, setGrading] = useState<Set<string>>(new Set());
   const [result, setResult] = useState<Submission | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -419,8 +526,71 @@ export default function ActivityDetail() {
 
                 {(activity.questions as QuizItem[]).map((q, qi, items) => {
                   const num = quizQuestionNumber(items, qi);
+                  const bankOf = wordBankOfBlanks(items);
                   if (q.type === "wordbank") {
-                    return <WordBankBox key={qi} words={q.words ?? []} instruction={q.instruction} label={t("Banco de palavras", "Word bank")} />;
+                    const sentenceIdx = Object.keys(bankOf)
+                      .map(Number)
+                      .filter((i) => bankOf[i] === qi);
+                    return (
+                      <WordBankBox
+                        key={qi}
+                        words={q.words ?? []}
+                        instruction={q.instruction}
+                        label={t("Banco de palavras", "Word bank")}
+                        interactive={sentenceIdx.length > 0 && !result}
+                        picked={picked?.bank === qi ? picked.word : null}
+                        used={new Set(sentenceIdx.map((i) => answers[i]).filter((a): a is string => typeof a === "string" && a !== ""))}
+                        hint={t(
+                          "Arraste cada palavra até o espaço da frase — ou toque na palavra e depois no espaço. Toque num espaço preenchido para limpar.",
+                          "Drag each word into the gap — or tap the word and then the gap. Tap a filled gap to clear it.",
+                        )}
+                        onPick={(word) => setPicked(word ? { bank: qi, word } : null)}
+                      />
+                    );
+                  }
+                  if (q.type === "blank" && bankOf[qi] !== undefined) {
+                    const bank = bankOf[qi];
+                    const value = typeof answers[qi] === "string" ? (answers[qi] as string) : "";
+                    const grade = result?.manualGrades?.[String(qi)];
+                    return (
+                      <div key={qi} className="space-y-1">
+                        <p className="text-sm font-medium">
+                          {num}.{" "}
+                          <SentenceWithGap
+                            prompt={q.prompt ?? ""}
+                            value={value}
+                            disabled={!!result}
+                            emptyLabel={picked?.bank === bank ? t("soltar aqui", "drop here") : " "}
+                            onDropWord={(word) => {
+                              setAnswers((prev) => ({ ...prev, [qi]: word }));
+                              setPicked(null);
+                            }}
+                            onGapClick={() => {
+                              if (picked?.bank === bank) {
+                                setAnswers((prev) => ({ ...prev, [qi]: picked.word }));
+                                setPicked(null);
+                              } else if (value) {
+                                setAnswers((prev) => ({ ...prev, [qi]: "" }));
+                              }
+                            }}
+                          />
+                        </p>
+                        {result &&
+                          (grade === undefined ? (
+                            <p className="text-xs text-muted-foreground">
+                              {t("Aguardando correção da professora.", "Waiting for your teacher to grade it.")}
+                            </p>
+                          ) : grade ? (
+                            <p className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                              <CheckCircle2 className="h-3 w-3" /> {t("Certo", "Correct")}
+                            </p>
+                          ) : (
+                            <p className="flex items-center gap-1 text-xs text-destructive">
+                              <XCircle className="h-3 w-3" /> {t("Errado", "Wrong")}
+                            </p>
+                          ))}
+                      </div>
+                    );
                   }
                   if (q.type === "choice") {
                     const correct = result?.correctAnswers?.[qi];

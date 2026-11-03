@@ -174,7 +174,7 @@ function questionsForStudent(questions: Question[]) {
 function quizItemsForStudent(items: QuizItem[]) {
   return items.map((q) => {
     if (q.type === "choice") return { type: q.type, prompt: q.prompt, options: q.options };
-    if (q.type === "wordbank") return { type: q.type, instruction: q.instruction, words: q.words };
+    if (q.type === "wordbank") return { type: q.type, instruction: q.instruction, words: q.words, blanks: q.blanks };
     return { type: q.type, prompt: q.prompt };
   });
 }
