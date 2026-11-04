@@ -483,5 +483,13 @@ if (activitiesTable && !activitiesTable.sql.includes("quiz")) {
   `);
 }
 
+// Texto de explicação/review mostrado no topo da atividade "quiz". Depois da
+// reconstrução acima, que não conhece essa coluna.
+try {
+  sqlite.exec(`ALTER TABLE activities ADD COLUMN intro TEXT`);
+} catch {
+  // já existe
+}
+
 export const db = drizzle(sqlite, { schema });
 export { schema };

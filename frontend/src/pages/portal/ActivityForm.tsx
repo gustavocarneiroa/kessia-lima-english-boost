@@ -23,10 +23,11 @@ interface GeneratedQuestion {
 }
 
 export type QuizItemDraft =
-  | { type: "choice"; prompt: string; options: string[]; correctIndex: number }
+  // instruction = enunciado opcional mostrado em cima da pergunta.
+  | { type: "choice"; instruction: string; prompt: string; options: string[]; correctIndex: number }
   // answer = gabarito (opcional): preenchido, a pergunta é corrigida automaticamente.
-  | { type: "blank"; prompt: string; answer: string }
-  | { type: "translate"; prompt: string; answer: string }
+  | { type: "blank"; instruction: string; prompt: string; answer: string }
+  | { type: "translate"; instruction: string; prompt: string; answer: string }
   // Banco de palavras no formulário: enunciado + palavras (um campo de texto só,
   // separadas por vírgula) + as frases pra completar. Ao salvar vira o quadro
   // { type: "wordbank", instruction, words, blanks } seguido de `blanks` perguntas "blank".
@@ -71,7 +72,7 @@ function quizItemsPayload(drafts: QuizItemDraft[]): QuizItemPayload[] {
     const sentences = q.sentences.filter((s) => s.prompt.trim());
     return [
       { type: "wordbank", instruction: q.instruction.trim(), words: parseWordBank(q.text), blanks: sentences.length },
-      ...sentences.map((s) => ({ type: "blank" as const, prompt: s.prompt, answer: s.answer })),
+      ...sentences.map((s) => ({ type: "blank" as const, instruction: "", prompt: s.prompt, answer: s.answer })),
     ];
   });
 }
@@ -89,11 +90,17 @@ export function quizDraftsFromSaved(items: SavedQuizItem[]): QuizItemDraft[] {
       }
       drafts.push({ type: "wordbank", instruction: q.instruction ?? "", text: (q.words ?? []).join(", "), sentences });
     } else if (q.type === "choice") {
-      drafts.push({ type: "choice", prompt: q.prompt ?? "", options: q.options ?? ["", ""], correctIndex: q.correctIndex ?? 0 });
+      drafts.push({
+        type: "choice",
+        instruction: q.instruction ?? "",
+        prompt: q.prompt ?? "",
+        options: q.options ?? ["", ""],
+        correctIndex: q.correctIndex ?? 0,
+      });
     } else if (q.type === "translate") {
-      drafts.push({ type: "translate", prompt: q.prompt ?? "", answer: q.answer ?? "" });
+      drafts.push({ type: "translate", instruction: q.instruction ?? "", prompt: q.prompt ?? "", answer: q.answer ?? "" });
     } else {
-      drafts.push({ type: "blank", prompt: q.prompt ?? "", answer: q.answer ?? "" });
+      drafts.push({ type: "blank", instruction: q.instruction ?? "", prompt: q.prompt ?? "", answer: q.answer ?? "" });
     }
   }
   return drafts;
@@ -135,11 +142,11 @@ export function emptyQuestion(): QuestionDraft {
 }
 
 export function emptyQuizChoiceItem(): QuizItemDraft {
-  return { type: "choice", prompt: "", options: ["", ""], correctIndex: 0 };
+  return { type: "choice", instruction: "", prompt: "", options: ["", ""], correctIndex: 0 };
 }
 
 export function emptyQuizBlankItem(): QuizItemDraft {
-  return { type: "blank", prompt: "", answer: "" };
+  return { type: "blank", instruction: "", prompt: "", answer: "" };
 }
 
 function emptySentence(): WordBankSentence {
@@ -148,7 +155,7 @@ function emptySentence(): WordBankSentence {
 
 function emptyQuizItem(type: QuizItemType): QuizItemDraft {
   if (type === "choice") return emptyQuizChoiceItem();
-  if (type === "translate") return { type: "translate", prompt: "", answer: "" };
+  if (type === "translate") return { type: "translate", instruction: "", prompt: "", answer: "" };
   if (type === "wordbank") return { type: "wordbank", instruction: DEFAULT_WORDBANK_INSTRUCTION, text: "", sentences: [emptySentence(), emptySentence()] };
   return emptyQuizBlankItem();
 }
@@ -156,7 +163,7 @@ function emptyQuizItem(type: QuizItemType): QuizItemDraft {
 export type ActivityFormPayload =
   | { kind: "embed"; title: string; embedCode: string }
   | { kind: "listening"; title: string; youtubeUrl: string; questions: QuestionDraft[] }
-  | { kind: "quiz"; title: string; questions: QuizItemPayload[] };
+  | { kind: "quiz"; title: string; intro: string; questions: QuizItemPayload[] };
 
 interface ActivityFormProps {
   lockKind?: "embed" | "listening" | "quiz";
@@ -166,6 +173,7 @@ interface ActivityFormProps {
     youtubeUrl?: string;
     questions?: QuestionDraft[];
     quizItems?: QuizItemDraft[];
+    intro?: string;
   };
   submitLabel: string;
   onSubmit: (payload: ActivityFormPayload) => Promise<void>;
@@ -182,6 +190,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
   const [youtubeUrl, setYoutubeUrl] = useState(initial?.youtubeUrl ?? "");
   const [questions, setQuestions] = useState<QuestionDraft[]>(initial?.questions ?? [emptyQuestion()]);
   const [quizItems, setQuizItems] = useState<QuizItemDraft[]>(initial?.quizItems ?? [emptyQuizChoiceItem()]);
+  const [intro, setIntro] = useState(initial?.intro ?? "");
   const [transcript, setTranscript] = useState("");
   const [level, setLevel] = useState<StudentLevel>("intermediate");
   const [generating, setGenerating] = useState(false);
@@ -260,7 +269,10 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
       prev.map((q, i) => {
         if (i !== qi || q.type === type) return q;
         const next = emptyQuizItem(type);
-        if ("prompt" in q && "prompt" in next) next.prompt = q.prompt;
+        if ("prompt" in q && "prompt" in next) {
+          next.prompt = q.prompt;
+          next.instruction = q.instruction;
+        }
         return next;
       }),
     );
@@ -300,7 +312,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
           questions: questions.map((q) => ({ prompt: q.prompt, options: q.options, correctIndex: q.correctIndex })),
         });
       } else if (activityKind === "quiz") {
-        await onSubmit({ kind: "quiz", title, questions: quizItemsPayload(quizItems) });
+        await onSubmit({ kind: "quiz", title, intro, questions: quizItemsPayload(quizItems) });
       } else {
         await onSubmit({ kind: "embed", title, embedCode });
       }
@@ -501,6 +513,24 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
           </>
         ) : activityKind === "quiz" ? (
           <div className="space-y-3">
+            <div className="space-y-1">
+              <Label>{t("Explicação / review (opcional)", "Explanation / review (optional)")}</Label>
+              <Textarea
+                value={intro}
+                onChange={(e) => setIntro(e.target.value)}
+                placeholder={t(
+                  "ex.: Hoje vamos revisar o uso de \"there is / there are\"...\nPode colar links (vídeo, site) — eles ficam clicáveis.",
+                  "e.g. Today we'll review \"there is / there are\"...\nYou can paste links (video, website) — they become clickable.",
+                )}
+                rows={4}
+              />
+              <p className="text-xs text-muted-foreground">
+                {t(
+                  "Aparece no topo da atividade, antes das perguntas. Quebras de linha são mantidas.",
+                  "Shown at the top of the activity, before the questions. Line breaks are kept.",
+                )}
+              </p>
+            </div>
             <Label>{t("Perguntas", "Questions")}</Label>
             {quizItems.map((q, qi) => (
               <Card key={qi} className="border-dashed">
@@ -584,7 +614,19 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                       </div>
                     ) : (
                       <div className="flex-1 space-y-1">
-                        <Label className="text-xs">
+                        <Label className="text-xs">{t("Enunciado (opcional)", "Instructions (optional)")}</Label>
+                        <Input
+                          value={q.instruction}
+                          onChange={(e) => updateQuizItem(qi, { instruction: e.target.value })}
+                          placeholder={
+                            q.type === "choice"
+                              ? t("ex.: Choose the correct option.", "e.g. Choose the correct option.")
+                              : q.type === "translate"
+                                ? t("ex.: Translate the sentence into English.", "e.g. Translate the sentence into English.")
+                                : t("ex.: Complete with the verb in the simple present.", "e.g. Complete with the verb in the simple present.")
+                          }
+                        />
+                        <Label className="block pt-2 text-xs">
                           {t("Pergunta", "Question")} {questionNumbers[qi]}
                           {q.type === "translate" && ` — ${t("frase em português", "sentence in Portuguese")}`}
                         </Label>

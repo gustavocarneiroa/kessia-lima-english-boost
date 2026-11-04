@@ -180,6 +180,12 @@ function PromptText({ text }: { text: string }) {
   );
 }
 
+// Enunciado opcional em cima de cada pergunta do quiz.
+function QuestionInstruction({ text }: { text?: string }) {
+  if (!text) return null;
+  return <p className="text-sm font-semibold">{text}</p>;
+}
+
 function reconstructEmbedCode(src: string, height: number) {
   return `<iframe src="${src}" height="${height}" width="100%"></iframe>`;
 }
@@ -214,6 +220,7 @@ interface ActivityDetail {
   embedHeight?: number;
   youtubeVideoId?: string | null;
   questions?: (Question | QuizItem)[];
+  intro?: string | null; // quiz: explicação/review no topo
   studentIds?: string[];
   results?: StudentResult[];
   mySubmission?: Submission | null;
@@ -468,6 +475,7 @@ export default function ActivityDetail() {
                     ? {
                         title: activity.title,
                         quizItems: quizDraftsFromSaved((activity.questions as QuizItem[] | undefined) ?? []),
+                        intro: activity.intro ?? "",
                       }
                     : {
                         title: activity.title,
@@ -542,6 +550,17 @@ export default function ActivityDetail() {
         </>
       ) : activity.kind === "quiz" ? (
         <>
+          {activity.intro && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">{t("Explicação", "Explanation")}</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm">
+                <PromptText text={activity.intro} />
+              </CardContent>
+            </Card>
+          )}
+
           {!isTeacher && activity.questions && (
             <Card>
               <CardHeader>
@@ -621,6 +640,7 @@ export default function ActivityDetail() {
                     const correct = result?.correctAnswers?.[qi];
                     return (
                       <div key={qi} className="space-y-2">
+                        <QuestionInstruction text={q.instruction} />
                         <Label className="text-sm font-medium">
                           {num}. <PromptText text={q.prompt ?? ""} />
                         </Label>
@@ -658,10 +678,14 @@ export default function ActivityDetail() {
 
                   return (
                     <div key={qi} className="space-y-2">
-                      {q.type === "translate" && (
-                        <p className="text-xs font-medium text-muted-foreground">
-                          {t("Traduza para o inglês:", "Translate into English:")}
-                        </p>
+                      {q.instruction ? (
+                        <QuestionInstruction text={q.instruction} />
+                      ) : (
+                        q.type === "translate" && (
+                          <p className="text-xs font-medium text-muted-foreground">
+                            {t("Traduza para o inglês:", "Translate into English:")}
+                          </p>
+                        )
                       )}
                       <Label className="text-sm font-medium">
                         {num}. <PromptText text={q.prompt ?? ""} />
@@ -709,7 +733,8 @@ export default function ActivityDetail() {
                   q.type === "wordbank" ? (
                     <WordBankBox key={qi} words={q.words ?? []} instruction={q.instruction} label={t("Banco de palavras", "Word bank")} />
                   ) : (
-                    <div key={qi} className="text-sm">
+                    <div key={qi} className="space-y-1 text-sm">
+                      <QuestionInstruction text={q.instruction} />
                       <p className="font-medium">
                         {quizQuestionNumber(items, qi)}. <PromptText text={q.prompt ?? ""} />
                       </p>

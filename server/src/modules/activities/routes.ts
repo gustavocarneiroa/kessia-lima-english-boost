@@ -48,10 +48,15 @@ const listeningUpdateBody = z.object({
 // do caderno pode ter várias dezenas de exercícios — daí os limites maiores.
 const QUIZ_PROMPT_MAX = 2000;
 const QUIZ_ITEMS_MAX = 60;
+const QUIZ_INTRO_MAX = 10_000;
+
+// Enunciado opcional mostrado em cima de cada pergunta (ex.: "Choose the correct option.").
+const quizInstruction = z.string().trim().max(500).optional();
 
 const quizChoiceItemSchema = z
   .object({
     type: z.literal("choice"),
+    instruction: quizInstruction,
     prompt: z.string().trim().min(1).max(QUIZ_PROMPT_MAX),
     options: z.array(z.string().trim().min(1).max(200)).min(2).max(6),
     correctIndex: z.number().int().min(0),
@@ -62,6 +67,7 @@ const quizChoiceItemSchema = z
 // sem ele, a professora corrige à mão. Várias respostas aceitas separadas por "/".
 const quizBlankItemSchema = z.object({
   type: z.literal("blank"),
+  instruction: quizInstruction,
   prompt: z.string().trim().min(1).max(QUIZ_PROMPT_MAX),
   answer: z.string().trim().max(500).optional(),
 });
@@ -71,6 +77,7 @@ const quizBlankItemSchema = z.object({
 // que o aluno só vê depois de enviar.
 const quizTranslateItemSchema = z.object({
   type: z.literal("translate"),
+  instruction: quizInstruction,
   prompt: z.string().trim().min(1).max(QUIZ_PROMPT_MAX),
   answer: z.string().trim().max(QUIZ_PROMPT_MAX).optional(),
 });
@@ -96,11 +103,13 @@ const quizItemsSchema = z
 const quizCreateBody = z.object({
   kind: z.literal("quiz"),
   title: z.string().trim().min(1).max(200),
+  intro: z.string().trim().max(QUIZ_INTRO_MAX).optional(),
   questions: quizItemsSchema,
 });
 
 const quizUpdateBody = z.object({
   title: z.string().trim().min(1).max(200),
+  intro: z.string().trim().max(QUIZ_INTRO_MAX).optional(),
   questions: quizItemsSchema,
 });
 
@@ -176,10 +185,10 @@ function questionsForStudent(questions: Question[]) {
 
 function quizItemsForStudent(items: QuizItem[]) {
   return items.map((q) => {
-    if (q.type === "choice") return { type: q.type, prompt: q.prompt, options: q.options };
+    if (q.type === "choice") return { type: q.type, instruction: q.instruction, prompt: q.prompt, options: q.options };
     if (q.type === "wordbank") return { type: q.type, instruction: q.instruction, words: q.words, blanks: q.blanks };
     // Sem o gabarito, só avisa se a pergunta é corrigida na hora.
-    return { type: q.type, prompt: q.prompt, ...(isAutoGraded(q) ? { autoGraded: true } : {}) };
+    return { type: q.type, instruction: q.instruction, prompt: q.prompt, ...(isAutoGraded(q) ? { autoGraded: true } : {}) };
   });
 }
 
@@ -370,6 +379,7 @@ export async function activitiesRoutes(app: FastifyInstance) {
         embedHeight: 500,
         youtubeVideoId: null,
         questions: JSON.stringify(parsed.data.questions),
+        intro: parsed.data.intro || null,
         createdAt: new Date().toISOString(),
       };
       db.insert(schema.activities).values(row).run();
@@ -443,7 +453,7 @@ export async function activitiesRoutes(app: FastifyInstance) {
         });
       }
       db.update(schema.activities)
-        .set({ title: parsed.data.title, questions: JSON.stringify(parsed.data.questions) })
+        .set({ title: parsed.data.title, intro: parsed.data.intro || null, questions: JSON.stringify(parsed.data.questions) })
         .where(eq(schema.activities.id, id))
         .run();
       // As perguntas podem ter mudado — respostas antigas não fariam mais sentido comparadas a elas.
