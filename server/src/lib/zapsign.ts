@@ -65,7 +65,7 @@ interface ZapSignDoc {
 
 // Celular já preenchido na tela do ZapSign ("(85) 99999-9999" → 55 + 85999999999).
 function phoneFields(phone: string | null | undefined) {
-  const digits = (phone ?? "").replace(/D/g, "");
+  const digits = (phone ?? "").replace(/\D/g, "");
   return digits.length >= 10 ? { phone_country: "55", phone_number: digits } : {};
 }
 

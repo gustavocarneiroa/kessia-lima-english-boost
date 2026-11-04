@@ -258,9 +258,12 @@ export async function quoteRoutes(app: FastifyInstance) {
         });
       } catch (err) {
         req.log.error({ err }, "[zapsign] falha ao criar documento");
-        return reply.code(502).send({
+        // 422, não 502: o Cloudflare na frente da API troca respostas 502 pela página de
+        // erro dele (sem CORS) e a tela só via "Não foi possível criar o contrato.".
+        const reason = err instanceof Error ? err.message.replace(/^ZapSign \S+ \S+ /, "").slice(0, 300) : "";
+        return reply.code(422).send({
           error: "zapsign_error",
-          message: "O ZapSign não aceitou o contrato agora. Nada foi criado — tente de novo em instantes.",
+          message: `O ZapSign não aceitou o contrato. Nada foi criado — confira os dados e tente de novo.${reason ? ` (Detalhe: ${reason})` : ""}`,
         });
       }
     }
