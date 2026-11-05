@@ -154,7 +154,7 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   do aluno e "Liberar", e as rotas do aluno respondem 404. Pra abrir, trocar os dois pra `true`.
 - **Horror Movie Awards** (aula de Halloween, out/2026): votação **aberta, sem login** em
   `/awards` (`pages/HorrorAwards.tsx`) — cada navegador tem um `voterId` próprio (votar de
-  novo substitui), limite por IP (`awardsIp`). Resultado só pra professora em `/portal/awards`
+  novo substitui), limite por IP (`awardsIp`). Resultado só pra professora em `/portal/awards` (fora do menu desde nov/2026 — só pelo endereço)
   (`HorrorAwardsResults.tsx`): envelope por categoria, abrir/encerrar votação, apagar votos.
   Categorias/indicados em `frontend/src/lib/horrorAwards.ts` (ids repetidos em
   `server/src/modules/awards/routes.ts`); votos em `horror_award_votes`.

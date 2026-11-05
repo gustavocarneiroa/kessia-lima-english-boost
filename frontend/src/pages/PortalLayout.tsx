@@ -40,7 +40,6 @@ import {
   Settings,
   Smartphone,
   Sun,
-  Trophy,
   User,
   Users,
   type LucideIcon,
@@ -72,7 +71,6 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/portal/financeiro", icon: Wallet, label: ["Financeiro", "Payments"] },
   { to: "/portal/orcamentos", icon: Calculator, label: ["Orçamentos", "Quotes"], only: "teacher" },
   { to: "/portal/contratos", icon: FileSignature, label: ["Contratos", "Contracts"], only: "teacher" },
-  { to: "/portal/awards", icon: Trophy, label: ["Horror Awards", "Horror Awards"], only: "teacher" },
   { to: "/portal/alunos", icon: Users, label: ["Alunos", "Students"], only: "teacher" },
   { to: "/portal/perfil", icon: User, label: ["Meu perfil", "My profile"], only: "student" },
   { to: "/portal/dispositivos", icon: Smartphone, label: ["Dispositivos", "Devices"] },
@@ -105,8 +103,10 @@ function PortalSidebar({ user, onLogout }: { user: { email: string; role: string
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {NAV_ITEMS.filter((item) => !item.only || item.only === (isTeacher ? "teacher" : "student")).map(
-                (item) => {
+              {NAV_ITEMS.filter((item) => !item.only || item.only === (isTeacher ? "teacher" : "student"))
+                // "Início" sempre no topo; o resto em ordem alfabética no idioma escolhido
+                .sort((a, b) => Number(!!b.end) - Number(!!a.end) || t(...a.label).localeCompare(t(...b.label)))
+                .map((item) => {
                   const label = t(...item.label);
                   return (
                     <SidebarMenuItem key={item.to}>
@@ -123,8 +123,7 @@ function PortalSidebar({ user, onLogout }: { user: { email: string; role: string
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );
-                },
-              )}
+                })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
