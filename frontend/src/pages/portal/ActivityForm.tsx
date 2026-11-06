@@ -106,14 +106,20 @@ export function quizDraftsFromSaved(items: SavedQuizItem[]): QuizItemDraft[] {
   return drafts;
 }
 
-// Número da primeira pergunta de cada item no formulário — o quadro do banco de
-// palavras ocupa um número por frase.
-function draftQuestionNumbers(drafts: QuizItemDraft[]): number[] {
-  let n = 1;
+// Rótulos do formulário, com o banco de palavras aberto nas frases dele: por item,
+// o rótulo do próprio item (ou do quadro) e os das frases.
+function draftLabels(drafts: QuizItemDraft[]): { own: QuizLabel; sentences: QuizLabel[] }[] {
+  const flat = drafts.flatMap((q) =>
+    q.type === "wordbank"
+      ? [{ type: q.type, instruction: q.instruction }, ...q.sentences.map(() => ({ type: "blank" }))]
+      : [{ type: q.type, instruction: q.instruction }],
+  );
+  const labels = quizLabels(flat);
+  let i = 0;
   return drafts.map((q) => {
-    const first = n;
-    n += q.type === "wordbank" ? q.sentences.length : 1;
-    return first;
+    const own = labels[i++];
+    const sentences = q.type === "wordbank" ? q.sentences.map(() => labels[i++]) : [];
+    return { own, sentences };
   });
 }
 
@@ -132,9 +138,34 @@ const QUIZ_TYPE_OPTIONS: { value: QuizItemType; label: [pt: string, en: string] 
   { value: "wordbank", label: ["Banco de palavras", "Word bank"] },
 ];
 
-// Número da pergunta na tela — o banco de palavras não é pergunta, então não conta.
-export function quizQuestionNumber(items: { type: string }[], index: number): number {
-  return items.slice(0, index + 1).filter((q) => q.type !== "wordbank").length;
+// Numeração da atividade: cada enunciado abre uma questão numerada (1., 2., ...) e
+// as perguntas dentro dela viram a), b), c)... — o banco de palavras sempre abre uma
+// questão. Perguntas antes do primeiro enunciado (atividades antigas) seguem 1., 2.
+export interface QuizLabel {
+  exercise: number | null; // número da questão que começa neste item
+  group: number | null; // questão a que o item pertence
+  label: string | null; // "a)" / "3." — null no quadro do banco de palavras
+}
+
+function letterOf(i: number): string {
+  const a = "abcdefghijklmnopqrstuvwxyz";
+  return i < 26 ? a[i] : a[Math.floor(i / 26) - 1] + a[i % 26];
+}
+
+export function quizLabels(items: { type: string; instruction?: string }[]): QuizLabel[] {
+  let exercise = 0;
+  let letter = 0;
+  let plain = 0;
+  return items.map((q) => {
+    const starts = q.type === "wordbank" || !!q.instruction?.trim();
+    if (starts) {
+      exercise++;
+      letter = 0;
+    }
+    const group = exercise || null;
+    const label = q.type === "wordbank" ? null : exercise === 0 ? `${++plain}.` : `${letterOf(letter++)})`;
+    return { exercise: starts ? exercise : null, group, label };
+  });
 }
 
 export function emptyQuestion(): QuestionDraft {
@@ -323,7 +354,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
     }
   }
 
-  const questionNumbers = draftQuestionNumbers(quizItems);
+  const labels = draftLabels(quizItems);
 
   return (
     <>
@@ -539,7 +570,9 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                     {q.type === "wordbank" ? (
                       <div className="flex-1 space-y-3">
                         <div className="space-y-1">
-                          <Label className="text-xs">{t("Enunciado", "Instructions")}</Label>
+                          <Label className="text-xs">
+                            {t("Enunciado da questão", "Instructions — question")} {labels[qi].own.exercise}
+                          </Label>
                           <Input
                             value={q.instruction}
                             onChange={(e) => updateQuizItem(qi, { instruction: e.target.value })}
@@ -559,7 +592,7 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                           <Label className="text-xs">{t("Frases para completar", "Sentences to complete")}</Label>
                           {q.sentences.map((s, si) => (
                             <div key={si} className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
-                              <span className="w-6 shrink-0 text-right text-sm text-muted-foreground">{questionNumbers[qi] + si}.</span>
+                              <span className="w-6 shrink-0 text-right text-sm text-muted-foreground">{labels[qi].sentences[si].label}</span>
                               <Input
                                 className="min-w-0 flex-1 basis-60"
                                 value={s.prompt}
@@ -614,7 +647,11 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                       </div>
                     ) : (
                       <div className="flex-1 space-y-1">
-                        <Label className="text-xs">{t("Enunciado (opcional)", "Instructions (optional)")}</Label>
+                        <Label className="text-xs">
+                          {labels[qi].own.exercise
+                            ? `${t("Enunciado da questão", "Instructions — question")} ${labels[qi].own.exercise}`
+                            : t("Enunciado (opcional)", "Instructions (optional)")}
+                        </Label>
                         <Input
                           value={q.instruction}
                           onChange={(e) => updateQuizItem(qi, { instruction: e.target.value })}
@@ -626,8 +663,21 @@ export default function ActivityForm({ lockKind, initial, submitLabel, onSubmit,
                                 : t("ex.: Complete with the verb in the simple present.", "e.g. Complete with the verb in the simple present.")
                           }
                         />
+                        {!q.instruction.trim() && (
+                          <p className="text-xs text-muted-foreground">
+                            {labels[qi].own.group
+                              ? t(
+                                  `Sem enunciado, este item continua a questão ${labels[qi].own.group}. Preencha para começar uma questão nova.`,
+                                  `Without instructions, this item continues question ${labels[qi].own.group}. Fill it in to start a new question.`,
+                                )
+                              : t(
+                                  "Preencha para começar uma questão numerada (1., 2., ...); os itens seguintes sem enunciado viram a), b), c)...",
+                                  "Fill it in to start a numbered question (1., 2., ...); the following items without instructions become a), b), c)...",
+                                )}
+                          </p>
+                        )}
                         <Label className="block pt-2 text-xs">
-                          {t("Pergunta", "Question")} {questionNumbers[qi]}
+                          {t("Pergunta", "Question")} {labels[qi].own.label}
                           {q.type === "translate" && ` — ${t("frase em português", "sentence in Portuguese")}`}
                         </Label>
                         <Textarea

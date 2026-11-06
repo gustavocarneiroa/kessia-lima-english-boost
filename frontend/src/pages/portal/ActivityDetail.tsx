@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Loader2, Maximize2, Minimize2, Pencil, Trash2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
-import ActivityForm, { quizDraftsFromSaved, quizQuestionNumber, type ActivityFormPayload, type SavedQuizItem } from "./ActivityForm";
+import ActivityForm, { quizDraftsFromSaved, quizLabels, type ActivityFormPayload, type SavedQuizItem } from "./ActivityForm";
 
 interface Question {
   prompt: string;
@@ -52,6 +52,7 @@ function WordBankBox({
   words,
   label,
   instruction,
+  number,
   interactive,
   picked,
   used,
@@ -61,6 +62,7 @@ function WordBankBox({
   words: string[];
   label: string;
   instruction?: string;
+  number?: number | null; // número da questão (o banco de palavras sempre abre uma)
   // Aluno respondendo: as palavras viram peças que ele arrasta (ou toca) até o espaço da frase.
   interactive?: boolean;
   picked?: string | null;
@@ -70,7 +72,12 @@ function WordBankBox({
 }) {
   return (
     <div className="space-y-2">
-      {instruction && <p className="text-sm font-medium">{instruction}</p>}
+      {(instruction || number) && (
+        <p className="text-sm font-semibold">
+          {number ? `${number}. ` : ""}
+          {instruction}
+        </p>
+      )}
       <div className="rounded-lg border bg-muted/40 p-3">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
         <div className="flex flex-wrap gap-2">
@@ -180,10 +187,15 @@ function PromptText({ text }: { text: string }) {
   );
 }
 
-// Enunciado opcional em cima de cada pergunta do quiz.
-function QuestionInstruction({ text }: { text?: string }) {
-  if (!text) return null;
-  return <p className="text-sm font-semibold">{text}</p>;
+// Enunciado opcional em cima de cada pergunta do quiz — é ele que leva o número da questão.
+function QuestionInstruction({ text, number }: { text?: string; number?: number | null }) {
+  if (!text?.trim()) return null;
+  return (
+    <p className="text-sm font-semibold">
+      {number ? `${number}. ` : ""}
+      {text}
+    </p>
+  );
 }
 
 function reconstructEmbedCode(src: string, height: number) {
@@ -583,7 +595,7 @@ export default function ActivityDetail() {
                 )}
 
                 {(activity.questions as QuizItem[]).map((q, qi, items) => {
-                  const num = quizQuestionNumber(items, qi);
+                  const lbl = quizLabels(items)[qi];
                   const bankOf = wordBankOfBlanks(items);
                   if (q.type === "wordbank") {
                     const sentenceIdx = Object.keys(bankOf)
@@ -594,6 +606,7 @@ export default function ActivityDetail() {
                         key={qi}
                         words={q.words ?? []}
                         instruction={q.instruction}
+                        number={lbl.exercise}
                         label={t("Banco de palavras", "Word bank")}
                         interactive={sentenceIdx.length > 0 && !result}
                         picked={picked?.bank === qi ? picked.word : null}
@@ -612,7 +625,7 @@ export default function ActivityDetail() {
                     return (
                       <div key={qi} className="space-y-1">
                         <p className="text-sm font-medium">
-                          {num}.{" "}
+                          {lbl.label}{" "}
                           <SentenceWithGap
                             prompt={q.prompt ?? ""}
                             value={value}
@@ -640,9 +653,9 @@ export default function ActivityDetail() {
                     const correct = result?.correctAnswers?.[qi];
                     return (
                       <div key={qi} className="space-y-2">
-                        <QuestionInstruction text={q.instruction} />
+                        <QuestionInstruction text={q.instruction} number={lbl.exercise} />
                         <Label className="text-sm font-medium">
-                          {num}. <PromptText text={q.prompt ?? ""} />
+                          {lbl.label} <PromptText text={q.prompt ?? ""} />
                         </Label>
                         <RadioGroup
                           value={answers[qi] !== undefined ? String(answers[qi]) : undefined}
@@ -679,7 +692,7 @@ export default function ActivityDetail() {
                   return (
                     <div key={qi} className="space-y-2">
                       {q.instruction ? (
-                        <QuestionInstruction text={q.instruction} />
+                        <QuestionInstruction text={q.instruction} number={lbl.exercise} />
                       ) : (
                         q.type === "translate" && (
                           <p className="text-xs font-medium text-muted-foreground">
@@ -688,7 +701,7 @@ export default function ActivityDetail() {
                         )
                       )}
                       <Label className="text-sm font-medium">
-                        {num}. <PromptText text={q.prompt ?? ""} />
+                        {lbl.label} <PromptText text={q.prompt ?? ""} />
                       </Label>
                       <Textarea
                         value={(answers[qi] as string) ?? ""}
@@ -729,14 +742,21 @@ export default function ActivityDetail() {
                 <CardTitle className="text-base">{t("Gabarito", "Answer key")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {(activity.questions as QuizItem[] | undefined)?.map((q, qi, items) =>
-                  q.type === "wordbank" ? (
-                    <WordBankBox key={qi} words={q.words ?? []} instruction={q.instruction} label={t("Banco de palavras", "Word bank")} />
+                {(activity.questions as QuizItem[] | undefined)?.map((q, qi, items) => {
+                  const lbl = quizLabels(items)[qi];
+                  return q.type === "wordbank" ? (
+                    <WordBankBox
+                      key={qi}
+                      words={q.words ?? []}
+                      instruction={q.instruction}
+                      number={lbl.exercise}
+                      label={t("Banco de palavras", "Word bank")}
+                    />
                   ) : (
                     <div key={qi} className="space-y-1 text-sm">
-                      <QuestionInstruction text={q.instruction} />
+                      <QuestionInstruction text={q.instruction} number={lbl.exercise} />
                       <p className="font-medium">
-                        {quizQuestionNumber(items, qi)}. <PromptText text={q.prompt ?? ""} />
+                        {lbl.label} <PromptText text={q.prompt ?? ""} />
                       </p>
                       <p className="text-muted-foreground">
                         {q.type === "choice"
@@ -756,8 +776,8 @@ export default function ActivityDetail() {
                                 )}
                       </p>
                     </div>
-                  ),
-                )}
+                  );
+                })}
               </CardContent>
             </Card>
           )}
@@ -784,7 +804,12 @@ export default function ActivityDetail() {
                       return (
                         <div key={qi} className="rounded-md bg-muted/30 p-2 text-sm">
                           <p className="text-xs text-muted-foreground">
-                            {quizQuestionNumber(items, qi)}. <PromptText text={q.prompt ?? ""} />
+                            {(() => {
+                              // Fora do enunciado, "a)" sozinho fica ambíguo: mostra "2a)".
+                              const lbl = quizLabels(items)[qi];
+                              return lbl.group && lbl.label ? `${lbl.group}${lbl.label}` : lbl.label;
+                            })()}{" "}
+                            <PromptText text={q.prompt ?? ""} />
                           </p>
                           {q.type === "translate" && q.answer && (
                             <p className="text-xs text-muted-foreground">
