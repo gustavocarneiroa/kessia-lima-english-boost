@@ -491,5 +491,16 @@ try {
   // já existe
 }
 
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS api_tokens (
+    id TEXT PRIMARY KEY,
+    token_hash TEXT NOT NULL UNIQUE,
+    user_id TEXT NOT NULL REFERENCES users(id),
+    name TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    last_used_at TEXT
+  );
+`);
+
 export const db = drizzle(sqlite, { schema });
 export { schema };

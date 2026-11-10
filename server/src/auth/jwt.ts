@@ -13,9 +13,11 @@ export interface SessionPayload {
   // (troca de senha, "sair de todos os aparelhos"), a sessão para de valer.
   // Sessões antigas, de antes desse campo existir, chegam sem ele e contam como 0.
   sessionVersion?: number;
+  // true quando o pedido veio com uma chave de acesso (api_tokens) em vez do cookie.
+  viaToken?: boolean;
 }
 
-export async function signSession(payload: Required<SessionPayload>): Promise<string> {
+export async function signSession(payload: Required<Omit<SessionPayload, "viaToken">>): Promise<string> {
   return await new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()

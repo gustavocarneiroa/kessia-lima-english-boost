@@ -158,6 +158,15 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   (`HorrorAwardsResults.tsx`): envelope por categoria, abrir/encerrar votação, apagar votos.
   Categorias/indicados em `frontend/src/lib/horrorAwards.ts` (ids repetidos em
   `server/src/modules/awards/routes.ts`); votos em `horror_award_votes`.
+- **MCP do portal** (`mcp/`, registrado em `.mcp.json` como `kessia-portal`, nov/2026): o Claude
+  age como a professora no site de produção — criar/editar atividades "Feita por você" e listening,
+  enviar pra alunos, listar alunos/atividades, e `portal_get`/`portal_request` pra qualquer rota.
+  Autentica com "chave de acesso do Claude" (`Authorization: Bearer kl_...`, tabela `api_tokens`,
+  só hash; `server/src/lib/api-tokens.ts` + `loadTokenSession` em `guards.ts`), gerada em
+  Configurações → "Acesso do Claude". A chave fica em `~/.kessia-portal-token`. Só vale pra professora,
+  não acessa `/api/auth/*` nem `/api/webauthn/*`, e não gerencia chaves (`requireTeacherLogin`).
+  Pra criar atividade a partir de um PDF de aula: ler o PDF (`pdftotext -layout`) e usar
+  `create_quiz_activity`.
 - Sem banco de dados de alunos ainda além de e-mail/senha — qualquer feature nova
   pra aluno (notas, exercícios, agenda etc.) precisa ser desenhada quando for
   pedida, não existe estrutura pronta pra isso.

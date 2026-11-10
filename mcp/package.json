@@ -1,0 +1,16 @@
+{
+  "name": "kessia-portal-mcp",
+  "private": true,
+  "type": "module",
+  "description": "MCP pra o Claude mexer no portal da Teacher Kessia Lima (atividades, alunos, etc.)",
+  "bin": {
+    "kessia-portal-mcp": "index.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^3.25.76"
+  }
+}

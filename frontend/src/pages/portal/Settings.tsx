@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle2, Loader2, Trash2 } from "lucide-react";
+import { CheckCircle2, Copy, KeyRound, Loader2, Trash2 } from "lucide-react";
 import { DEFAULT_PRICING, DURATIONS, PLAN_NAMES, usePricing, type GroupType, type Pricing, type Shift } from "@/lib/pricing";
 
 export default function Settings() {
@@ -64,6 +64,8 @@ export default function Settings() {
 
       <PricingCard />
 
+      <ClaudeAccessCard />
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t("Chave da OpenAI (ChatGPT)", "OpenAI key (ChatGPT)")}</CardTitle>
@@ -119,6 +121,133 @@ export default function Settings() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+interface ApiTokenRow {
+  id: string;
+  name: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+}
+
+// Chave pro Claude (MCP) mexer no portal no lugar da professora, sem senha.
+function ClaudeAccessCard() {
+  const { t } = usePortalPrefs();
+  const [items, setItems] = useState<ApiTokenRow[] | null>(null);
+  const [name, setName] = useState("Claude no meu computador");
+  const [created, setCreated] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function load() {
+    const res = await api.get<{ items: ApiTokenRow[] }>("/api/settings/api-tokens");
+    setItems(res.items);
+  }
+
+  useEffect(() => {
+    void load();
+  }, []);
+
+  async function create(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setBusy(true);
+    try {
+      const res = await api.post<{ token: string }>("/api/settings/api-tokens", { name });
+      setCreated(res.token);
+      setCopied(false);
+      await load();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : t("Não foi possível criar a chave.", "Couldn't create the key."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function remove(id: string) {
+    if (!confirm(t("Apagar esta chave? O Claude que usa ela para de ter acesso na hora.", "Delete this key? The Claude using it loses access right away."))) return;
+    setBusy(true);
+    try {
+      await api.delete(`/api/settings/api-tokens/${id}`);
+      await load();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function copy() {
+    if (!created) return;
+    await navigator.clipboard.writeText(created);
+    setCopied(true);
+  }
+
+  const fmt = (iso: string) => new Date(iso).toLocaleString();
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">{t("Acesso do Claude", "Claude access")}</CardTitle>
+        <CardDescription>
+          {t(
+            "Gera uma chave pra o Claude (no seu computador) criar atividades, ver alunos e fazer outras tarefas do portal por você, sem precisar da sua senha. Ela não consegue trocar sua senha nem seus aparelhos. Se não usar mais, é só apagar.",
+            "Creates a key so Claude (on your computer) can create activities, see students and do other portal tasks for you, without your password. It can't change your password or devices. Delete it when you no longer need it.",
+          )}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {created && (
+          <div className="space-y-2 rounded-md border border-amber-500/50 bg-amber-500/10 p-3 text-sm">
+            <p className="font-medium">
+              {t("Copie a chave agora — ela não aparece de novo.", "Copy the key now — it won't be shown again.")}
+            </p>
+            <code className="block break-all rounded bg-background p-2 text-xs">{created}</code>
+            <Button type="button" size="sm" variant="outline" className="gap-2" onClick={() => void copy()}>
+              {copied ? <CheckCircle2 className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
+              {copied ? t("Copiada!", "Copied!") : t("Copiar chave", "Copy key")}
+            </Button>
+          </div>
+        )}
+
+        {items === null ? (
+          <div className="flex justify-center py-4 text-muted-foreground">
+            <Loader2 className="h-5 w-5 animate-spin" />
+          </div>
+        ) : (
+          items.length > 0 && (
+            <ul className="divide-y rounded-md border text-sm">
+              {items.map((it) => (
+                <li key={it.id} className="flex items-center justify-between gap-2 p-3">
+                  <div>
+                    <p className="font-medium">{it.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {t("Criada em", "Created")} {fmt(it.createdAt)} ·{" "}
+                      {it.lastUsedAt ? `${t("último uso", "last used")} ${fmt(it.lastUsedAt)}` : t("ainda não usada", "not used yet")}
+                    </p>
+                  </div>
+                  <Button type="button" variant="ghost" size="icon" className="text-destructive" disabled={busy} onClick={() => void remove(it.id)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )
+        )}
+
+        <form onSubmit={create} className="flex flex-wrap items-end gap-2">
+          <div className="min-w-0 flex-1 basis-56 space-y-1">
+            <Label>{t("Nome da chave", "Key name")}</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} required />
+          </div>
+          <Button type="submit" disabled={busy} className="gap-2">
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+            {t("Gerar chave", "Create key")}
+          </Button>
+        </form>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+      </CardContent>
+    </Card>
   );
 }
 

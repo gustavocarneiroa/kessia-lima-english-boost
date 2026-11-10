@@ -362,3 +362,15 @@ export const credentials = sqliteTable("credentials", {
   deviceName: text("device_name"),
   createdAt: text("created_at").notNull(),
 });
+
+// Chaves de acesso pra programas (ex.: o Claude, pelo MCP) agirem como a professora
+// sem senha nem cookie: vão no cabeçalho "Authorization: Bearer kl_...". Só o hash
+// (sha-256) fica salvo — a chave em si aparece uma vez só, na hora de criar.
+export const apiTokens = sqliteTable("api_tokens", {
+  id: text("id").primaryKey(),
+  tokenHash: text("token_hash").notNull().unique(),
+  userId: text("user_id").notNull().references(() => users.id),
+  name: text("name").notNull(),
+  createdAt: text("created_at").notNull(),
+  lastUsedAt: text("last_used_at"),
+});
