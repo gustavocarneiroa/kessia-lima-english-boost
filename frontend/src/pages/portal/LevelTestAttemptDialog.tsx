@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
-import { DONT_KNOW, splitPrompt, type LevelTestAttemptDetail, type LevelTestQuestion } from "@/lib/levelTest";
+import { DONT_KNOW, listeningPartAt, splitPrompt, type LevelTestAttemptDetail, type LevelTestQuestion } from "@/lib/levelTest";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
@@ -24,7 +24,7 @@ export default function LevelTestAttemptDialog({ attemptId, onClose }: { attempt
       .catch(() => setFailed(true));
   }, [attemptId]);
 
-  const questions: LevelTestQuestion[] = detail ? [...detail.questions, ...(detail.listening?.questions ?? [])] : [];
+  const questions: LevelTestQuestion[] = detail ? [...detail.questions, ...detail.listening.flatMap((p) => p.questions)] : [];
   const grammarCount = detail?.questions.length ?? 0;
 
   return (
@@ -49,13 +49,14 @@ export default function LevelTestAttemptDialog({ attemptId, onClose }: { attempt
               {questions.map((q, i) => {
                 const answer = detail.answers[i];
                 const ok = answer === q.correctIndex;
+                const video = listeningPartAt(grammarCount, detail.listening, i);
                 return (
                   <li key={i} className="space-y-1 text-sm">
-                    {i === grammarCount && detail.listening && (
+                    {video?.first && (
                       <p className="pb-1 pt-2 font-medium">
-                        Listening ·{" "}
+                        Listening{detail.listening.length > 1 && ` ${video.number}`} ·{" "}
                         <a
-                          href={`https://www.youtube.com/watch?v=${detail.listening.youtubeVideoId}`}
+                          href={`https://www.youtube.com/watch?v=${video.part.youtubeVideoId}`}
                           target="_blank"
                           rel="noreferrer"
                           className="text-primary underline"

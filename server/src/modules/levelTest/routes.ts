@@ -14,6 +14,8 @@ import {
   levelTestForStudent,
   levelTestQuestionSchema,
   levelTestSchema,
+  MAX_LISTENING_PARTS,
+  normalizeListening,
   saveLevelTest,
   scoreLevelTest,
   type LevelTest,
@@ -23,11 +25,13 @@ import {
 const saveBody = z.object({
   questions: z.array(levelTestQuestionSchema).min(1).max(120),
   listening: z
-    .object({
-      youtubeUrl: z.string().trim().min(1).max(500),
-      questions: z.array(levelTestQuestionSchema).min(1).max(30),
-    })
-    .nullable(),
+    .array(
+      z.object({
+        youtubeUrl: z.string().trim().min(1).max(500),
+        questions: z.array(levelTestQuestionSchema).min(1).max(30),
+      }),
+    )
+    .max(MAX_LISTENING_PARTS),
 });
 
 const sendBody = z.object({
@@ -97,13 +101,16 @@ export async function levelTestRoutes(app: FastifyInstance) {
         message: "Confira as perguntas: todas precisam de enunciado, pelo menos 2 opções preenchidas e a resposta certa marcada.",
       });
     }
-    let listening: LevelTest["listening"] = null;
-    if (parsed.data.listening) {
-      const videoId = extractYoutubeVideoId(parsed.data.listening.youtubeUrl);
+    const listening: LevelTest["listening"] = [];
+    for (const [i, part] of parsed.data.listening.entries()) {
+      const videoId = extractYoutubeVideoId(part.youtubeUrl);
       if (!videoId) {
-        return reply.code(400).send({ error: "invalid_youtube_url", message: "Não encontrei um vídeo válido nesse link do YouTube." });
+        return reply.code(400).send({
+          error: "invalid_youtube_url",
+          message: `Não encontrei um vídeo válido no link do YouTube do vídeo ${i + 1}.`,
+        });
       }
-      listening = { youtubeVideoId: videoId, questions: parsed.data.listening.questions };
+      listening.push({ youtubeVideoId: videoId, questions: part.questions });
     }
     const test = levelTestSchema.parse({ questions: parsed.data.questions, listening });
     saveLevelTest(test);
@@ -194,14 +201,15 @@ export async function levelTestRoutes(app: FastifyInstance) {
       .where(eq(schema.levelTestAttempts.id, id))
       .get();
     if (!row) return reply.code(404).send({ error: "not_found", message: "Resultado não encontrado." });
-    const test = parseJson<LevelTest>(row.attempt.test, { questions: [], listening: null });
+    const test = parseJson<LevelTest>(row.attempt.test, { questions: [], listening: [] });
     return {
       ...attemptSummary(row.attempt),
       studentId: row.attempt.studentId,
       studentName: row.fullName || row.email,
       answers: parseJson<number[]>(row.attempt.answers, []),
       questions: test.questions,
-      listening: test.listening,
+      // Tentativas antigas guardaram o listening no formato de um vídeo só.
+      listening: normalizeListening(test.listening),
     };
   });
 

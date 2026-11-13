@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -23,9 +22,13 @@ import { CheckCircle2, Loader2, Plus, RotateCcw, Trash2, X } from "lucide-react"
 import { cn } from "@/lib/utils";
 
 // Professora: edita as perguntas do teste de nível, separadas por nível (A1 → C2), e a
-// parte opcional de listening (um vídeo do YouTube + perguntas sobre ele).
+// parte opcional de listening (vídeos do YouTube, cada um com perguntas sobre ele).
 
 type Draft = LevelTestQuestion & { key: number };
+type VideoDraft = { key: number; youtubeUrl: string; questions: Draft[] };
+
+// Mesmo limite de MAX_LISTENING_PARTS em server/src/lib/levelTest.ts.
+const MAX_LISTENING_VIDEOS = 6;
 
 let nextKey = 1;
 const withKey = (q: LevelTestQuestion): Draft => ({ ...q, key: nextKey++ });
@@ -133,9 +136,7 @@ export default function LevelTestEditor() {
   const { t } = usePortalPrefs();
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<Draft[]>([]);
-  const [listeningOn, setListeningOn] = useState(false);
-  const [youtubeUrl, setYoutubeUrl] = useState("");
-  const [listeningQuestions, setListeningQuestions] = useState<Draft[]>([]);
+  const [videos, setVideos] = useState<VideoDraft[]>([]);
   const [defaultTest, setDefaultTest] = useState<LevelTest | null>(null);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -144,9 +145,13 @@ export default function LevelTestEditor() {
 
   function load(test: LevelTest) {
     setQuestions(test.questions.map(withKey));
-    setListeningOn(!!test.listening);
-    setYoutubeUrl(test.listening ? `https://www.youtube.com/watch?v=${test.listening.youtubeVideoId}` : "");
-    setListeningQuestions((test.listening?.questions ?? []).map(withKey));
+    setVideos(
+      test.listening.map((part) => ({
+        key: nextKey++,
+        youtubeUrl: `https://www.youtube.com/watch?v=${part.youtubeVideoId}`,
+        questions: part.questions.map(withKey),
+      })),
+    );
   }
 
   useEffect(() => {
@@ -167,20 +172,25 @@ export default function LevelTestEditor() {
 
   const updateQuestion = (key: number, q: Draft) => edit(setQuestions, (prev) => prev.map((p) => (p.key === key ? q : p)));
   const removeQuestion = (key: number) => edit(setQuestions, (prev) => prev.filter((p) => p.key !== key));
-  const updateListening = (key: number, q: Draft) => edit(setListeningQuestions, (prev) => prev.map((p) => (p.key === key ? q : p)));
-  const removeListening = (key: number) => edit(setListeningQuestions, (prev) => prev.filter((p) => p.key !== key));
+  const updateVideo = (key: number, fn: (v: VideoDraft) => VideoDraft) =>
+    edit(setVideos, (prev) => prev.map((v) => (v.key === key ? fn(v) : v)));
+  const removeVideo = (key: number) => edit(setVideos, (prev) => prev.filter((v) => v.key !== key));
 
   async function save() {
     setMessage(null);
-    const all = [...questions, ...(listeningOn ? listeningQuestions : [])];
+    const all = [...questions, ...videos.flatMap((v) => v.questions)];
     if (all.some((q) => !q.prompt.trim() || q.options.some((o) => !o.trim()))) {
       setMessage({ ok: false, text: t("Tem pergunta com enunciado ou opção em branco.", "Some question has an empty prompt or option.") });
       return;
     }
-    if (listeningOn && (!youtubeUrl.trim() || listeningQuestions.length === 0)) {
+    const incomplete = videos.findIndex((v) => !v.youtubeUrl.trim() || v.questions.length === 0);
+    if (incomplete !== -1) {
       setMessage({
         ok: false,
-        text: t("Pra ter listening, cole o link do vídeo e crie pelo menos uma pergunta.", "For listening, paste the video link and add at least one question."),
+        text: t(
+          `Vídeo ${incomplete + 1} do listening: cole o link e crie pelo menos uma pergunta (ou exclua o vídeo).`,
+          `Listening video ${incomplete + 1}: paste the link and add at least one question (or delete the video).`,
+        ),
       });
       return;
     }
@@ -190,7 +200,7 @@ export default function LevelTestEditor() {
       const ordered = CEFR_LEVELS.flatMap((l) => questions.filter((q) => q.level === l));
       const res = await api.put<{ test: LevelTest }>("/api/level-test", {
         questions: ordered.map(stripKey),
-        listening: listeningOn ? { youtubeUrl: youtubeUrl.trim(), questions: listeningQuestions.map(stripKey) } : null,
+        listening: videos.map((v) => ({ youtubeUrl: v.youtubeUrl.trim(), questions: v.questions.map(stripKey) })),
       });
       load(res.test);
       setDirty(false);
@@ -267,64 +277,75 @@ export default function LevelTestEditor() {
       })}
 
       <Card>
-        <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-          <div className="space-y-1.5">
-            <CardTitle className="text-base">Listening</CardTitle>
-            <CardDescription>
-              {t(
-                "Opcional. Um vídeo do YouTube no fim do teste, com perguntas sobre ele. Escolha o nível de cada pergunta.",
-                "Optional. A YouTube video at the end of the test, with questions about it. Pick each question's level.",
-              )}
-            </CardDescription>
-          </div>
-          <label className="flex shrink-0 cursor-pointer items-center gap-2 text-sm font-medium">
-            <Checkbox
-              checked={listeningOn}
-              onCheckedChange={(v) => {
-                setListeningOn(!!v);
-                setDirty(true);
-                setMessage(null);
-              }}
-            />
-            {t("Incluir", "Include")}
-          </label>
+        <CardHeader>
+          <CardTitle className="text-base">Listening</CardTitle>
+          <CardDescription>
+            {t(
+              "Opcional. Vídeos do YouTube no fim do teste, cada um com perguntas sobre ele. O ideal é um vídeo por faixa (fácil, médio, difícil), do mais fácil ao mais difícil. Escolha o nível de cada pergunta.",
+              "Optional. YouTube videos at the end of the test, each with questions about it. Ideally one video per range (easy, medium, hard), from easiest to hardest. Pick each question's level.",
+            )}
+          </CardDescription>
         </CardHeader>
-        {listeningOn && (
-          <CardContent className="space-y-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="lt-youtube">{t("Link do vídeo no YouTube", "YouTube video link")}</Label>
-              <Input
-                id="lt-youtube"
-                value={youtubeUrl}
-                onChange={(e) => {
-                  setYoutubeUrl(e.target.value);
-                  setDirty(true);
-                  setMessage(null);
-                }}
-                placeholder="https://www.youtube.com/watch?v=..."
-              />
+        <CardContent className="space-y-4">
+          {videos.map((video, vi) => (
+            <div key={video.key} className="space-y-3 rounded-lg border bg-muted/30 p-3 sm:p-4">
+              <div className="flex items-end gap-2">
+                <div className="flex-1 space-y-1.5">
+                  <Label htmlFor={`lt-youtube-${video.key}`}>
+                    {t("Vídeo", "Video")} {vi + 1} · {t("link no YouTube", "YouTube link")}
+                  </Label>
+                  <Input
+                    id={`lt-youtube-${video.key}`}
+                    value={video.youtubeUrl}
+                    onChange={(e) => updateVideo(video.key, (v) => ({ ...v, youtubeUrl: e.target.value }))}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="shrink-0"
+                  onClick={() => removeVideo(video.key)}
+                  aria-label={t("Excluir vídeo", "Delete video")}
+                  title={t("Excluir vídeo", "Delete video")}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+              {video.questions.map((q, i) => (
+                <QuestionEditor
+                  key={q.key}
+                  q={q}
+                  index={i}
+                  showLevel
+                  onChange={(next) => updateVideo(video.key, (v) => ({ ...v, questions: v.questions.map((p) => (p.key === q.key ? next : p)) }))}
+                  onRemove={() => updateVideo(video.key, (v) => ({ ...v, questions: v.questions.filter((p) => p.key !== q.key) }))}
+                />
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-2"
+                onClick={() => updateVideo(video.key, (v) => ({ ...v, questions: [...v.questions, emptyQuestion(v.questions.at(-1)?.level ?? "A2")] }))}
+              >
+                <Plus className="h-4 w-4" /> {t("Pergunta sobre este vídeo", "Question about this video")}
+              </Button>
             </div>
-            {listeningQuestions.map((q, i) => (
-              <QuestionEditor
-                key={q.key}
-                q={q}
-                index={i}
-                showLevel
-                onChange={(next) => updateListening(q.key, next)}
-                onRemove={() => removeListening(q.key)}
-              />
-            ))}
+          ))}
+          {videos.length < MAX_LISTENING_VIDEOS && (
             <Button
               type="button"
               variant="outline"
               size="sm"
               className="gap-2"
-              onClick={() => edit(setListeningQuestions, (prev) => [...prev, emptyQuestion("A2")])}
+              onClick={() => edit(setVideos, (prev) => [...prev, { key: nextKey++, youtubeUrl: "", questions: [emptyQuestion("A2")] }])}
             >
-              <Plus className="h-4 w-4" /> {t("Pergunta de listening", "Listening question")}
+              <Plus className="h-4 w-4" /> {videos.length === 0 ? t("Adicionar vídeo", "Add video") : t("Outro vídeo", "Another video")}
             </Button>
-          </CardContent>
-        )}
+          )}
+        </CardContent>
       </Card>
 
       <div className="sticky bottom-0 -mx-4 flex flex-wrap items-center gap-3 border-t bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">

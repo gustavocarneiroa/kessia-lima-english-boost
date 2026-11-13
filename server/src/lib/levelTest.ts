@@ -27,15 +27,24 @@ export const levelTestQuestionSchema = z
   })
   .refine((q) => q.correctIndex < q.options.length, { message: "correctIndex fora do intervalo" });
 
+export const MAX_LISTENING_PARTS = 6;
+
+const listeningPartSchema = z.object({
+  youtubeVideoId: z.string().regex(/^[a-zA-Z0-9_-]{11}$/),
+  questions: z.array(levelTestQuestionSchema).min(1).max(30),
+});
+
+/** Antes o listening era um vídeo só (objeto ou null); hoje é uma lista. Aceita os dois formatos. */
+export function normalizeListening(v: unknown): unknown {
+  if (v == null) return [];
+  return Array.isArray(v) ? v : [v];
+}
+
 export const levelTestSchema = z.object({
   questions: z.array(levelTestQuestionSchema).min(1).max(120),
-  // Parte de listening (opcional): um vídeo do YouTube e perguntas sobre ele, no fim do teste.
-  listening: z
-    .object({
-      youtubeVideoId: z.string().regex(/^[a-zA-Z0-9_-]{11}$/),
-      questions: z.array(levelTestQuestionSchema).min(1).max(30),
-    })
-    .nullable(),
+  // Parte de listening (opcional), no fim do teste: um ou mais vídeos do YouTube, cada um com
+  // perguntas sobre ele — em geral um vídeo por faixa de nível (fácil, médio, difícil).
+  listening: z.preprocess(normalizeListening, z.array(listeningPartSchema).max(MAX_LISTENING_PARTS)),
 });
 
 export type LevelTestQuestion = z.infer<typeof levelTestQuestionSchema>;
@@ -186,7 +195,7 @@ export const DEFAULT_LEVEL_TEST: LevelTest = {
     READING.C2,
     mc("C2", "Were the government ___ taxes again, there would be protests.", "to raise", ["raising", "raise", "raised"], 2),
   ],
-  listening: null,
+  listening: [],
 };
 
 export function getLevelTest(): LevelTest {
@@ -206,7 +215,7 @@ export function saveLevelTest(test: LevelTest): void {
 
 /** Todas as perguntas na ordem em que o aluno responde: gramática/vocabulário, depois listening. */
 export function allQuestions(test: LevelTest): LevelTestQuestion[] {
-  return [...test.questions, ...(test.listening?.questions ?? [])];
+  return [...test.questions, ...test.listening.flatMap((part) => part.questions)];
 }
 
 /** O teste sem as respostas certas — é isso que o aluno recebe. */
@@ -214,9 +223,7 @@ export function levelTestForStudent(test: LevelTest) {
   const strip = (q: LevelTestQuestion) => ({ prompt: q.prompt, options: q.options });
   return {
     questions: test.questions.map(strip),
-    listening: test.listening
-      ? { youtubeVideoId: test.listening.youtubeVideoId, questions: test.listening.questions.map(strip) }
-      : null,
+    listening: test.listening.map((part) => ({ youtubeVideoId: part.youtubeVideoId, questions: part.questions.map(strip) })),
   };
 }
 

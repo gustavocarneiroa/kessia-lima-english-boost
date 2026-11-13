@@ -143,7 +143,9 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   (não revela se o e-mail existe), limite de 3 pedidos/15min por e-mail, aluno sem senha
   recebe o link de convite. Sem a chave, a rota responde 503 `email_disabled`.
 - **Teste de nível** (`/portal/teste-de-nivel`, escala CEFR A1–C2): perguntas de múltipla
-  escolha marcadas por nível + listening opcional (vídeo do YouTube), em `app_settings`
+  escolha marcadas por nível + listening opcional (lista de vídeos do YouTube, até 6, cada um com
+  suas perguntas — ideia: um vídeo por faixa A1/A2, B1/B2, C1/C2; formato antigo de vídeo único é
+  convertido por `normalizeListening`), em `app_settings`
   chave `level_test` (sem ela, usa `DEFAULT_LEVEL_TEST` de `server/src/lib/levelTest.ts`).
   Professora libera por aluno (`level_test_assignments`); ao enviar, o servidor corrige, guarda
   a tentativa com cópia do teste (`level_test_attempts`), apaga a liberação e grava o nível em

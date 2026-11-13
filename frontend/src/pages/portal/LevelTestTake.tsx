@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
-import { DONT_KNOW, splitPrompt, type LevelTestAttempt } from "@/lib/levelTest";
+import { DONT_KNOW, listeningPartAt, splitPrompt, type LevelTestAttempt, type ListeningPart } from "@/lib/levelTest";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,7 +28,7 @@ interface MyLevelTest {
   assignedAt: string | null;
   test: {
     questions: StudentQuestion[];
-    listening: { youtubeVideoId: string; questions: StudentQuestion[] } | null;
+    listening: ListeningPart<StudentQuestion>[];
   } | null;
   attempts: LevelTestAttempt[];
 }
@@ -80,7 +80,7 @@ export default function LevelTestTake() {
 
   const grammarCount = data?.test?.questions.length ?? 0;
   const questions = useMemo(
-    () => (data?.test ? [...data.test.questions, ...(data.test.listening?.questions ?? [])] : []),
+    () => (data?.test ? [...data.test.questions, ...data.test.listening.flatMap((p) => p.questions)] : []),
     [data],
   );
 
@@ -214,8 +214,16 @@ export default function LevelTestTake() {
               <li>
                 {questions.length} {t("perguntas de múltipla escolha, das mais fáceis às mais difíceis.", "multiple-choice questions, from easiest to hardest.")}
               </li>
-              {data.test.listening && (
+              {data.test.listening.length === 1 && (
                 <li>{t("No final tem uma parte de listening com vídeo — use fone de ouvido se puder.", "At the end there's a listening part with a video — use headphones if you can.")}</li>
+              )}
+              {data.test.listening.length > 1 && (
+                <li>
+                  {t(
+                    `No final tem uma parte de listening com ${data.test.listening.length} vídeos curtos — use fone de ouvido se puder.`,
+                    `At the end there's a listening part with ${data.test.listening.length} short videos — use headphones if you can.`,
+                  )}
+                </li>
               )}
               <li>{t("Não tem tempo limite. Leva uns 20 a 30 minutos.", "There's no time limit. It takes about 20 to 30 minutes.")}</li>
               <li>
@@ -244,7 +252,7 @@ export default function LevelTestTake() {
 
   // Respondendo
   const q = questions[current];
-  const isListening = current >= grammarCount;
+  const video = listeningPartAt(grammarCount, data.test.listening, current);
   const answeredCount = questions.filter((_, i) => answers[i] !== undefined).length;
   const isLast = current === questions.length - 1;
   const unanswered = questions.length - answeredCount;
@@ -267,11 +275,16 @@ export default function LevelTestTake() {
         </div>
       </div>
 
-      {isListening && data.test.listening && (
+      {video && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
               <Headphones className="h-4 w-4 text-primary" /> Listening
+              {data.test.listening.length > 1 && (
+                <span className="font-normal text-muted-foreground">
+                  · {t("vídeo", "video")} {video.number} {t("de", "of")} {data.test.listening.length}
+                </span>
+              )}
             </CardTitle>
             <CardDescription>
               {t("Assista ao vídeo (quantas vezes quiser) e responda às perguntas.", "Watch the video (as many times as you like) and answer the questions.")}
@@ -280,7 +293,8 @@ export default function LevelTestTake() {
           <CardContent className="p-0">
             <div className="aspect-video w-full">
               <iframe
-                src={`https://www.youtube.com/embed/${data.test.listening.youtubeVideoId}`}
+                key={video.part.youtubeVideoId}
+                src={`https://www.youtube.com/embed/${video.part.youtubeVideoId}`}
                 className="h-full w-full"
                 style={{ border: 0 }}
                 title="Listening"

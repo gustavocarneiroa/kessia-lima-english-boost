@@ -67,9 +67,33 @@ export interface LevelTestQuestion {
   correctIndex: number;
 }
 
+/** Um vídeo do listening e as perguntas sobre ele. */
+export interface ListeningPart<Q = LevelTestQuestion> {
+  youtubeVideoId: string;
+  questions: Q[];
+}
+
 export interface LevelTest {
   questions: LevelTestQuestion[];
-  listening: { youtubeVideoId: string; questions: LevelTestQuestion[] } | null;
+  /** Vídeos no fim do teste, em ordem (em geral do mais fácil ao mais difícil). Vazio = sem listening. */
+  listening: ListeningPart[];
+}
+
+/**
+ * De qual vídeo é a pergunta `i` do teste (contando gramática + listening, na ordem em que o
+ * aluno responde). null = não é de listening. `number` começa em 1; `first` = primeira pergunta do vídeo.
+ */
+export function listeningPartAt<Q>(
+  grammarCount: number,
+  parts: ListeningPart<Q>[],
+  i: number,
+): { part: ListeningPart<Q>; number: number; first: boolean } | null {
+  let start = grammarCount;
+  for (const [n, part] of parts.entries()) {
+    if (i >= start && i < start + part.questions.length) return { part, number: n + 1, first: i === start };
+    start += part.questions.length;
+  }
+  return null;
 }
 
 export type LevelBreakdown = Partial<Record<CefrLevel, { correct: number; total: number }>>;
