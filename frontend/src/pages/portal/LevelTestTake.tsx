@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
-import { buildTestSequence, DONT_KNOW, formatTimestamp, splitPrompt, type CefrLevel, type LevelTestAttempt, type ListeningPart } from "@/lib/levelTest";
+import { buildTestSequence, CEFR_LEVELS, DONT_KNOW, formatTimestamp, splitPrompt, type CefrLevel, type LevelTestAttempt, type ListeningPart } from "@/lib/levelTest";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,6 +65,7 @@ export default function LevelTestTake() {
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [confirming, setConfirming] = useState(false);
+  const [stoppingEarly, setStoppingEarly] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<LevelTestAttempt | null>(null);
@@ -256,6 +257,9 @@ export default function LevelTestTake() {
   const answeredCount = questions.filter((_, i) => answers[i] !== undefined).length;
   const isLast = current === questions.length - 1;
   const unanswered = questions.length - answeredCount;
+  // A partir do B1 deixa o aluno parar se achar os níveis mais altos difíceis demais — o nível
+  // registrado é só até onde ele foi bem, então parar aqui não piora o resultado já alcançado.
+  const canStopEarly = !isLast && answeredCount < questions.length && CEFR_LEVELS.indexOf(q.level) >= 2;
 
   return (
     <div className="space-y-6">
@@ -355,14 +359,44 @@ export default function LevelTestTake() {
         <Button variant="outline" disabled={current === 0} onClick={() => setCurrent((c) => c - 1)}>
           <ArrowLeft className="mr-1 h-4 w-4" /> {t("Anterior", "Previous")}
         </Button>
-        {isLast || answeredCount === questions.length ? (
-          <Button onClick={() => setConfirming(true)}>{t("Terminar e ver meu nível", "Finish and see my level")}</Button>
-        ) : (
-          <Button variant="outline" onClick={() => setCurrent((c) => c + 1)}>
-            {t("Próxima", "Next")} <ArrowRight className="ml-1 h-4 w-4" />
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {canStopEarly && (
+            <Button
+              variant="ghost"
+              className="text-muted-foreground"
+              onClick={() => {
+                setStoppingEarly(true);
+                setConfirming(true);
+              }}
+            >
+              {t("Terminar por aqui", "Finish here")}
+            </Button>
+          )}
+          {isLast || answeredCount === questions.length ? (
+            <Button
+              onClick={() => {
+                setStoppingEarly(false);
+                setConfirming(true);
+              }}
+            >
+              {t("Terminar e ver meu nível", "Finish and see my level")}
+            </Button>
+          ) : (
+            <Button variant="outline" onClick={() => setCurrent((c) => c + 1)}>
+              {t("Próxima", "Next")} <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </div>
+
+      {canStopEarly && (
+        <p className="text-center text-xs text-muted-foreground">
+          {t(
+            "Achando os níveis mais altos difíceis? Pode terminar por aqui — seu nível é baseado no que você já acertou.",
+            "Finding the higher levels too hard? You can finish here — your level is based on what you've already gotten right.",
+          )}
+        </p>
+      )}
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
@@ -371,6 +405,16 @@ export default function LevelTestTake() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t("Terminar o teste?", "Finish the test?")}</AlertDialogTitle>
             <AlertDialogDescription>
+              {stoppingEarly && (
+                <>
+                  {t(
+                    "Tudo bem! Seu nível fica no último em que você foi bem — as perguntas mais difíceis que faltam não entram no resultado.",
+                    "That's okay! Your level stays at the last one you did well in — the harder remaining questions won't count against your result.",
+                  )}
+                  <br />
+                  <br />
+                </>
+              )}
               {unanswered > 0
                 ? t(
                     `Ainda tem ${unanswered} pergunta(s) sem resposta — elas vão contar como "não sei".`,
