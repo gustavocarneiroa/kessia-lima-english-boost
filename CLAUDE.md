@@ -146,7 +146,12 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   escolha marcadas por nível + listening opcional (lista de vídeos do YouTube, até 6, cada um com
   suas perguntas — ideia: um vídeo por faixa A1/A2, B1/B2, C1/C2; formato antigo de vídeo único é
   convertido por `normalizeListening`), em `app_settings`
-  chave `level_test` (sem ela, usa `DEFAULT_LEVEL_TEST` de `server/src/lib/levelTest.ts`).
+  chave `level_test` (sem ela, usa `DEFAULT_LEVEL_TEST` de `server/src/lib/levelTest.ts`). Cada
+  vídeo entra na sequência logo depois das perguntas do nível mais alto entre as suas próprias
+  perguntas (`listeningAnchor`/`buildTestSequence`, repetido no servidor e no front — front
+  precisa do `level` de cada pergunta pra montar a mesma ordem, por isso `levelTestForStudent`
+  não tira esse campo). Pergunta de listening pode ter `startSeconds` (campo "Tempo no vídeo" no
+  editor, mm:ss): o player já abre nesse ponto (`?start=`) quando o aluno chega na pergunta.
   Professora libera por aluno (`level_test_assignments`); ao enviar, o servidor corrige, guarda
   a tentativa com cópia do teste (`level_test_attempts`), apaga a liberação e grava o nível em
   `student_profiles.english_level`. Nível = mais alto com ≥60% de acerto sem falhar nenhum
@@ -168,7 +173,9 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   Configurações → "Acesso do Claude". A chave fica em `~/.kessia-portal-token`. Só vale pra professora,
   não acessa `/api/auth/*` nem `/api/webauthn/*`, e não gerencia chaves (`requireTeacherLogin`).
   Pra criar atividade a partir de um PDF de aula: ler o PDF (`pdftotext -layout`) e usar
-  `create_quiz_activity`.
+  `create_quiz_activity`. Esse fluxo virou a skill `/atividade-do-pdf`
+  (`.claude/skills/atividade-do-pdf/SKILL.md`): mistura múltipla escolha/completar/banco de
+  palavras/tradução, cria sem enviar e devolve o link pra professora revisar.
 - Sem banco de dados de alunos ainda além de e-mail/senha — qualquer feature nova
   pra aluno (notas, exercícios, agenda etc.) precisa ser desenhada quando for
   pedida, não existe estrutura pronta pra isso.

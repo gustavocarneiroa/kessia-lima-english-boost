@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
-import { CEFR_LEVELS, LEVEL_INFO, type CefrLevel, type LevelTest, type LevelTestQuestion } from "@/lib/levelTest";
+import { CEFR_LEVELS, formatTimestamp, LEVEL_INFO, parseTimestamp, type CefrLevel, type LevelTest, type LevelTestQuestion, type ListeningQuestion } from "@/lib/levelTest";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,8 @@ import { cn } from "@/lib/utils";
 // Professora: edita as perguntas do teste de nível, separadas por nível (A1 → C2), e a
 // parte opcional de listening (vídeos do YouTube, cada um com perguntas sobre ele).
 
-type Draft = LevelTestQuestion & { key: number };
+// Serve pras perguntas de gramática e de listening (estas podem ter `startSeconds`).
+type Draft = ListeningQuestion & { key: number };
 type VideoDraft = { key: number; youtubeUrl: string; questions: Draft[] };
 
 // Mesmo limite de MAX_LISTENING_PARTS em server/src/lib/levelTest.ts.
@@ -33,7 +34,7 @@ const MAX_LISTENING_VIDEOS = 6;
 let nextKey = 1;
 const withKey = (q: LevelTestQuestion): Draft => ({ ...q, key: nextKey++ });
 const emptyQuestion = (level: CefrLevel): Draft => withKey({ level, prompt: "", options: ["", "", "", ""], correctIndex: 0 });
-const stripKey = ({ key: _key, ...q }: Draft): LevelTestQuestion => ({
+const stripKey = ({ key: _key, ...q }: Draft): ListeningQuestion => ({
   ...q,
   prompt: q.prompt.trim(),
   options: q.options.map((o) => o.trim()),
@@ -43,16 +44,20 @@ function QuestionEditor({
   q,
   index,
   showLevel,
+  listening,
   onChange,
   onRemove,
 }: {
   q: Draft;
   index: number;
   showLevel: boolean;
+  /** Mostra o campo de tempo no vídeo (só faz sentido pra perguntas de listening). */
+  listening?: boolean;
   onChange: (q: Draft) => void;
   onRemove: () => void;
 }) {
   const { t } = usePortalPrefs();
+  const [timestampText, setTimestampText] = useState(() => formatTimestamp(q.startSeconds));
 
   return (
     <div className="space-y-3 rounded-lg border p-3 sm:p-4">
@@ -83,6 +88,30 @@ function QuestionEditor({
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
+
+      {listening && (
+        <div className="flex items-center gap-2 pl-6">
+          <Label htmlFor={`lt-ts-${q.key}`} className="shrink-0 text-xs font-normal text-muted-foreground">
+            {t("Tempo no vídeo (opcional)", "Time in video (optional)")}
+          </Label>
+          <Input
+            id={`lt-ts-${q.key}`}
+            value={timestampText}
+            onChange={(e) => {
+              setTimestampText(e.target.value);
+              onChange({ ...q, startSeconds: parseTimestamp(e.target.value) });
+            }}
+            placeholder="mm:ss"
+            className="h-8 w-24"
+          />
+          <span className="text-xs text-muted-foreground">
+            {t(
+              "o vídeo já começa aí quando o aluno chegar nesta pergunta",
+              "the video starts there once the student reaches this question",
+            )}
+          </span>
+        </div>
+      )}
 
       <div className="space-y-2 pl-6">
         {q.options.map((opt, oi) => (
@@ -281,8 +310,8 @@ export default function LevelTestEditor() {
           <CardTitle className="text-base">Listening</CardTitle>
           <CardDescription>
             {t(
-              "Opcional. Vídeos do YouTube no fim do teste, cada um com perguntas sobre ele. O ideal é um vídeo por faixa (fácil, médio, difícil), do mais fácil ao mais difícil. Escolha o nível de cada pergunta.",
-              "Optional. YouTube videos at the end of the test, each with questions about it. Ideally one video per range (easy, medium, hard), from easiest to hardest. Pick each question's level.",
+              "Opcional. Vídeos do YouTube, cada um com perguntas sobre ele — o ideal é um vídeo por faixa (fácil, médio, difícil). Cada vídeo entra sozinho no teste logo depois das perguntas do nível das suas próprias perguntas (ex.: um vídeo com pergunta A1 e A2 aparece depois do bloco A2). Escolha o nível de cada pergunta, e se quiser, o tempo exato do vídeo (mm:ss) perto da informação — assim o aluno não precisa ver o vídeo todo.",
+              "Optional. YouTube videos, each with questions about it — ideally one video per range (easy, medium, hard). Each video drops into the test right after the questions of its own questions' level (e.g. a video with an A1 and an A2 question appears after the A2 block). Pick each question's level, and if you like, the exact time in the video (mm:ss) near the information — so the student doesn't need to watch the whole video.",
             )}
           </CardDescription>
         </CardHeader>
@@ -319,6 +348,7 @@ export default function LevelTestEditor() {
                   q={q}
                   index={i}
                   showLevel
+                  listening
                   onChange={(next) => updateVideo(video.key, (v) => ({ ...v, questions: v.questions.map((p) => (p.key === q.key ? next : p)) }))}
                   onRemove={() => updateVideo(video.key, (v) => ({ ...v, questions: v.questions.filter((p) => p.key !== q.key) }))}
                 />

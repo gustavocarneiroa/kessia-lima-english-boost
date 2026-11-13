@@ -29,9 +29,15 @@ export const levelTestQuestionSchema = z
 
 export const MAX_LISTENING_PARTS = 6;
 
+// Pergunta de listening: igual à de gramática, mas pode marcar o momento do vídeo (em segundos)
+// perto da informação — assim o aluno não precisa assistir o vídeo inteiro pra responder.
+export const listeningQuestionSchema = levelTestQuestionSchema.and(
+  z.object({ startSeconds: z.number().int().min(0).max(36_000).optional() }),
+);
+
 const listeningPartSchema = z.object({
   youtubeVideoId: z.string().regex(/^[a-zA-Z0-9_-]{11}$/),
-  questions: z.array(levelTestQuestionSchema).min(1).max(30),
+  questions: z.array(listeningQuestionSchema).min(1).max(30),
 });
 
 /** Antes o listening era um vídeo só (objeto ou null); hoje é uma lista. Aceita os dois formatos. */
@@ -48,7 +54,19 @@ export const levelTestSchema = z.object({
 });
 
 export type LevelTestQuestion = z.infer<typeof levelTestQuestionSchema>;
+export type ListeningQuestion = z.infer<typeof listeningQuestionSchema>;
 export type LevelTest = z.infer<typeof levelTestSchema>;
+
+// Em qual nível (o mais alto entre as perguntas do vídeo) um vídeo de listening deve aparecer —
+// logo depois das perguntas de gramática/leitura desse nível. Ex.: vídeo com perguntas A1 e A2
+// aparece depois do bloco A2.
+function listeningAnchor(part: { questions: { level: CefrLevel }[] }): CefrLevel {
+  let best: CefrLevel = CEFR_LEVELS[0];
+  for (const q of part.questions) {
+    if (CEFR_LEVELS.indexOf(q.level) > CEFR_LEVELS.indexOf(best)) best = q.level;
+  }
+  return best;
+}
 export type LevelBreakdown = Record<CefrLevel, { correct: number; total: number }>;
 
 // Monta uma pergunta com a resposta certa na posição `at` (pra não ficar sempre na mesma letra).
@@ -213,17 +231,31 @@ export function saveLevelTest(test: LevelTest): void {
   setSetting(SETTING_KEY, JSON.stringify(test));
 }
 
-/** Todas as perguntas na ordem em que o aluno responde: gramática/vocabulário, depois listening. */
+/**
+ * Todas as perguntas na ordem em que o aluno responde: pra cada nível (A1 → C2), as perguntas de
+ * gramática/leitura daquele nível, seguidas de qualquer vídeo de listening ancorado nele (ver
+ * `listeningAnchor`). Essa ordem também é usada por `scoreLevelTest`, então o front precisa montar
+ * a mesma sequência (ver `buildTestSequence` em frontend/src/lib/levelTest.ts).
+ */
 export function allQuestions(test: LevelTest): LevelTestQuestion[] {
-  return [...test.questions, ...test.listening.flatMap((part) => part.questions)];
+  const result: LevelTestQuestion[] = [];
+  for (const level of CEFR_LEVELS) {
+    result.push(...test.questions.filter((q) => q.level === level));
+    for (const part of test.listening) {
+      if (listeningAnchor(part) === level) result.push(...part.questions);
+    }
+  }
+  return result;
 }
 
-/** O teste sem as respostas certas — é isso que o aluno recebe. */
+/** O teste sem as respostas certas — é isso que o aluno recebe. O nível fica (não é segredo;
+ * o front usa pra montar a mesma ordem de perguntas que `allQuestions` monta aqui). */
 export function levelTestForStudent(test: LevelTest) {
-  const strip = (q: LevelTestQuestion) => ({ prompt: q.prompt, options: q.options });
+  const strip = (q: LevelTestQuestion) => ({ level: q.level, prompt: q.prompt, options: q.options });
+  const stripListening = (q: ListeningQuestion) => ({ level: q.level, prompt: q.prompt, options: q.options, startSeconds: q.startSeconds });
   return {
     questions: test.questions.map(strip),
-    listening: test.listening.map((part) => ({ youtubeVideoId: part.youtubeVideoId, questions: part.questions.map(strip) })),
+    listening: test.listening.map((part) => ({ youtubeVideoId: part.youtubeVideoId, questions: part.questions.map(stripListening) })),
   };
 }
 

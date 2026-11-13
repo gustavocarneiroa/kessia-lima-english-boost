@@ -14,6 +14,7 @@ import {
   levelTestForStudent,
   levelTestQuestionSchema,
   levelTestSchema,
+  listeningQuestionSchema,
   MAX_LISTENING_PARTS,
   normalizeListening,
   saveLevelTest,
@@ -28,7 +29,7 @@ const saveBody = z.object({
     .array(
       z.object({
         youtubeUrl: z.string().trim().min(1).max(500),
-        questions: z.array(levelTestQuestionSchema).min(1).max(30),
+        questions: z.array(listeningQuestionSchema).min(1).max(30),
       }),
     )
     .max(MAX_LISTENING_PARTS),

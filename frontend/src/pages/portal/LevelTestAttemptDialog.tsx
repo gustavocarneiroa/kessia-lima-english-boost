@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
-import { DONT_KNOW, listeningPartAt, splitPrompt, type LevelTestAttemptDetail, type LevelTestQuestion } from "@/lib/levelTest";
+import { buildTestSequence, DONT_KNOW, formatTimestamp, splitPrompt, type LevelTestAttemptDetail } from "@/lib/levelTest";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
@@ -24,8 +24,8 @@ export default function LevelTestAttemptDialog({ attemptId, onClose }: { attempt
       .catch(() => setFailed(true));
   }, [attemptId]);
 
-  const questions: LevelTestQuestion[] = detail ? [...detail.questions, ...detail.listening.flatMap((p) => p.questions)] : [];
-  const grammarCount = detail?.questions.length ?? 0;
+  // Mesma ordem que o aluno respondeu (e que o servidor usou pra corrigir): ver buildTestSequence.
+  const slots = detail ? buildTestSequence(detail.questions, detail.listening) : [];
 
   return (
     <Dialog open={!!attemptId} onOpenChange={(open) => !open && onClose()}>
@@ -46,10 +46,10 @@ export default function LevelTestAttemptDialog({ attemptId, onClose }: { attempt
           <div className="space-y-6">
             <LevelTestResult attempt={detail} compact />
             <ol className="space-y-3 border-t pt-4">
-              {questions.map((q, i) => {
+              {slots.map(({ question: q, video }, i) => {
                 const answer = detail.answers[i];
                 const ok = answer === q.correctIndex;
-                const video = listeningPartAt(grammarCount, detail.listening, i);
+                const startSeconds = (q as { startSeconds?: number }).startSeconds;
                 return (
                   <li key={i} className="space-y-1 text-sm">
                     {video?.first && (
@@ -82,6 +82,16 @@ export default function LevelTestAttemptDialog({ attemptId, onClose }: { attempt
                             {q.level}
                           </Badge>
                           {i + 1}. {splitPrompt(q.prompt).question}
+                          {video && !!startSeconds && (
+                            <a
+                              href={`https://www.youtube.com/watch?v=${video.part.youtubeVideoId}&t=${startSeconds}s`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="ml-1.5 text-xs text-primary underline"
+                            >
+                              {formatTimestamp(startSeconds)}
+                            </a>
+                          )}
                         </p>
                         {!ok && (
                           <p className="text-muted-foreground">

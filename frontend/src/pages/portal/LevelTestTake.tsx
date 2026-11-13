@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "@/lib/api";
 import { usePortalPrefs } from "@/contexts/PortalPrefsContext";
-import { DONT_KNOW, listeningPartAt, splitPrompt, type LevelTestAttempt, type ListeningPart } from "@/lib/levelTest";
+import { buildTestSequence, DONT_KNOW, formatTimestamp, splitPrompt, type CefrLevel, type LevelTestAttempt, type ListeningPart } from "@/lib/levelTest";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,8 +20,10 @@ import LevelTestResult from "./LevelTestResult";
 import LevelTestPrompt from "./LevelTestPrompt";
 
 interface StudentQuestion {
+  level: CefrLevel;
   prompt: string;
   options: string[];
+  startSeconds?: number;
 }
 
 interface MyLevelTest {
@@ -78,11 +80,8 @@ export default function LevelTestTake() {
       .finally(() => setLoading(false));
   }, []);
 
-  const grammarCount = data?.test?.questions.length ?? 0;
-  const questions = useMemo(
-    () => (data?.test ? [...data.test.questions, ...data.test.listening.flatMap((p) => p.questions)] : []),
-    [data],
-  );
+  const slots = useMemo(() => (data?.test ? buildTestSequence(data.test.questions, data.test.listening) : []), [data]);
+  const questions = useMemo(() => slots.map((s) => s.question), [slots]);
 
   function choose(value: number) {
     const next = { ...answers, [current]: value };
@@ -215,13 +214,13 @@ export default function LevelTestTake() {
                 {questions.length} {t("perguntas de múltipla escolha, das mais fáceis às mais difíceis.", "multiple-choice questions, from easiest to hardest.")}
               </li>
               {data.test.listening.length === 1 && (
-                <li>{t("No final tem uma parte de listening com vídeo — use fone de ouvido se puder.", "At the end there's a listening part with a video — use headphones if you can.")}</li>
+                <li>{t("No meio do teste tem uma parte de listening com vídeo — use fone de ouvido se puder.", "Partway through there's a listening part with a video — use headphones if you can.")}</li>
               )}
               {data.test.listening.length > 1 && (
                 <li>
                   {t(
-                    `No final tem uma parte de listening com ${data.test.listening.length} vídeos curtos — use fone de ouvido se puder.`,
-                    `At the end there's a listening part with ${data.test.listening.length} short videos — use headphones if you can.`,
+                    `No meio do teste tem ${data.test.listening.length} partes de listening com vídeo, uma em cada nível — use fone de ouvido se puder.`,
+                    `Partway through there are ${data.test.listening.length} listening parts with video, one per level — use headphones if you can.`,
                   )}
                 </li>
               )}
@@ -252,7 +251,8 @@ export default function LevelTestTake() {
 
   // Respondendo
   const q = questions[current];
-  const video = listeningPartAt(grammarCount, data.test.listening, current);
+  const video = slots[current]?.video ?? null;
+  const startSeconds = q.startSeconds ?? 0;
   const answeredCount = questions.filter((_, i) => answers[i] !== undefined).length;
   const isLast = current === questions.length - 1;
   const unanswered = questions.length - answeredCount;
@@ -287,14 +287,19 @@ export default function LevelTestTake() {
               )}
             </CardTitle>
             <CardDescription>
-              {t("Assista ao vídeo (quantas vezes quiser) e responda às perguntas.", "Watch the video (as many times as you like) and answer the questions.")}
+              {startSeconds > 0
+                ? t(
+                    `O vídeo já começa perto do trecho desta pergunta (${formatTimestamp(startSeconds)}). Pode voltar ou assistir de novo quantas vezes quiser.`,
+                    `The video starts near this question's part (${formatTimestamp(startSeconds)}). Feel free to rewind or rewatch as many times as you like.`,
+                  )
+                : t("Assista ao vídeo (quantas vezes quiser) e responda às perguntas.", "Watch the video (as many times as you like) and answer the questions.")}
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <div className="aspect-video w-full">
               <iframe
-                key={video.part.youtubeVideoId}
-                src={`https://www.youtube.com/embed/${video.part.youtubeVideoId}`}
+                key={`${video.part.youtubeVideoId}-${startSeconds}`}
+                src={`https://www.youtube.com/embed/${video.part.youtubeVideoId}?start=${startSeconds}`}
                 className="h-full w-full"
                 style={{ border: 0 }}
                 title="Listening"

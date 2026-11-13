@@ -67,33 +67,76 @@ export interface LevelTestQuestion {
   correctIndex: number;
 }
 
+/** Pergunta de listening: igual à normal, mas pode marcar o momento do vídeo (em segundos). */
+export interface ListeningQuestion extends LevelTestQuestion {
+  startSeconds?: number;
+}
+
 /** Um vídeo do listening e as perguntas sobre ele. */
-export interface ListeningPart<Q = LevelTestQuestion> {
+export interface ListeningPart<Q = ListeningQuestion> {
   youtubeVideoId: string;
   questions: Q[];
 }
 
 export interface LevelTest {
   questions: LevelTestQuestion[];
-  /** Vídeos no fim do teste, em ordem (em geral do mais fácil ao mais difícil). Vazio = sem listening. */
+  /** Vídeos do teste, em geral do mais fácil ao mais difícil. Vazio = sem listening. Cada vídeo
+   * entra na sequência logo depois das perguntas do nível mais alto entre as suas próprias
+   * perguntas (ver `buildTestSequence`) — não necessariamente no fim do teste. */
   listening: ListeningPart[];
 }
 
-/**
- * De qual vídeo é a pergunta `i` do teste (contando gramática + listening, na ordem em que o
- * aluno responde). null = não é de listening. `number` começa em 1; `first` = primeira pergunta do vídeo.
- */
-export function listeningPartAt<Q>(
-  grammarCount: number,
-  parts: ListeningPart<Q>[],
-  i: number,
-): { part: ListeningPart<Q>; number: number; first: boolean } | null {
-  let start = grammarCount;
-  for (const [n, part] of parts.entries()) {
-    if (i >= start && i < start + part.questions.length) return { part, number: n + 1, first: i === start };
-    start += part.questions.length;
+/** Em qual nível (o mais alto entre as perguntas do vídeo) ele deve aparecer — mesma regra do servidor. */
+function listeningAnchor<Q extends { level: CefrLevel }>(part: ListeningPart<Q>): CefrLevel {
+  let best: CefrLevel = CEFR_LEVELS[0];
+  for (const q of part.questions) {
+    if (CEFR_LEVELS.indexOf(q.level) > CEFR_LEVELS.indexOf(best)) best = q.level;
   }
-  return null;
+  return best;
+}
+
+export interface TestSlot<Q> {
+  question: Q;
+  /** Preenchido em toda pergunta do vídeo. `first` marca a primeira (pra mostrar um título uma vez só). */
+  video: { part: ListeningPart<Q>; number: number; first: boolean } | null;
+}
+
+/**
+ * Monta a sequência completa de perguntas (gramática/leitura + listening) na ordem em que o
+ * aluno responde — a mesma ordem que `allQuestions` monta no servidor em
+ * server/src/lib/levelTest.ts. Cada vídeo aparece logo depois das perguntas do seu próprio nível.
+ */
+export function buildTestSequence<Q extends { level: CefrLevel }>(questions: Q[], listening: ListeningPart<Q>[]): TestSlot<Q>[] {
+  const slots: TestSlot<Q>[] = [];
+  for (const level of CEFR_LEVELS) {
+    for (const q of questions.filter((item) => item.level === level)) slots.push({ question: q, video: null });
+    listening.forEach((part, n) => {
+      if (listeningAnchor(part) !== level) return;
+      part.questions.forEach((q, i) => slots.push({ question: q, video: { part, number: n + 1, first: i === 0 } }));
+    });
+  }
+  return slots;
+}
+
+/** mm:ss (ou h:mm:ss) → segundos. Vazio/inválido → undefined. */
+export function parseTimestamp(input: string): number | undefined {
+  const parts = input.trim().split(":");
+  if (parts.length < 2 || parts.length > 3 || parts.some((p) => p === "" || !/^\d+$/.test(p))) return undefined;
+  const nums = parts.map(Number);
+  const [h, m, s] = nums.length === 3 ? nums : [0, nums[0], nums[1]];
+  if (m > 59 || s > 59) return undefined;
+  return h * 3600 + m * 60 + s;
+}
+
+/** segundos → mm:ss (ou h:mm:ss). undefined/0 → "". */
+export function formatTimestamp(seconds: number | undefined): string {
+  if (!seconds) return "";
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  const mm = h > 0 ? String(m).padStart(2, "0") : String(m);
+  const ss = String(s).padStart(2, "0");
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
 export type LevelBreakdown = Partial<Record<CefrLevel, { correct: number; total: number }>>;
