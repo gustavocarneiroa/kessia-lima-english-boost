@@ -6,7 +6,7 @@ export type CefrLevel = (typeof CEFR_LEVELS)[number];
 
 /** Enquanto false, só a professora vê o teste (menu, aviso e "Liberar" escondidos pro aluno).
  * Mudar junto com o mesmo nome em server/src/lib/levelTest.ts. */
-export const LEVEL_TEST_FOR_STUDENTS = false;
+export const LEVEL_TEST_FOR_STUDENTS = true;
 
 /** Resposta "não sei". */
 export const DONT_KNOW = -1;

@@ -151,9 +151,9 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   a tentativa com cópia do teste (`level_test_attempts`), apaga a liberação e grava o nível em
   `student_profiles.english_level`. Nível = mais alto com ≥60% de acerto sem falhar nenhum
   abaixo; "não sei" = -1. Aluno vê o nível e acertos por nível, não o gabarito.
-  **Hoje só a professora vê** (fase de revisão das perguntas): `LEVEL_TEST_FOR_STUDENTS = false`
-  em `server/src/lib/levelTest.ts` e `frontend/src/lib/levelTest.ts` — esconde menu/aviso/card
-  do aluno e "Liberar", e as rotas do aluno respondem 404. Pra abrir, trocar os dois pra `true`.
+  **Aberto pros alunos desde 13/nov/2026** (`LEVEL_TEST_FOR_STUDENTS = true` em
+  `server/src/lib/levelTest.ts` e `frontend/src/lib/levelTest.ts`). Com `false` volta à fase de
+  revisão: esconde menu/aviso/card do aluno e "Liberar", e as rotas do aluno respondem 404.
 - **Horror Movie Awards** (aula de Halloween, out/2026): votação **aberta, sem login** em
   `/awards` (`pages/HorrorAwards.tsx`) — cada navegador tem um `voterId` próprio (votar de
   novo substitui), limite por IP (`awardsIp`). Resultado só pra professora em `/portal/awards` (fora do menu desde nov/2026 — só pelo endereço)

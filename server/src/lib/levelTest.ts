@@ -10,7 +10,7 @@ export type CefrLevel = (typeof CEFR_LEVELS)[number];
 
 // Enquanto false, só a professora vê o teste (pra revisar as perguntas): as rotas do aluno
 // respondem 404 e não dá pra liberar. Mudar junto com o mesmo nome em frontend/src/lib/levelTest.ts.
-export const LEVEL_TEST_FOR_STUDENTS = false;
+export const LEVEL_TEST_FOR_STUDENTS = true;
 
 const PASS_RATIO = 0.6;
 const SETTING_KEY = "level_test";
