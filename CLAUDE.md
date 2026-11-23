@@ -177,7 +177,7 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   (`.claude/skills/atividade-do-pdf/SKILL.md`): mistura múltipla escolha/completar/banco de
   palavras/tradução, cria sem enviar e devolve o link pra professora revisar.
 - **Hub da escola** (skill `/hub-da-escola`, nov/2026): roteiro adaptado do hub da Queens
-  Idiomas. Ordem: 1) report de aula ✅; 2) diário interno; 3) duplas/trios; 4) report card.
+  Idiomas. Ordem: 1) report de aula ✅; 2) diário interno ✅; 3) duplas/trios; 4) report card.
 - **Registro da aula / report** (`lesson_reports`, um por aula; regras em
   `server/src/lib/lessonReport.ts`, rótulos em `frontend/src/lib/lessonReport.ts`): botão
   "Registrar aula" em `/portal/aulas` (`components/LessonReportDialog.tsx`) → `PUT
@@ -188,6 +188,11 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   cancelada pelo aluno = não, resto = vazio). `GET /api/lessons` manda o registro inteiro pra
   professora e só a parte do aluno pra ele (`serializeReportForStudent`). Página do aluno mostra o
   placar das últimas 8 aulas registradas e sinais de atenção. Não aceita "aula dada" no futuro.
+- **Diário interno** (`student_notes`, nov/2026, passo 2 do hub): card "Diário" na página do aluno
+  (`pages/portal/DiaryCard.tsx`), só professora (`requireTeacher` em `modules/diary/routes.ts`; nenhuma
+  rota de aluno lê a tabela). Anotação = data, tipo (pedagógico/comportamento/pessoal/financeiro/contato/
+  outro), texto, fixar no topo. `GET /api/students/:id/diary` junta as anotações com o resumo/comentários
+  "só você vê" dos registros de aula (só leitura ali). `POST` mesma rota; `PUT`/`DELETE /api/diary/:noteId`.
 - **"Ver como aluno"** (nov/2026): botão "Ver como este aluno" na página do aluno → `POST
   /api/view-as` (só professora logada de verdade, não chave do Claude) grava o cookie
   `kessia_view_as` (JWT de 2h com teacherId+studentId). `loadSession` troca a sessão pela do aluno

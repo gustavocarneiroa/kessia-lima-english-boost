@@ -69,7 +69,7 @@ Use a skill original como **cardápio de ideias e de boas regras**, não como re
 | # | O quê | Pronto quando |
 | --- | --- | --- |
 | 1 | **Report de aula**: completar `lessons` com o registro pedagógico (abaixo) | ela registrar uma semana inteira de aulas |
-| 2 | **Diário interno** por aluno (anotações datadas, só professora) | ela parar de usar o campo "observações" pra isso |
+| 2 | ✅ **Diário interno** por aluno (anotações datadas, só professora) | ela parar de usar o campo "observações" pra isso |
 | 3 | **Duplas/trios** (turma que junta fichas) + registrar aula da dupla de uma vez | uma dupla real registrada nos dois alunos de uma vez |
 | 4 | **Report card** de um período, em PDF | um relatório de semestre entregue a um aluno |
 | 5 | Extras sob pedido: agenda da semana na tela inicial, "alunos sem registro há +8 dias", avisos com "ciente", pendências, pacote de horas, funil de leads | — |

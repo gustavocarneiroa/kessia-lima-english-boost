@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import StudentAssignments from "./StudentAssignments";
 import ContractsCard from "./ContractsCard";
 import LevelTestCard from "./LevelTestCard";
+import DiaryCard from "./DiaryCard";
 import { LEVEL_TEST_FOR_STUDENTS } from "@/lib/levelTest";
 import PasswordLinkBox from "@/components/PasswordLinkBox";
 import {
@@ -570,6 +571,8 @@ export default function StudentDetail() {
           )}
         </CardContent>
       </Card>
+
+      {id && <DiaryCard studentId={id} />}
 
       <Card>
         <CardHeader>

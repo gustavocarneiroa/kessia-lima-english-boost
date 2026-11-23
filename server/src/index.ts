@@ -23,6 +23,7 @@ import { daysOffRoutes } from "./modules/daysOff/routes.ts";
 import { contractRoutes } from "./modules/contracts/routes.ts";
 import { levelTestRoutes } from "./modules/levelTest/routes.ts";
 import { awardsRoutes } from "./modules/awards/routes.ts";
+import { diaryRoutes } from "./modules/diary/routes.ts";
 import { startHolidaySync } from "./lib/holidays.ts";
 import { ensureWebhook } from "./lib/zapsign.ts";
 
@@ -76,6 +77,7 @@ await app.register(daysOffRoutes);
 await app.register(contractRoutes);
 await app.register(levelTestRoutes);
 await app.register(awardsRoutes);
+await app.register(diaryRoutes);
 
 app.setErrorHandler((err: unknown, req, reply) => {
   req.log.error({ err }, "erro não tratado");

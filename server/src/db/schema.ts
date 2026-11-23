@@ -177,6 +177,18 @@ export const lessonReports = sqliteTable("lesson_reports", {
   updatedAt: text("updated_at").notNull(),
 });
 
+// Diário interno: anotações datadas da professora sobre cada aluno. Só professora vê.
+export const studentNotes = sqliteTable("student_notes", {
+  id: text("id").primaryKey(),
+  studentId: text("student_id").notNull().references(() => users.id),
+  date: text("date").notNull(), // YYYY-MM-DD
+  category: text("category").notNull(), // ver NOTE_CATEGORIES em modules/diary/routes.ts
+  text: text("text").notNull(),
+  pinned: integer("pinned", { mode: "boolean" }).notNull().default(false),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
 // Configurações que a professora cadastra pelo próprio site (ex.: chave da API de IA).
 // Guardadas só aqui — nunca devolvidas pelo servidor depois de salvas, só "está configurada?".
 export const appSettings = sqliteTable("app_settings", {

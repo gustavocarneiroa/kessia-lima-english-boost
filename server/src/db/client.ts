@@ -527,5 +527,20 @@ sqlite.exec(`
   CREATE INDEX IF NOT EXISTS lesson_reports_student_id_idx ON lesson_reports(student_id);
 `);
 
+// Diário interno da professora (anotações datadas por aluno). Nunca vai pro aluno.
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS student_notes (
+    id TEXT PRIMARY KEY,
+    student_id TEXT NOT NULL REFERENCES users(id),
+    date TEXT NOT NULL,
+    category TEXT NOT NULL,
+    text TEXT NOT NULL,
+    pinned INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS student_notes_student_id_idx ON student_notes(student_id);
+`);
+
 export const db = drizzle(sqlite, { schema });
 export { schema };
