@@ -502,5 +502,30 @@ sqlite.exec(`
   );
 `);
 
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS lesson_reports (
+    lesson_id TEXT PRIMARY KEY REFERENCES lessons(id),
+    student_id TEXT NOT NULL REFERENCES users(id),
+    status TEXT NOT NULL,
+    duration_minutes INTEGER,
+    punctuality TEXT,
+    homework TEXT,
+    participation TEXT,
+    portuguese TEXT,
+    skills TEXT,
+    material TEXT,
+    material_link TEXT,
+    summary TEXT,
+    comments TEXT,
+    student_homework TEXT,
+    student_links TEXT,
+    student_message TEXT,
+    homework_done INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS lesson_reports_student_id_idx ON lesson_reports(student_id);
+`);
+
 export const db = drizzle(sqlite, { schema });
 export { schema };

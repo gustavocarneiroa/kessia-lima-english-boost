@@ -176,6 +176,18 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   `create_quiz_activity`. Esse fluxo virou a skill `/atividade-do-pdf`
   (`.claude/skills/atividade-do-pdf/SKILL.md`): mistura múltipla escolha/completar/banco de
   palavras/tradução, cria sem enviar e devolve o link pra professora revisar.
+- **Hub da escola** (skill `/hub-da-escola`, nov/2026): roteiro adaptado do hub da Queens
+  Idiomas. Ordem: 1) report de aula ✅; 2) diário interno; 3) duplas/trios; 4) report card.
+- **Registro da aula / report** (`lesson_reports`, um por aula; regras em
+  `server/src/lib/lessonReport.ts`, rótulos em `frontend/src/lib/lessonReport.ts`): botão
+  "Registrar aula" em `/portal/aulas` (`components/LessonReportDialog.tsx`) → `PUT
+  /api/lessons/:id/report`. Status (aula dada/reposição/experimental/canceladas/feriado/férias),
+  duração, pontualidade, homework passado, participação, uso do português, skills, material;
+  resumo/comentários só da professora; homework/links/recado pro aluno, que marca "já fiz"
+  (`POST /api/lessons/:id/homework-done`). O status atualiza `lessons.attended` (realizada = sim,
+  cancelada pelo aluno = não, resto = vazio). `GET /api/lessons` manda o registro inteiro pra
+  professora e só a parte do aluno pra ele (`serializeReportForStudent`). Página do aluno mostra o
+  placar das últimas 8 aulas registradas e sinais de atenção. Não aceita "aula dada" no futuro.
 - Sem banco de dados de alunos ainda além de e-mail/senha — qualquer feature nova
   pra aluno (notas, exercícios, agenda etc.) precisa ser desenhada quando for
   pedida, não existe estrutura pronta pra isso.

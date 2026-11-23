@@ -152,6 +152,31 @@ export const lessons = sqliteTable("lessons", {
   createdAt: text("created_at").notNull(),
 });
 
+// Registro pedagógico de uma aula ("report de aula") — um por aula. Valores/regras em
+// lib/lessonReport.ts. Resumo e comentários são só da professora; homework/links/recado
+// aparecem pro aluno.
+export const lessonReports = sqliteTable("lesson_reports", {
+  lessonId: text("lesson_id").primaryKey().references(() => lessons.id),
+  studentId: text("student_id").notNull().references(() => users.id),
+  status: text("status").notNull(),
+  durationMinutes: integer("duration_minutes"),
+  punctuality: text("punctuality"),
+  homework: text("homework"), // fez o homework passado? yes/no/na
+  participation: text("participation"),
+  portuguese: text("portuguese"),
+  skills: text("skills"), // JSON string[]
+  material: text("material"),
+  materialLink: text("material_link"),
+  summary: text("summary"), // só professora
+  comments: text("comments"), // só professora
+  studentHomework: text("student_homework"),
+  studentLinks: text("student_links"),
+  studentMessage: text("student_message"),
+  homeworkDone: integer("homework_done", { mode: "boolean" }).notNull().default(false), // o aluno marca
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
 // Configurações que a professora cadastra pelo próprio site (ex.: chave da API de IA).
 // Guardadas só aqui — nunca devolvidas pelo servidor depois de salvas, só "está configurada?".
 export const appSettings = sqliteTable("app_settings", {

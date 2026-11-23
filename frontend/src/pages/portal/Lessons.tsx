@@ -33,8 +33,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Plus, Trash2, Pencil, Copy, Link as LinkIcon, ClipboardList, ExternalLink, X } from "lucide-react";
+import { Loader2, Plus, Trash2, Pencil, Copy, Link as LinkIcon, ClipboardList, ClipboardCheck, ExternalLink, X } from "lucide-react";
 import Pagination from "@/components/Pagination";
+import LessonReportDialog from "@/components/LessonReportDialog";
+import {
+  LESSON_STATUS_LABELS,
+  STUDENT_STATUS_LABELS,
+  SKILL_LABELS,
+  isRealized,
+  reportSignals,
+  type LessonReport,
+} from "@/lib/lessonReport";
 
 const PAGE_SIZE = 20;
 
@@ -48,6 +57,30 @@ interface Lesson {
   activityLink: string | null;
   attended: boolean | null;
   makeupScheduled: boolean;
+  report?: LessonReport | null;
+}
+
+/** Linhas que parecem link viram link; o resto fica como texto. */
+function LinkLines({ text }: { text: string }) {
+  return (
+    <ul className="space-y-0.5">
+      {text
+        .split(/\r?\n/)
+        .map((l) => l.trim())
+        .filter(Boolean)
+        .map((line, i) => (
+          <li key={i} className="break-all">
+            {/^https?:\/\//i.test(line) ? (
+              <a href={line} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                {line}
+              </a>
+            ) : (
+              line
+            )}
+          </li>
+        ))}
+    </ul>
+  );
 }
 
 interface Student {
@@ -112,6 +145,7 @@ export default function Lessons() {
   const [editError, setEditError] = useState<string | null>(null);
   const [editSaving, setEditSaving] = useState(false);
 
+  const [reporting, setReporting] = useState<Lesson | null>(null);
   const [deleting, setDeleting] = useState<Lesson | null>(null);
   const [deleteSaving, setDeleteSaving] = useState(false);
 
@@ -225,6 +259,17 @@ export default function Lessons() {
     setLessons((prev) => prev.map((l) => (l.id === lesson.id ? { ...l, makeupScheduled } : l)));
     try {
       await api.put(`/api/lessons/${lesson.id}`, { makeupScheduled });
+    } catch {
+      await load();
+    }
+  }
+
+  async function toggleHomeworkDone(lesson: Lesson, done: boolean) {
+    setLessons((prev) =>
+      prev.map((l) => (l.id === lesson.id && l.report ? { ...l, report: { ...l.report, homeworkDone: done } } : l)),
+    );
+    try {
+      await api.post(`/api/lessons/${lesson.id}/homework-done`, { done });
     } catch {
       await load();
     }
@@ -508,9 +553,37 @@ export default function Lessons() {
                   <div className="min-w-0 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-medium">{lesson.subject}</p>
-                      {lesson.attended === true && <Badge>{t("Compareceu", "Attended")}</Badge>}
-                      {lesson.attended === false && <Badge variant="destructive">{t("Faltou", "Missed")}</Badge>}
-                      {lesson.attended === null && <Badge variant="secondary">{t("Aguardando", "Pending")}</Badge>}
+                      {lesson.report ? (
+                        <Badge variant={isRealized(lesson.report.status) ? "default" : "secondary"}>
+                          {t(
+                            ...((isTeacher ? LESSON_STATUS_LABELS : STUDENT_STATUS_LABELS)[lesson.report.status] ?? [
+                              lesson.report.status,
+                              lesson.report.status,
+                            ]),
+                          )}
+                        </Badge>
+                      ) : (
+                        <>
+                          {lesson.attended === true && <Badge>{t("Compareceu", "Attended")}</Badge>}
+                          {lesson.attended === false && <Badge variant="destructive">{t("Faltou", "Missed")}</Badge>}
+                          {lesson.attended === null && <Badge variant="secondary">{t("Aguardando", "Pending")}</Badge>}
+                        </>
+                      )}
+                      {isTeacher &&
+                        lesson.report &&
+                        reportSignals(lesson.report).map((sig) => (
+                          <Badge
+                            key={sig.label[0]}
+                            variant="outline"
+                            className={
+                              sig.level === "alert"
+                                ? "border-destructive/50 text-destructive"
+                                : "border-amber-500/50 text-amber-700 dark:text-amber-400"
+                            }
+                          >
+                            {t(...sig.label)}
+                          </Badge>
+                        ))}
                       {lesson.makeupScheduled && <Badge variant="outline">{t("Reposição marcada", "Make-up scheduled")}</Badge>}
                     </div>
                     <p className="text-sm text-muted-foreground">
@@ -543,10 +616,67 @@ export default function Lessons() {
                         </a>
                       )}
                     </div>
+                    {lesson.report && lesson.report.skills.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        {lesson.report.skills.map((s) => t(...(SKILL_LABELS[s] ?? [s, s]))).join(" · ")}
+                      </p>
+                    )}
+                    {isTeacher && lesson.report?.summary && (
+                      <p className="line-clamp-2 text-sm text-muted-foreground">{lesson.report.summary}</p>
+                    )}
+                    {lesson.report &&
+                      (lesson.report.studentHomework || lesson.report.studentLinks || lesson.report.studentMessage) && (
+                        <div className="mt-2 space-y-2 rounded-md bg-primary/5 p-3 text-sm">
+                          {lesson.report.studentMessage && (
+                            <p className="whitespace-pre-line">
+                              <span className="font-medium">{t("Recado: ", "Message: ")}</span>
+                              {lesson.report.studentMessage}
+                            </p>
+                          )}
+                          {lesson.report.studentHomework && (
+                            <div>
+                              <p className="font-medium">Homework</p>
+                              <p className="whitespace-pre-line">{lesson.report.studentHomework}</p>
+                            </div>
+                          )}
+                          {lesson.report.studentLinks && (
+                            <div>
+                              <p className="font-medium">Links</p>
+                              <LinkLines text={lesson.report.studentLinks} />
+                            </div>
+                          )}
+                          {lesson.report.studentHomework &&
+                            (isTeacher ? (
+                              <p className="text-xs text-muted-foreground">
+                                {lesson.report.homeworkDone
+                                  ? t("✓ O aluno marcou o homework como feito", "✓ Student marked the homework as done")
+                                  : t("O aluno ainda não marcou o homework como feito", "Student hasn't marked the homework as done yet")}
+                              </p>
+                            ) : (
+                              <label className="flex items-center gap-2">
+                                <Checkbox
+                                  checked={lesson.report.homeworkDone}
+                                  onCheckedChange={(c) => toggleHomeworkDone(lesson, c === true)}
+                                />
+                                {t("Já fiz o homework", "I've done the homework")}
+                              </label>
+                            ))}
+                        </div>
+                      )}
                   </div>
 
                   {isTeacher && (
                     <div className="flex flex-wrap items-center gap-4">
+                      <Button
+                        variant={lesson.report ? "outline" : "default"}
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => setReporting(lesson)}
+                      >
+                        <ClipboardCheck className="h-4 w-4" />
+                        {lesson.report ? t("Ver registro", "View report") : t("Registrar aula", "Report lesson")}
+                      </Button>
+                      {!lesson.report && (
                       <Select
                         value={lesson.attended === true ? "yes" : lesson.attended === false ? "no" : "pending"}
                         onValueChange={(v) => setAttendance(lesson, v as "pending" | "yes" | "no")}
@@ -560,6 +690,7 @@ export default function Lessons() {
                           <SelectItem value="no">{t("Faltou", "Missed")}</SelectItem>
                         </SelectContent>
                       </Select>
+                      )}
                       <label className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Checkbox
                           checked={lesson.makeupScheduled}
@@ -674,6 +805,13 @@ export default function Lessons() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <LessonReportDialog
+        lesson={reporting}
+        studentName={reporting ? studentEmailById.get(reporting.studentId) ?? reporting.studentEmail ?? undefined : undefined}
+        onClose={() => setReporting(null)}
+        onSaved={() => void load()}
+      />
 
       <AlertDialog open={deleting !== null} onOpenChange={(open) => !open && setDeleting(null)}>
         <AlertDialogContent>

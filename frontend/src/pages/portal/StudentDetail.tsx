@@ -14,6 +14,13 @@ import ContractsCard from "./ContractsCard";
 import LevelTestCard from "./LevelTestCard";
 import { LEVEL_TEST_FOR_STUDENTS } from "@/lib/levelTest";
 import PasswordLinkBox from "@/components/PasswordLinkBox";
+import {
+  LESSON_STATUS_LABELS,
+  isRealized,
+  reportScoreboard,
+  reportSignals,
+  type LessonReport,
+} from "@/lib/lessonReport";
 import { Loader2, ArrowLeft, Link as LinkIcon, ClipboardList, ExternalLink, KeyRound, Archive, ArchiveRestore, Pencil } from "lucide-react";
 
 interface Student {
@@ -54,6 +61,7 @@ interface Lesson {
   activityLink: string | null;
   attended: boolean | null;
   makeupScheduled: boolean;
+  report?: LessonReport | null;
 }
 
 const WEEKDAYS: { value: string; label: [pt: string, en: string] }[] = [
@@ -554,14 +562,59 @@ export default function StudentDetail() {
               {t("Nenhuma aula cadastrada para este aluno ainda.", "No lessons added for this student yet.")}
             </p>
           ) : (
+            <>
+            {(() => {
+              const sb = reportScoreboard(lessons.flatMap((l) => (l.report ? [l.report] : [])));
+              if (sb.count === 0) return null;
+              const items = [
+                sb.onTime.of > 0 && t(`${sb.onTime.yes} de ${sb.onTime.of} no horário`, `${sb.onTime.yes} of ${sb.onTime.of} on time`),
+                sb.homework.of > 0 &&
+                  t(`${sb.homework.yes} de ${sb.homework.of} com homework`, `${sb.homework.yes} of ${sb.homework.of} with homework`),
+                sb.goodParticipation.of > 0 &&
+                  t(
+                    `${sb.goodParticipation.yes} de ${sb.goodParticipation.of} com participação boa ou excelente`,
+                    `${sb.goodParticipation.yes} of ${sb.goodParticipation.of} with good or excellent participation`,
+                  ),
+              ].filter(Boolean);
+              return (
+                <div className="mb-3 rounded-md bg-muted/50 p-3 text-sm">
+                  <p className="font-medium">
+                    {t(`Últimas ${sb.count} aulas registradas`, `Last ${sb.count} reported lessons`)}
+                  </p>
+                  <p className="text-muted-foreground">{items.join(" · ")}</p>
+                </div>
+              );
+            })()}
             <ul className="divide-y">
               {lessons.map((lesson) => (
                 <li key={lesson.id} className="space-y-1 py-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-sm font-medium">{lesson.subject}</p>
-                    {lesson.attended === true && <Badge>{t("Compareceu", "Attended")}</Badge>}
-                    {lesson.attended === false && <Badge variant="destructive">{t("Faltou", "Missed")}</Badge>}
-                    {lesson.attended === null && <Badge variant="secondary">{t("Aguardando", "Pending")}</Badge>}
+                    {lesson.report ? (
+                      <Badge variant={isRealized(lesson.report.status) ? "default" : "secondary"}>
+                        {t(...(LESSON_STATUS_LABELS[lesson.report.status] ?? [lesson.report.status, lesson.report.status]))}
+                      </Badge>
+                    ) : (
+                      <>
+                        {lesson.attended === true && <Badge>{t("Compareceu", "Attended")}</Badge>}
+                        {lesson.attended === false && <Badge variant="destructive">{t("Faltou", "Missed")}</Badge>}
+                        {lesson.attended === null && <Badge variant="secondary">{t("Aguardando", "Pending")}</Badge>}
+                      </>
+                    )}
+                    {lesson.report &&
+                      reportSignals(lesson.report).map((sig) => (
+                        <Badge
+                          key={sig.label[0]}
+                          variant="outline"
+                          className={
+                            sig.level === "alert"
+                              ? "border-destructive/50 text-destructive"
+                              : "border-amber-500/50 text-amber-700 dark:text-amber-400"
+                          }
+                        >
+                          {t(...sig.label)}
+                        </Badge>
+                      ))}
                     {lesson.makeupScheduled && <Badge variant="outline">{t("Reposição marcada", "Make-up scheduled")}</Badge>}
                   </div>
                   <p className="text-xs text-muted-foreground">{formatDateTime(lesson.scheduledAt, locale)}</p>
@@ -592,6 +645,7 @@ export default function StudentDetail() {
                 </li>
               ))}
             </ul>
+            </>
           )}
           {lessonsTotal > lessons.length && (
             <p className="pt-3 text-xs text-muted-foreground">
