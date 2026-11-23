@@ -86,8 +86,18 @@ export async function loadSession(req: FastifyRequest) {
   };
 }
 
-// Pedidos que gravam algo e que continuam liberados no "ver como aluno" (sair dele / do portal).
-const VIEW_AS_ALLOWED_WRITES = new Set(["/api/view-as/stop", "/api/auth/logout"]);
+// Pedidos que gravam algo e que continuam liberados no "ver como aluno": sair dele / do portal,
+// e entrar de novo (login troca a sessão e apaga o cookie do modo; esqueci/redefinir senha
+// dependem do e-mail ou do link, não da sessão). Sem isso a tela de login ficava travada.
+const VIEW_AS_ALLOWED_WRITES = new Set([
+  "/api/view-as/stop",
+  "/api/auth/logout",
+  "/api/auth/login",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+  "/api/webauthn/login-options",
+  "/api/webauthn/login-verify",
+]);
 // Leituras que gravam algo pro aluno (ex.: dica do Wordle tira pontos) — bloqueadas também.
 const VIEW_AS_BLOCKED_READS = new Set(["/api/wordle/hint"]);
 
