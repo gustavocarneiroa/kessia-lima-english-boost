@@ -188,6 +188,14 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   cancelada pelo aluno = não, resto = vazio). `GET /api/lessons` manda o registro inteiro pra
   professora e só a parte do aluno pra ele (`serializeReportForStudent`). Página do aluno mostra o
   placar das últimas 8 aulas registradas e sinais de atenção. Não aceita "aula dada" no futuro.
+- **"Ver como aluno"** (nov/2026): botão "Ver como este aluno" na página do aluno → `POST
+  /api/view-as` (só professora logada de verdade, não chave do Claude) grava o cookie
+  `kessia_view_as` (JWT de 2h com teacherId+studentId). `loadSession` troca a sessão pela do aluno
+  só se o cookie for da mesma professora; `/api/auth/me` devolve `viewingAs`. **Só leitura**:
+  `blockWritesWhileViewing` (hook em `index.ts`) recusa todo pedido que grava (e leituras que
+  gravam, ex.: `/api/wordle/hint`), menos `/api/view-as/stop` e logout. Faixa amarela no topo
+  (`ViewAsBanner` em `PortalLayout.tsx`) com "Voltar pra minha conta". Login novo e logout apagam
+  o cookie. GET que passe a gravar algo pro aluno precisa entrar em `VIEW_AS_BLOCKED_READS`.
 - Sem banco de dados de alunos ainda além de e-mail/senha — qualquer feature nova
   pra aluno (notas, exercícios, agenda etc.) precisa ser desenhada quando for
   pedida, não existe estrutura pronta pra isso.

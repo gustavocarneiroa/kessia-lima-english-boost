@@ -6,6 +6,8 @@ export type Role = "teacher" | "student";
 interface Me {
   email: string;
   role: Role;
+  /** "Ver como aluno": a professora está olhando o portal como esse aluno (só leitura). */
+  viewingAs?: { studentId: string; name: string };
 }
 
 interface AuthContextValue {
@@ -16,6 +18,8 @@ interface AuthContextValue {
   logout: () => Promise<void>;
   logoutAll: () => Promise<void>;
   refresh: () => Promise<void>;
+  startViewAs: (studentId: string) => Promise<void>;
+  stopViewAs: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -70,8 +74,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
+  // Recarrega a página inteira pra nenhuma tela ficar com dados da conta anterior.
+  async function startViewAs(studentId: string) {
+    await api.post("/api/view-as", { studentId });
+    window.location.href = "/portal";
+  }
+
+  async function stopViewAs() {
+    const studentId = user?.viewingAs?.studentId;
+    await api.post("/api/view-as/stop");
+    window.location.href = studentId ? `/portal/alunos/${studentId}` : "/portal";
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithDevice, logout, logoutAll, refresh }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, loginWithDevice, logout, logoutAll, refresh, startViewAs, stopViewAs }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -8,8 +8,16 @@ import { hashPassword, verifyPassword } from "../../lib/password.ts";
 import { createPasswordLink, MIN_PASSWORD_LENGTH, PASSWORD_TOO_SHORT } from "../../lib/password-link.ts";
 import { emailEnabled, passwordEmail, sendEmail } from "../../lib/email.ts";
 import { blockedFor, clearFailures, registerFailure, tooManyAttempts } from "../../lib/rate-limit.ts";
-import { signSession, sessionCookieOptions, SESSION_COOKIE } from "../../auth/jwt.ts";
-import { requireAuth, revokeAllSessions, ARCHIVED_MESSAGE } from "../../auth/guards.ts";
+import {
+  signSession,
+  signViewAs,
+  sessionCookieOptions,
+  viewAsCookieOptions,
+  SESSION_COOKIE,
+  VIEW_AS_COOKIE,
+} from "../../auth/jwt.ts";
+import { requireAuth, requireTeacherLogin, revokeAllSessions, ARCHIVED_MESSAGE } from "../../auth/guards.ts";
+import { displayName } from "../../lib/displayName.ts";
 
 const loginBody = z.object({
   email: z.string().email(),
@@ -87,6 +95,7 @@ export async function authRoutes(app: FastifyInstance) {
       sessionVersion: user.sessionVersion,
     });
     reply.setCookie(SESSION_COOKIE, token, sessionCookieOptions);
+    reply.clearCookie(VIEW_AS_COOKIE, { path: "/" }); // login novo nunca começa em "ver como aluno"
     return { email: user.email, role: user.role, firstLogin };
   });
 
@@ -164,6 +173,27 @@ export async function authRoutes(app: FastifyInstance) {
 
   app.post("/api/auth/logout", async (req, reply) => {
     reply.clearCookie(SESSION_COOKIE, { path: "/" });
+    reply.clearCookie(VIEW_AS_COOKIE, { path: "/" });
+    return { ok: true };
+  });
+
+  // "Ver como aluno": a professora passa a ver o portal exatamente como esse aluno vê, só
+  // pra olhar (nada grava — blockWritesWhileViewing). Vale por 2h ou até "Voltar".
+  app.post("/api/view-as", { preHandler: requireTeacherLogin }, async (req, reply) => {
+    const parsed = z.object({ studentId: z.string().min(1) }).safeParse(req.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_body", message: "Escolha um aluno." });
+    }
+    const student = db.select().from(schema.users).where(eq(schema.users.id, parsed.data.studentId)).get();
+    if (!student || student.role !== "student") {
+      return reply.code(404).send({ error: "not_found", message: "Aluno não encontrado." });
+    }
+    reply.setCookie(VIEW_AS_COOKIE, await signViewAs(req.session!.userId, student.id), viewAsCookieOptions);
+    return { ok: true };
+  });
+
+  app.post("/api/view-as/stop", async (_req, reply) => {
+    reply.clearCookie(VIEW_AS_COOKIE, { path: "/" });
     return { ok: true };
   });
 
@@ -175,6 +205,17 @@ export async function authRoutes(app: FastifyInstance) {
   });
 
   app.get("/api/auth/me", { preHandler: requireAuth }, async (req) => {
-    return { email: req.session!.email, role: req.session!.role };
+    const s = req.session!;
+    if (!s.viewAs) return { email: s.email, role: s.role };
+    const profile = db
+      .select({ fullName: schema.studentProfiles.fullName })
+      .from(schema.studentProfiles)
+      .where(eq(schema.studentProfiles.userId, s.userId))
+      .get();
+    return {
+      email: s.email,
+      role: s.role,
+      viewingAs: { studentId: s.userId, name: displayName({ role: "student", email: s.email, fullName: profile?.fullName ?? null }) },
+    };
   });
 }

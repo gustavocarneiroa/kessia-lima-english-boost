@@ -2,7 +2,7 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import cookie from "@fastify/cookie";
 import { corsOrigins, env } from "./env.ts";
-import { loadSession } from "./auth/guards.ts";
+import { blockWritesWhileViewing, loadSession } from "./auth/guards.ts";
 import { identifyRoutes } from "./modules/identify/routes.ts";
 import { authRoutes } from "./modules/auth/routes.ts";
 import { studentRoutes } from "./modules/students/routes.ts";
@@ -38,6 +38,7 @@ await app.register(cors, { origin: corsOrigins, credentials: true });
 await app.register(cookie);
 
 app.addHook("onRequest", loadSession);
+app.addHook("onRequest", blockWritesWhileViewing);
 
 // Cabeçalhos de proteção padrão: a API nunca é aberta dentro de outro site, o navegador
 // não "adivinha" tipo de arquivo, e só se fala com ela por HTTPS.

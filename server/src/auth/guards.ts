@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { eq, sql } from "drizzle-orm";
 import { db, schema } from "../db/client.ts";
-import { SESSION_COOKIE, verifySession, type SessionPayload } from "./jwt.ts";
+import { SESSION_COOKIE, VIEW_AS_COOKIE, verifySession, verifyViewAs, type SessionPayload } from "./jwt.ts";
 import { findApiTokenUser } from "../lib/api-tokens.ts";
 
 declare module "fastify" {
@@ -59,6 +59,51 @@ export async function loadSession(req: FastifyRequest) {
   if ((session.sessionVersion ?? 0) !== user.sessionVersion) return;
   // papel e e-mail sempre do banco, nunca só do que veio no cookie
   req.session = { userId: session.userId, email: user.email, role: user.role, sessionVersion: user.sessionVersion };
+
+  // "Ver como aluno": só vale por cima de uma sessão de professora de verdade (cookie, não
+  // chave), e só pra a mesma professora que pediu. Fora isso o cookie é ignorado.
+  const viewAsToken = req.cookies?.[VIEW_AS_COOKIE];
+  if (!viewAsToken || user.role !== "teacher") return;
+  const viewAs = await verifyViewAs(viewAsToken);
+  if (!viewAs || viewAs.teacherId !== session.userId) return;
+  const student = db
+    .select({
+      email: schema.users.email,
+      role: schema.users.role,
+      archivedAt: schema.users.archivedAt,
+      sessionVersion: schema.users.sessionVersion,
+    })
+    .from(schema.users)
+    .where(eq(schema.users.id, viewAs.studentId))
+    .get();
+  if (!student || student.role !== "student") return;
+  req.session = {
+    userId: viewAs.studentId,
+    email: student.email,
+    role: "student",
+    sessionVersion: student.sessionVersion,
+    viewAs: { teacherId: session.userId },
+  };
+}
+
+// Pedidos que gravam algo e que continuam liberados no "ver como aluno" (sair dele / do portal).
+const VIEW_AS_ALLOWED_WRITES = new Set(["/api/view-as/stop", "/api/auth/logout"]);
+// Leituras que gravam algo pro aluno (ex.: dica do Wordle tira pontos) — bloqueadas também.
+const VIEW_AS_BLOCKED_READS = new Set(["/api/wordle/hint"]);
+
+/**
+ * No "ver como aluno" a professora só olha: nada que ela fizer pode mudar os dados do aluno
+ * (responder atividade, marcar homework, votar, gastar dica…).
+ */
+export async function blockWritesWhileViewing(req: FastifyRequest, reply: FastifyReply) {
+  if (!req.session?.viewAs) return;
+  const path = req.url.split("?")[0];
+  const isRead = req.method === "GET" || req.method === "HEAD" || req.method === "OPTIONS";
+  if ((isRead && !VIEW_AS_BLOCKED_READS.has(path)) || VIEW_AS_ALLOWED_WRITES.has(path)) return;
+  reply.code(403).send({
+    error: "view_as_read_only",
+    message: "Você está vendo o portal como aluno — aqui dá só pra olhar. Volte pra sua conta pra fazer alterações.",
+  });
 }
 
 /** Faz todas as sessões abertas desse usuário pararem de valer. */

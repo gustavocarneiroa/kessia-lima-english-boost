@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { PortalPrefsProvider, usePortalPrefs } from "@/contexts/PortalPrefsContext";
@@ -193,6 +193,32 @@ function PrefsToggles() {
   );
 }
 
+/** Faixa fixa no topo enquanto a professora está em "ver como aluno". */
+function ViewAsBanner({ name }: { name: string }) {
+  const { stopViewAs } = useAuth();
+  const { t } = usePortalPrefs();
+  const [leaving, setLeaving] = useState(false);
+  return (
+    <div className="sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-amber-400 px-4 py-2 text-center text-sm font-medium text-amber-950">
+      <span>
+        {t(`Você está vendo o portal como ${name}`, `You're viewing the portal as ${name}`)}
+        <span className="font-normal"> · {t("só pra olhar, nada é salvo", "view only, nothing is saved")}</span>
+      </span>
+      <button
+        type="button"
+        className="rounded-md bg-amber-950 px-3 py-1 text-xs font-semibold text-amber-50 hover:bg-amber-900 disabled:opacity-60"
+        disabled={leaving}
+        onClick={() => {
+          setLeaving(true);
+          stopViewAs().catch(() => setLeaving(false));
+        }}
+      >
+        {leaving ? t("Voltando…", "Going back…") : t("Voltar pra minha conta", "Back to my account")}
+      </button>
+    </div>
+  );
+}
+
 export default function PortalLayout() {
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
@@ -209,6 +235,7 @@ export default function PortalLayout() {
 
   return (
     <PortalPrefsProvider>
+      {user.viewingAs && <ViewAsBanner name={user.viewingAs.name} />}
       <ContractGate enabled={user.role === "student"} onLogout={handleLogout}>
       <SidebarProvider>
         <PortalSidebar user={user} onLogout={handleLogout} />

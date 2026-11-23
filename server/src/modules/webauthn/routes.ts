@@ -10,7 +10,7 @@ import {
 import { db, schema } from "../../db/client.ts";
 import { env, corsOrigins } from "../../env.ts";
 import { requireAuth, ARCHIVED_MESSAGE } from "../../auth/guards.ts";
-import { signSession, sessionCookieOptions, SESSION_COOKIE } from "../../auth/jwt.ts";
+import { signSession, sessionCookieOptions, SESSION_COOKIE, VIEW_AS_COOKIE } from "../../auth/jwt.ts";
 import { saveChallenge, takeChallenge } from "../../lib/challenge-store.ts";
 import { blockedFor, clearFailures, registerFailure, tooManyAttempts } from "../../lib/rate-limit.ts";
 
@@ -180,6 +180,7 @@ export async function webauthnRoutes(app: FastifyInstance) {
         sessionVersion: user.sessionVersion,
       });
       reply.setCookie(SESSION_COOKIE, token, sessionCookieOptions);
+      reply.clearCookie(VIEW_AS_COOKIE, { path: "/" });
       return { email: user.email, role: user.role };
     } catch (err) {
       req.log.error({ err }, "falha ao verificar login webauthn");

@@ -21,7 +21,8 @@ import {
   reportSignals,
   type LessonReport,
 } from "@/lib/lessonReport";
-import { Loader2, ArrowLeft, Link as LinkIcon, ClipboardList, ExternalLink, KeyRound, Archive, ArchiveRestore, Pencil } from "lucide-react";
+import { Loader2, ArrowLeft, Link as LinkIcon, ClipboardList, ExternalLink, KeyRound, Archive, ArchiveRestore, Pencil, Eye } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Student {
   id: string;
@@ -113,6 +114,17 @@ export default function StudentDetail() {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
   const [archiving, setArchiving] = useState(false);
+  const { startViewAs } = useAuth();
+  const [viewAsLoading, setViewAsLoading] = useState(false);
+
+  async function viewAsStudent(studentId: string) {
+    setViewAsLoading(true);
+    try {
+      await startViewAs(studentId);
+    } catch {
+      setViewAsLoading(false);
+    }
+  }
 
   const [editingEmail, setEditingEmail] = useState(false);
   const [newEmail, setNewEmail] = useState("");
@@ -322,6 +334,18 @@ export default function StudentDetail() {
                 {student.hasLoggedIn
                   ? t("Gerar link de redefinição de senha", "Generate password reset link")
                   : t("Gerar link de convite", "Generate invite link")}
+              </Button>
+            )}
+            {!student.archivedAt && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => void viewAsStudent(student.id)}
+                disabled={viewAsLoading}
+              >
+                {viewAsLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Eye className="h-3.5 w-3.5" />}
+                {t("Ver como este aluno", "View as this student")}
               </Button>
             )}
             <Button variant="outline" size="sm" className="gap-1.5" onClick={toggleArchived} disabled={archiving}>
