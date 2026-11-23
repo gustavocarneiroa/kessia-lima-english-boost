@@ -189,6 +189,15 @@ export const studentNotes = sqliteTable("student_notes", {
   updatedAt: text("updated_at").notNull(),
 });
 
+// Questionário "Meu perfil de aprendizagem" que o aluno preenche (respostas em JSON,
+// formato em lib/learningProfile.ts). A professora vê na página do aluno.
+export const studentLearningProfiles = sqliteTable("student_learning_profiles", {
+  userId: text("user_id").primaryKey().references(() => users.id),
+  answers: text("answers").notNull(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
 // Configurações que a professora cadastra pelo próprio site (ex.: chave da API de IA).
 // Guardadas só aqui — nunca devolvidas pelo servidor depois de salvas, só "está configurada?".
 export const appSettings = sqliteTable("app_settings", {

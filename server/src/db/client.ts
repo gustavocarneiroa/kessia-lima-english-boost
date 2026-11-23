@@ -542,5 +542,15 @@ sqlite.exec(`
   CREATE INDEX IF NOT EXISTS student_notes_student_id_idx ON student_notes(student_id);
 `);
 
+// "Meu perfil de aprendizagem": respostas do questionário do aluno (JSON, ver lib/learningProfile.ts).
+sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS student_learning_profiles (
+    user_id TEXT PRIMARY KEY REFERENCES users(id),
+    answers TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+`);
+
 export const db = drizzle(sqlite, { schema });
 export { schema };

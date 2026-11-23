@@ -264,6 +264,7 @@ export async function studentRoutes(app: FastifyInstance) {
       tx.delete(schema.wordleHints).where(eq(schema.wordleHints.studentId, id)).run();
       tx.delete(schema.lessonReports).where(eq(schema.lessonReports.studentId, id)).run();
       tx.delete(schema.studentNotes).where(eq(schema.studentNotes.studentId, id)).run();
+      tx.delete(schema.studentLearningProfiles).where(eq(schema.studentLearningProfiles.userId, id)).run();
       tx.delete(schema.lessons).where(eq(schema.lessons.studentId, id)).run();
       tx.delete(schema.payments).where(eq(schema.payments.studentId, id)).run();
       tx.delete(schema.studentFlashcards).where(eq(schema.studentFlashcards.studentId, id)).run();

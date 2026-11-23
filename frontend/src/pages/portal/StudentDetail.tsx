@@ -13,6 +13,7 @@ import StudentAssignments from "./StudentAssignments";
 import ContractsCard from "./ContractsCard";
 import LevelTestCard from "./LevelTestCard";
 import DiaryCard from "./DiaryCard";
+import StudentLearningProfileCard from "./StudentLearningProfileCard";
 import { LEVEL_TEST_FOR_STUDENTS } from "@/lib/levelTest";
 import PasswordLinkBox from "@/components/PasswordLinkBox";
 import {
@@ -571,6 +572,8 @@ export default function StudentDetail() {
           )}
         </CardContent>
       </Card>
+
+      {id && <StudentLearningProfileCard studentId={id} />}
 
       {id && <DiaryCard studentId={id} />}
 

@@ -193,6 +193,13 @@ server/     # sistema de login/portal (Node.js + Fastify + SQLite)
   rota de aluno lê a tabela). Anotação = data, tipo (pedagógico/comportamento/pessoal/financeiro/contato/
   outro), texto, fixar no topo. `GET /api/students/:id/diary` junta as anotações com o resumo/comentários
   "só você vê" dos registros de aula (só leitura ali). `POST` mesma rota; `PUT`/`DELETE /api/diary/:noteId`.
+- **Perfil de aprendizagem** (`student_learning_profiles`, nov/2026): questionário que o aluno preenche
+  em "Meu perfil" (`MyLearningProfileCard.tsx`; aviso na tela inicial até responder,
+  `LearningProfileNoticeCard.tsx`): objetivos, dificuldades, autoavaliação 1–5 das 4 skills, uso do inglês
+  no trabalho/fora, assuntos, como gosta de aprender + correção na hora/no fim, recado. Opções em
+  `server/src/lib/learningProfile.ts` (ids, zod) e `frontend/src/lib/learningProfile.ts` (rótulos) — manter
+  iguais. Rotas `GET|PUT /api/me/learning-profile` (aluno) e `GET /api/students/:id/learning-profile`
+  (professora, card na página do aluno). Ideia futura: report card comparar autoavaliação × evolução.
 - **"Ver como aluno"** (nov/2026): botão "Ver como este aluno" na página do aluno → `POST
   /api/view-as` (só professora logada de verdade, não chave do Claude) grava o cookie
   `kessia_view_as` (JWT de 2h com teacherId+studentId). `loadSession` troca a sessão pela do aluno

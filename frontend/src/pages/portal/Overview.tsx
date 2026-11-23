@@ -22,6 +22,7 @@ import { useWordle, useWordleLeaderboard } from "@/hooks/useWordle";
 import NoticeBoard from "./NoticeBoard";
 import PendingContractsCard from "./PendingContractsCard";
 import LevelTestNoticeCard from "./LevelTestNoticeCard";
+import LearningProfileNoticeCard from "./LearningProfileNoticeCard";
 import { LEVEL_TEST_FOR_STUDENTS } from "@/lib/levelTest";
 
 
@@ -150,6 +151,7 @@ export default function Overview() {
       <PendingContractsCard isTeacher={isTeacher} />
 
       {!isTeacher && LEVEL_TEST_FOR_STUDENTS && <LevelTestNoticeCard />}
+      {!isTeacher && <LearningProfileNoticeCard />}
 
       <NoticeBoard isTeacher={isTeacher} />
 
