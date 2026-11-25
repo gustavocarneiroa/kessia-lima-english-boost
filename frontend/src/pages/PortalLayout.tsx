@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { PortalPrefsProvider, usePortalPrefs } from "@/contexts/PortalPrefsContext";
 import {
@@ -24,6 +24,7 @@ import {
   CalendarDays,
   CalendarRange,
   Calculator,
+  ChevronDown,
   FileSignature,
   Gauge,
   GraduationCap,
@@ -55,32 +56,101 @@ interface NavItem {
   label: [pt: string, en: string];
   tooltip?: [pt: string, en: string];
   end?: boolean;
-  only?: "teacher" | "student";
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { to: "/portal", icon: LayoutDashboard, label: ["Início", "Home"], end: true },
-  { to: "/portal/aulas", icon: CalendarDays, label: ["Aulas", "Lessons"] },
-  { to: "/portal/vocabulario", icon: Layers, label: ["Vocabulário", "Vocabulary"] },
-  { to: "/portal/trilha", icon: Map, label: ["Trilha", "Path"], tooltip: ["Trilha de aprendizagem", "Learning path"] },
-  { to: "/portal/teste-de-nivel", icon: Gauge, label: ["Teste de nível", "Level test"], only: LEVEL_TEST_FOR_STUDENTS ? undefined : "teacher" },
-  { to: "/portal/atividades", icon: Puzzle, label: ["Atividades", "Activities"] },
-  { to: "/portal/recursos", icon: Library, label: ["Recursos", "Resources"], tooltip: ["Recursos para praticar", "Practice resources"] },
-  { to: "/portal/forum", icon: MessagesSquare, label: ["Fórum", "Forum"] },
-  { to: "/portal/calendario", icon: CalendarRange, label: ["Calendário", "Calendar"] },
-  { to: "/portal/financeiro", icon: Wallet, label: ["Financeiro", "Payments"] },
-  { to: "/portal/orcamentos", icon: Calculator, label: ["Orçamentos", "Quotes"], only: "teacher" },
-  { to: "/portal/contratos", icon: FileSignature, label: ["Contratos", "Contracts"], only: "teacher" },
-  { to: "/portal/alunos", icon: Users, label: ["Alunos", "Students"], only: "teacher" },
-  { to: "/portal/perfil", icon: User, label: ["Meu perfil", "My profile"], only: "student" },
-  { to: "/portal/dispositivos", icon: Smartphone, label: ["Dispositivos", "Devices"] },
-  { to: "/portal/configuracoes", icon: Settings, label: ["Configurações", "Settings"], only: "teacher" },
+const ITEMS = {
+  home: { to: "/portal", icon: LayoutDashboard, label: ["Início", "Home"], end: true },
+  lessons: { to: "/portal/aulas", icon: CalendarDays, label: ["Aulas", "Lessons"] },
+  calendar: { to: "/portal/calendario", icon: CalendarRange, label: ["Calendário", "Calendar"] },
+  forum: { to: "/portal/forum", icon: MessagesSquare, label: ["Fórum", "Forum"] },
+  students: { to: "/portal/alunos", icon: Users, label: ["Alunos", "Students"] },
+  activities: { to: "/portal/atividades", icon: Puzzle, label: ["Atividades", "Activities"] },
+  vocab: { to: "/portal/vocabulario", icon: Layers, label: ["Vocabulário", "Vocabulary"] },
+  path: { to: "/portal/trilha", icon: Map, label: ["Trilha", "Path"], tooltip: ["Trilha de aprendizagem", "Learning path"] },
+  levelTest: { to: "/portal/teste-de-nivel", icon: Gauge, label: ["Teste de nível", "Level test"] },
+  resources: { to: "/portal/recursos", icon: Library, label: ["Recursos", "Resources"], tooltip: ["Recursos para praticar", "Practice resources"] },
+  payments: { to: "/portal/financeiro", icon: Wallet, label: ["Financeiro", "Payments"] },
+  quotes: { to: "/portal/orcamentos", icon: Calculator, label: ["Orçamentos", "Quotes"] },
+  contracts: { to: "/portal/contratos", icon: FileSignature, label: ["Contratos", "Contracts"] },
+  profile: { to: "/portal/perfil", icon: User, label: ["Meu perfil", "My profile"] },
+  devices: { to: "/portal/dispositivos", icon: Smartphone, label: ["Dispositivos", "Devices"] },
+  settings: { to: "/portal/configuracoes", icon: Settings, label: ["Configurações", "Settings"] },
+} satisfies Record<string, NavItem>;
+
+interface NavGroup {
+  id: string;
+  label: [pt: string, en: string];
+  items: NavItem[];
+}
+
+const TEACHER_GROUPS: NavGroup[] = [
+  { id: "t-day", label: ["Dia a dia", "Day to day"], items: [ITEMS.home, ITEMS.lessons, ITEMS.calendar, ITEMS.forum] },
+  {
+    id: "t-ped",
+    label: ["Pedagógico", "Teaching"],
+    items: [ITEMS.students, ITEMS.activities, ITEMS.vocab, ITEMS.path, ITEMS.levelTest, ITEMS.resources],
+  },
+  { id: "t-admin", label: ["Administrativo", "Admin"], items: [ITEMS.payments, ITEMS.quotes, ITEMS.contracts] },
+  { id: "t-account", label: ["Conta", "Account"], items: [ITEMS.settings, ITEMS.devices] },
 ];
 
+const STUDENT_GROUPS: NavGroup[] = [
+  { id: "s-lessons", label: ["Minhas aulas", "My lessons"], items: [ITEMS.home, ITEMS.lessons, ITEMS.calendar] },
+  {
+    id: "s-practice",
+    label: ["Praticar", "Practice"],
+    items: [
+      ITEMS.activities,
+      ITEMS.vocab,
+      ITEMS.path,
+      ...(LEVEL_TEST_FOR_STUDENTS ? [ITEMS.levelTest] : []),
+      ITEMS.resources,
+      ITEMS.forum,
+    ],
+  },
+  { id: "s-account", label: ["Minha conta", "My account"], items: [ITEMS.payments, ITEMS.profile, ITEMS.devices] },
+];
+
+const CLOSED_GROUPS_KEY = "portal:closed-nav-groups";
+
+function isItemActive(item: NavItem, pathname: string) {
+  if (item.end) return pathname === item.to || pathname === `${item.to}/`;
+  return pathname === item.to || pathname.startsWith(`${item.to}/`);
+}
+
+/** Grupos que a pessoa fechou ficam lembrados neste navegador. */
+function useClosedGroups() {
+  const [closed, setClosed] = useState<string[]>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(CLOSED_GROUPS_KEY) ?? "[]");
+      return Array.isArray(saved) ? saved.filter((x) => typeof x === "string") : [];
+    } catch {
+      return [];
+    }
+  });
+  const toggle = (id: string) => {
+    setClosed((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      try {
+        localStorage.setItem(CLOSED_GROUPS_KEY, JSON.stringify(next));
+      } catch {
+        /* sem localStorage: só não lembra */
+      }
+      return next;
+    });
+  };
+  return { closed, toggle };
+}
+
 function PortalSidebar({ user, onLogout }: { user: { email: string; role: string }; onLogout: () => void }) {
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile, state } = useSidebar();
   const { t } = usePortalPrefs();
+  const { pathname } = useLocation();
+  const { closed, toggle } = useClosedGroups();
   const isTeacher = user.role === "teacher";
+  const groups = isTeacher ? TEACHER_GROUPS : STUDENT_GROUPS;
+  // Menu encolhido (só ícones): mostra tudo, porque os títulos dos grupos somem.
+  const iconsOnly = state === "collapsed" && !isMobile;
 
   const closeMobileMenu = () => {
     if (isMobile) setOpenMobile(false);
@@ -99,34 +169,54 @@ function PortalSidebar({ user, onLogout }: { user: { email: string; role: string
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {NAV_ITEMS.filter((item) => !item.only || item.only === (isTeacher ? "teacher" : "student"))
-                // "Início" sempre no topo; o resto em ordem alfabética no idioma escolhido
-                .sort((a, b) => Number(!!b.end) - Number(!!a.end) || t(...a.label).localeCompare(t(...b.label)))
-                .map((item) => {
-                  const label = t(...item.label);
-                  return (
-                    <SidebarMenuItem key={item.to}>
-                      <SidebarMenuButton asChild tooltip={item.tooltip ? t(...item.tooltip) : label}>
-                        <NavLink
-                          to={item.to}
-                          end={item.end}
-                          onClick={closeMobileMenu}
-                          className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
-                        >
-                          <item.icon />
-                          <span>{label}</span>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {groups.map((group) => {
+          const hasActive = group.items.some((item) => isItemActive(item, pathname));
+          // O grupo da página aberta fica sempre aberto, pra nunca "sumir" de onde a pessoa está.
+          const open = iconsOnly || hasActive || !closed.includes(group.id);
+          const groupLabel = t(...group.label);
+          return (
+            <SidebarGroup key={group.id} className="py-1">
+              <SidebarGroupLabel asChild>
+                <button
+                  type="button"
+                  onClick={() => toggle(group.id)}
+                  disabled={hasActive}
+                  aria-expanded={open}
+                  className="w-full justify-between uppercase tracking-wider hover:text-sidebar-foreground disabled:cursor-default disabled:hover:text-sidebar-foreground/70 group-data-[collapsible=icon]:pointer-events-none"
+                >
+                  <span>{groupLabel}</span>
+                  {!hasActive && (
+                    <ChevronDown className={cn("transition-transform duration-200", !open && "-rotate-90")} />
+                  )}
+                </button>
+              </SidebarGroupLabel>
+              {open && (
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {group.items.map((item) => {
+                      const label = t(...item.label);
+                      return (
+                        <SidebarMenuItem key={item.to}>
+                          <SidebarMenuButton asChild tooltip={item.tooltip ? t(...item.tooltip) : label}>
+                            <NavLink
+                              to={item.to}
+                              end={item.end}
+                              onClick={closeMobileMenu}
+                              className={({ isActive }) => cn(isActive && "bg-sidebar-accent text-sidebar-accent-foreground")}
+                            >
+                              <item.icon />
+                              <span>{label}</span>
+                            </NavLink>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              )}
+            </SidebarGroup>
+          );
+        })}
       </SidebarContent>
 
       <SidebarFooter>
